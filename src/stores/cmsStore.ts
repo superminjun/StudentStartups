@@ -216,6 +216,16 @@ const mockGrowthRecords: MemberGrowthPoint[] = mockMemberGrowth.map((d, idx) => 
   sortOrder: idx + 1,
 }));
 
+const initialProjects = isSupabaseConfigured ? [] : mockProjects;
+const initialProducts = isSupabaseConfigured ? [] : mockProducts;
+const initialMetrics = isSupabaseConfigured ? [] : mockMetricRecords;
+const initialRevenue = isSupabaseConfigured ? [] : mockRevenueRecords;
+const initialDonations = isSupabaseConfigured ? [] : mockDonationRecords;
+const initialGrowth = isSupabaseConfigured ? [] : mockGrowthRecords;
+const initialSources: SourceMap = isSupabaseConfigured
+  ? { projects: 'db', products: 'db', impact: 'db' }
+  : { projects: 'mock', products: 'mock', impact: 'mock' };
+
 export const useCMSStore = create<{
   projects: Project[];
   products: Product[];
@@ -228,15 +238,15 @@ export const useCMSStore = create<{
   sources: SourceMap;
   hydrate: () => Promise<void>;
 }>((set) => ({
-  projects: mockProjects,
-  products: mockProducts,
-  impactMetrics: mockMetricRecords,
-  revenueData: mockRevenueRecords,
-  donationData: mockDonationRecords,
-  memberGrowthData: mockGrowthRecords,
+  projects: initialProjects,
+  products: initialProducts,
+  impactMetrics: initialMetrics,
+  revenueData: initialRevenue,
+  donationData: initialDonations,
+  memberGrowthData: initialGrowth,
   status: 'idle',
   error: null,
-  sources: { projects: 'mock', products: 'mock', impact: 'mock' },
+  sources: initialSources,
   hydrate: async () => {
     if (!isSupabaseConfigured || !supabase) {
       set({
@@ -266,28 +276,28 @@ export const useCMSStore = create<{
     const nextSources: SourceMap = { projects: 'db', products: 'db', impact: 'db' };
 
     const resolvedProjects = projectsRes.error
-      ? (nextSources.projects = 'mock', mockProjects)
+      ? []
       : (projectsRes.data?.length ? (projectsRes.data as ProjectRow[]).map(mapProjectRow) : []);
 
     const resolvedProducts = productsRes.error
-      ? (nextSources.products = 'mock', mockProducts)
+      ? []
       : (productsRes.data?.length ? (productsRes.data as ProductRow[]).map(mapProductRow) : []);
 
-    const metricsData = metricsRes.error || !metricsRes.data?.length
-      ? (nextSources.impact = 'mock', mockMetricRecords)
-      : (metricsRes.data as ImpactMetricRow[]).map(mapMetricRow);
+    const metricsData = metricsRes.error
+      ? []
+      : (metricsRes.data?.length ? (metricsRes.data as ImpactMetricRow[]).map(mapMetricRow) : []);
 
-    const revenueData = revenueRes.error || !revenueRes.data?.length
-      ? mockRevenueRecords
-      : (revenueRes.data as RevenueRow[]).map(mapRevenueRow);
+    const revenueData = revenueRes.error
+      ? []
+      : (revenueRes.data?.length ? (revenueRes.data as RevenueRow[]).map(mapRevenueRow) : []);
 
-    const donationData = donationRes.error || !donationRes.data?.length
-      ? mockDonationRecords
-      : (donationRes.data as DonationRow[]).map(mapDonationRow);
+    const donationData = donationRes.error
+      ? []
+      : (donationRes.data?.length ? (donationRes.data as DonationRow[]).map(mapDonationRow) : []);
 
-    const memberGrowthData = growthRes.error || !growthRes.data?.length
-      ? mockGrowthRecords
-      : (growthRes.data as GrowthRow[]).map(mapGrowthRow);
+    const memberGrowthData = growthRes.error
+      ? []
+      : (growthRes.data?.length ? (growthRes.data as GrowthRow[]).map(mapGrowthRow) : []);
 
     const firstError = projectsRes.error || productsRes.error || metricsRes.error || revenueRes.error || donationRes.error || growthRes.error;
 

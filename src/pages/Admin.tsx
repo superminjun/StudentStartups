@@ -866,7 +866,7 @@ export default function Admin() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 overflow-x-auto">
+        <div className="flex flex-wrap gap-1 mb-6">
           {tabs.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
