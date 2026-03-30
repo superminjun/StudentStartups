@@ -9,6 +9,7 @@ export default function ResetPassword() {
   const { t } = useLanguage();
   const [session, setSession] = useState<Session | null>(null);
   const [loadingSession, setLoadingSession] = useState(true);
+  const [verifyingLink, setVerifyingLink] = useState(true);
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,13 +19,43 @@ export default function ResetPassword() {
   useEffect(() => {
     if (!supabase) {
       setLoadingSession(false);
+      setVerifyingLink(false);
       return;
     }
 
-    supabase.auth.getSession().then(({ data }) => {
+    const syncSession = async () => {
+      const { data } = await supabase.auth.getSession();
       setSession(data.session ?? null);
       setLoadingSession(false);
-    });
+    };
+
+    const tryHandleUrlTokens = async () => {
+      const url = new URL(window.location.href);
+      const hashParams = new URLSearchParams(url.hash.replace('#', ''));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const tokenHash = url.searchParams.get('token_hash') ?? hashParams.get('token_hash');
+      const token = url.searchParams.get('token') ?? hashParams.get('token');
+      const type = url.searchParams.get('type') ?? hashParams.get('type');
+      const email = url.searchParams.get('email') ?? hashParams.get('email');
+
+      if (accessToken && refreshToken) {
+        await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+      } else if (tokenHash && type) {
+        await supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as 'recovery' });
+      } else if (token && email && type) {
+        await supabase.auth.verifyOtp({ email, token, type: type as 'recovery' });
+      }
+    };
+
+    tryHandleUrlTokens()
+      .catch((err) => {
+        setError(err?.message ?? t('resetPassword.errorInvalid'));
+      })
+      .finally(async () => {
+        await syncSession();
+        setVerifyingLink(false);
+      });
 
     const { data } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
@@ -36,7 +67,7 @@ export default function ResetPassword() {
     return () => {
       data.subscription.unsubscribe();
     };
-  }, []);
+  }, [t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,7 +137,7 @@ export default function ResetPassword() {
               </div>
             )}
 
-            {loadingSession ? (
+            {loadingSession || verifyingLink ? (
               <p className="text-sm text-light">Loading...</p>
             ) : !session ? (
               <div className="space-y-3">
