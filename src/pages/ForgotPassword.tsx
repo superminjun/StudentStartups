@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
 export default function ForgotPassword() {
   const { t } = useLanguage();
@@ -10,11 +11,18 @@ export default function ForgotPassword() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [code, setCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetting, setResetting] = useState(false);
+  const [resetNotice, setResetNotice] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setNotice('');
+    setResetNotice('');
 
     if (!email.trim()) {
       setError(t('forgotPassword.errorRequired'));
@@ -33,8 +41,56 @@ export default function ForgotPassword() {
       setError(resetError.message);
     } else {
       setNotice(t('forgotPassword.sent'));
+      setSent(true);
     }
     setLoading(false);
+  };
+
+  const handleResetWithCode = async () => {
+    setError('');
+    setResetNotice('');
+
+    if (code.trim().length < 6) {
+      setError(t('login.errorCodeRequired'));
+      return;
+    }
+
+    if (!newPassword || !confirmPassword || newPassword !== confirmPassword) {
+      setError(t('resetPassword.errorMismatch'));
+      return;
+    }
+
+    if (!isSupabaseConfigured || !supabase) {
+      setError(t('login.errorSupabase'));
+      return;
+    }
+
+    setResetting(true);
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: code.trim(),
+      type: 'recovery',
+    });
+
+    if (verifyError) {
+      setError(verifyError.message);
+      setResetting(false);
+      return;
+    }
+
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+    if (updateError) {
+      setError(updateError.message);
+      setResetting(false);
+      return;
+    }
+
+    setResetNotice(t('forgotPassword.resetSuccess'));
+    setCode('');
+    setNewPassword('');
+    setConfirmPassword('');
+    await supabase.auth.signOut();
+    setResetting(false);
   };
 
   return (
@@ -78,7 +134,8 @@ export default function ForgotPassword() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                disabled={sent}
+                className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10 disabled:bg-[hsl(30,20%,96%)] disabled:text-mid"
                 placeholder="you@school.edu"
               />
             </div>
@@ -93,6 +150,56 @@ export default function ForgotPassword() {
             >
               {loading ? t('forgotPassword.sending') : t('forgotPassword.send')}
             </button>
+
+            {sent && (
+              <div className="mt-6 space-y-4 border-t border-[hsl(30,12%,90%)] pt-6">
+                <p className="text-sm font-semibold text-charcoal">{t('forgotPassword.codeLabel')}</p>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-charcoal">{t('forgotPassword.codeLabel')}</label>
+                  <InputOTP value={code} onChange={setCode} maxLength={6} containerClassName="justify-start">
+                    <InputOTPGroup className="gap-2">
+                      {Array.from({ length: 6 }).map((_, index) => (
+                        <InputOTPSlot
+                          key={index}
+                          index={index}
+                          className="h-11 w-11 rounded-lg border border-[hsl(30,12%,87%)] bg-white text-sm text-charcoal"
+                        />
+                      ))}
+                    </InputOTPGroup>
+                  </InputOTP>
+                  <p className="mt-2 text-xs text-light">{t('forgotPassword.codeHint')}</p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal">{t('forgotPassword.newPassword')}</label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                    placeholder="••••••••"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal">{t('forgotPassword.confirmPassword')}</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                    placeholder="••••••••"
+                  />
+                </div>
+                {resetNotice && <p className="text-xs text-[hsl(140,35%,35%)]">{resetNotice}</p>}
+                <button
+                  type="button"
+                  onClick={handleResetWithCode}
+                  disabled={resetting}
+                  className="w-full rounded-full bg-charcoal py-3 text-sm font-semibold text-white transition-all hover:bg-[hsl(20,8%,28%)] disabled:cursor-not-allowed disabled:opacity-70 active:scale-[0.98]"
+                >
+                  {resetting ? t('forgotPassword.resetting') : t('forgotPassword.reset')}
+                </button>
+              </div>
+            )}
 
             <div className="mt-4 text-center">
               <Link to="/login" className="text-xs font-semibold text-charcoal hover:text-[hsl(24,80%,50%)]">
