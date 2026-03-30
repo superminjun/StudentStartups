@@ -265,13 +265,13 @@ export const useCMSStore = create<{
 
     const nextSources: SourceMap = { projects: 'db', products: 'db', impact: 'db' };
 
-    const resolvedProjects = projectsRes.error || !projectsRes.data?.length
+    const resolvedProjects = projectsRes.error
       ? (nextSources.projects = 'mock', mockProjects)
-      : (projectsRes.data as ProjectRow[]).map(mapProjectRow);
+      : (projectsRes.data?.length ? (projectsRes.data as ProjectRow[]).map(mapProjectRow) : []);
 
-    const resolvedProducts = productsRes.error || !productsRes.data?.length
+    const resolvedProducts = productsRes.error
       ? (nextSources.products = 'mock', mockProducts)
-      : (productsRes.data as ProductRow[]).map(mapProductRow);
+      : (productsRes.data?.length ? (productsRes.data as ProductRow[]).map(mapProductRow) : []);
 
     const metricsData = metricsRes.error || !metricsRes.data?.length
       ? (nextSources.impact = 'mock', mockMetricRecords)

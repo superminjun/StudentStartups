@@ -1924,7 +1924,7 @@ export default function Admin() {
                 <span className="text-xs text-light">{filteredCopyDrafts.length} items</span>
               </div>
 
-              <div className="mt-4 max-h-[520px] space-y-3 overflow-y-auto pr-1 scrollbar-thin">
+              <div className="mt-4 space-y-3">
                 {filteredCopyDrafts.map((row) => (
                   <div key={row.key} className="grid gap-2 lg:grid-cols-[220px,1fr,1fr] items-start">
                     <div className="text-xs font-semibold text-mid break-all">{row.key}</div>
