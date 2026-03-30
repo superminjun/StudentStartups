@@ -6,9 +6,11 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
 type LoginMode = 'member' | 'admin';
 type MemberAuthMode = 'signin' | 'signup';
+type MemberAuthMethod = 'password' | 'otp';
 
 export default function Login() {
   const { t } = useLanguage();
@@ -18,11 +20,16 @@ export default function Login() {
   const queryMode = searchParams.get('mode') === 'admin' ? 'admin' : 'member';
   const [mode, setMode] = useState<LoginMode>(queryMode);
   const [memberMode, setMemberMode] = useState<MemberAuthMode>('signin');
+  const [memberMethod, setMemberMethod] = useState<MemberAuthMethod>('otp');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpTargetEmail, setOtpTargetEmail] = useState('');
   const { user, isAdmin } = useAuth();
 
   useEffect(() => {
@@ -35,11 +42,49 @@ export default function Login() {
     }
   }, [user, isAdmin, mode, navigate]);
 
+  const resetOtp = () => {
+    setOtpSent(false);
+    setOtpCode('');
+    setOtpTargetEmail('');
+    setNotice('');
+  };
+
+  const sendOtpCode = async (emailRedirectTo: string) => {
+    if (!supabase) return;
+
+    const { error: sendError } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo,
+        shouldCreateUser: memberMode === 'signup',
+        ...(memberMode === 'signup' && name ? { data: { full_name: name } } : {}),
+      },
+    });
+
+    if (sendError) {
+      setError(sendError.message);
+      return;
+    }
+
+    setOtpSent(true);
+    setOtpCode('');
+    setOtpTargetEmail(email);
+    setNotice(t('login.codeSent'));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setNotice('');
 
-    if (!email || !password || (mode === 'member' && memberMode === 'signup' && !name)) {
+    const isMemberOtp = mode === 'member' && memberMethod === 'otp';
+
+    if (!email || (mode === 'member' && memberMode === 'signup' && !name)) {
+      setError(t('login.errorRequired'));
+      return;
+    }
+
+    if (!isMemberOtp && !password) {
       setError(t('login.errorRequired'));
       return;
     }
@@ -53,6 +98,34 @@ export default function Login() {
     const redirectTo = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
 
     try {
+      const emailRedirectTo = `${window.location.origin}/login?mode=member`;
+
+      if (isMemberOtp) {
+        if (!otpSent) {
+          await sendOtpCode(emailRedirectTo);
+          return;
+        }
+
+        if (otpCode.trim().length < 6) {
+          setError(t('login.errorCodeRequired'));
+          return;
+        }
+
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          email: otpTargetEmail || email,
+          token: otpCode.trim(),
+          type: 'email',
+        });
+
+        if (verifyError) {
+          setError(verifyError.message);
+          return;
+        }
+
+        navigate(redirectTo || '/portal', { replace: true });
+        return;
+      }
+
       if (mode === 'admin') {
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -82,13 +155,14 @@ export default function Login() {
           password,
           options: {
             data: { full_name: name },
+            emailRedirectTo,
           },
         });
         if (signUpError) {
           setError(signUpError.message);
           return;
         }
-        navigate(redirectTo || '/portal', { replace: true });
+        setNotice(t('login.emailSent'));
         return;
       }
 
@@ -107,6 +181,17 @@ export default function Login() {
   };
 
   const modeLabel = mode === 'admin' ? t('login.adminTab') : t('login.memberTab');
+  const isMemberOtp = mode === 'member' && memberMethod === 'otp';
+  const submitLabel = () => {
+    if (loading) {
+      if (isMemberOtp && !otpSent) return t('login.sendingCode');
+      if (isMemberOtp && otpSent) return t('login.verifyingCode');
+      return t('login.signingIn');
+    }
+    if (isMemberOtp && !otpSent) return t('login.sendCode');
+    if (isMemberOtp && otpSent) return t('login.verifyCode');
+    return t('login.signIn');
+  };
 
   return (
     <div>
@@ -186,6 +271,8 @@ export default function Login() {
                     onClick={() => {
                       setMode(value);
                       setError('');
+                      setNotice('');
+                      resetOtp();
                       if (value === 'admin') setMemberMode('signin');
                     }}
                     className={cn(
@@ -217,33 +304,96 @@ export default function Login() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (otpSent) resetOtp();
+                  }}
                   className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
                   placeholder="you@school.edu"
                 />
               </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-charcoal">{t('login.password')}</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
-                  placeholder="••••••••"
-                />
-              </div>
+              {!isMemberOtp && (
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-charcoal">{t('login.password')}</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                    placeholder="••••••••"
+                  />
+                </div>
+              )}
+              {isMemberOtp && otpSent && (
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-charcoal">{t('login.oneTimeCode')}</label>
+                  <InputOTP
+                    value={otpCode}
+                    onChange={setOtpCode}
+                    maxLength={6}
+                    containerClassName="justify-start"
+                  >
+                    <InputOTPGroup className="gap-2">
+                      {Array.from({ length: 6 }).map((_, index) => (
+                        <InputOTPSlot
+                          key={index}
+                          index={index}
+                          className="h-11 w-11 rounded-lg border border-[hsl(30,12%,87%)] bg-white text-sm text-charcoal"
+                        />
+                      ))}
+                    </InputOTPGroup>
+                  </InputOTP>
+                  <p className="mt-2 text-xs text-light">{t('login.codeHint')}</p>
+                </div>
+              )}
             </div>
 
             {mode === 'member' && (
-              <div className="mt-4 flex items-center justify-between text-xs text-light">
-                <button
-                  type="button"
-                  onClick={() => setMemberMode(memberMode === 'signin' ? 'signup' : 'signin')}
-                  className="text-xs font-semibold text-charcoal hover:text-[hsl(24,80%,50%)]"
-                >
-                  {memberMode === 'signin' ? t('login.signUpTab') : t('login.signInTab')}
-                </button>
-                <span>{memberMode === 'signin' ? t('login.memberHint') : t('login.memberHintAlt')}</span>
+              <div className="mt-4 space-y-2 text-xs text-light">
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMemberMode(memberMode === 'signin' ? 'signup' : 'signin');
+                      setError('');
+                      setNotice('');
+                      resetOtp();
+                    }}
+                    className="text-xs font-semibold text-charcoal hover:text-[hsl(24,80%,50%)]"
+                  >
+                    {memberMode === 'signin' ? t('login.signUpTab') : t('login.signInTab')}
+                  </button>
+                  <span>{memberMode === 'signin' ? t('login.memberHint') : t('login.memberHintAlt')}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMemberMethod(memberMethod === 'otp' ? 'password' : 'otp');
+                      setError('');
+                      setNotice('');
+                      resetOtp();
+                    }}
+                    className="text-xs font-semibold text-charcoal hover:text-[hsl(24,80%,50%)]"
+                  >
+                    {memberMethod === 'otp' ? t('login.usePassword') : t('login.useCode')}
+                  </button>
+                  <span>{memberMethod === 'otp' ? t('login.codeHintShort') : t('login.passwordHint')}</span>
+                </div>
+                {isMemberOtp && otpSent && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoading(true);
+                      setError('');
+                      setNotice('');
+                      sendOtpCode(`${window.location.origin}/login?mode=member`).finally(() => setLoading(false));
+                    }}
+                    className="w-fit text-xs font-semibold text-charcoal hover:text-[hsl(24,80%,50%)]"
+                  >
+                    {t('login.resendCode')}
+                  </button>
+                )}
               </div>
             )}
 
@@ -251,14 +401,15 @@ export default function Login() {
               <p className="mt-4 text-xs text-light">{t('login.adminHint')}</p>
             )}
 
-            {error && <p className="mt-4 text-xs text-red-500">{error}</p>}
+            {notice && <p className="mt-4 text-xs text-[hsl(140,35%,35%)]">{notice}</p>}
+            {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
 
             <button
               type="submit"
               disabled={loading}
               className="mt-6 w-full rounded-full bg-charcoal py-3 text-sm font-semibold text-white transition-all hover:bg-[hsl(20,8%,28%)] disabled:cursor-not-allowed disabled:opacity-70 active:scale-[0.98]"
             >
-              {loading ? t('login.signingIn') : t('login.signIn')}
+              {submitLabel()}
             </button>
           </motion.form>
         </div>

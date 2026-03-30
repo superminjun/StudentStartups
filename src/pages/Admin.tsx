@@ -104,6 +104,9 @@ export default function Admin() {
   const [meetingsLoading, setMeetingsLoading] = useState(false);
   const [newMeetingDate, setNewMeetingDate] = useState('');
   const [meetingError, setMeetingError] = useState('');
+  const [memberNotice, setMemberNotice] = useState('');
+  const [memberError, setMemberError] = useState('');
+  const [memberDeleting, setMemberDeleting] = useState(false);
   const [memberRoleInput, setMemberRoleInput] = useState('');
   const [memberTeamInput, setMemberTeamInput] = useState('');
   const [contributions, setContributions] = useState<ContributionRow[]>([]);
@@ -290,6 +293,39 @@ export default function Admin() {
     loadMeetings();
     if (selectedMember) loadMemberMeetings(selectedMember);
     loadMembers();
+  };
+
+  const handleDeleteMember = async () => {
+    if (!supabase || !activeMember) return;
+    const confirmDelete = window.confirm(
+      `Delete ${activeMember.name}? This removes their profile, attendance, and contributions.`
+    );
+    if (!confirmDelete) return;
+
+    setMemberDeleting(true);
+    setMemberNotice('');
+    setMemberError('');
+
+    const { error: deleteError } = await supabase
+      .from('members')
+      .delete()
+      .eq('id', activeMember.id);
+
+    if (deleteError) {
+      setMemberError(deleteError.message);
+      setMemberDeleting(false);
+      return;
+    }
+
+    setSelectedMember(null);
+    setMemberRoleInput('');
+    setMemberTeamInput('');
+    setMeetingEdits({});
+    setMemberMeetings([]);
+    setContributions([]);
+    setMemberNotice('Member deleted.');
+    await loadMembers();
+    setMemberDeleting(false);
   };
 
   const loadContributions = async (memberId: string) => {
@@ -1060,6 +1096,21 @@ export default function Admin() {
                     Contributions: <span className="ml-2 font-semibold text-charcoal">{contributionTotal}</span>
                   </div>
                 </div>
+              </div>
+              {(memberNotice || memberError) && (
+                <div className={`mt-3 text-xs ${memberError ? 'text-red-500' : 'text-emerald-600'}`}>
+                  {memberError || memberNotice}
+                </div>
+              )}
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-xs text-light">Deleting a member removes their attendance and contributions.</p>
+                <button
+                  onClick={handleDeleteMember}
+                  disabled={memberDeleting}
+                  className="rounded-full border border-red-200 px-4 py-2 text-xs font-semibold text-red-600 transition-colors hover:border-red-400 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {memberDeleting ? 'Deleting...' : 'Delete Member'}
+                </button>
               </div>
             </div>
 

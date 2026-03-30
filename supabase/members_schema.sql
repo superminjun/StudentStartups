@@ -46,6 +46,11 @@ create policy "Admins can update members"
   using (exists (select 1 from public.admin_users where id = auth.uid()))
   with check (exists (select 1 from public.admin_users where id = auth.uid()));
 
+create policy "Admins can delete members"
+  on public.members
+  for delete
+  using (exists (select 1 from public.admin_users where id = auth.uid()));
+
 -- Meetings
 create table if not exists public.meetings (
   id uuid primary key default gen_random_uuid(),
@@ -128,6 +133,11 @@ create policy "Admins can insert attendance"
   on public.attendance
   for insert
   with check (exists (select 1 from public.admin_users where id = auth.uid()));
+
+create policy "Admins can delete attendance"
+  on public.attendance
+  for delete
+  using (exists (select 1 from public.admin_users where id = auth.uid()));
 
 -- Auto-create attendance rows when members or meetings are created
 create or replace function public.handle_new_member_attendance()

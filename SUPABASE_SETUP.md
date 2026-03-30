@@ -33,6 +33,10 @@ For editable Shop terms, run:
 
 `supabase/patches_2026-03-31.sql`
 
+For admin member delete permissions, run:
+
+`supabase/patches_2026-04-01.sql`
+
 For the new Projects/Shop/Impact CMS, run:
 
 `supabase/cms_schema.sql`
@@ -65,6 +69,16 @@ This creates:
 insert into public.admin_users (id, email)
 values ('YOUR-USER-UUID', 'you@yourdomain.com');
 ```
+
+## 3.5) Auth settings (one-time codes + redirect URL)
+In Supabase → **Authentication → URL Configuration**:
+- Set **Site URL** to your real domain (ex: `https://studentstartups.ca`).
+- Add **Redirect URLs** for local + production:
+  - `http://localhost:8080/login?mode=member`
+  - `https://studentstartups.ca/login?mode=member`
+
+In Supabase → **Authentication → Providers → Email**:
+- Enable **Email OTP** (required for one-time access codes).
 
 ## 4) Enable realtime updates (once)
 In Supabase → Database → Replication:
