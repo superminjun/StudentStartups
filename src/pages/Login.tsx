@@ -10,7 +10,6 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 
 type LoginMode = 'member' | 'admin';
 type MemberAuthMode = 'signin' | 'signup';
-type MemberAuthMethod = 'password' | 'otp';
 
 export default function Login() {
   const { t } = useLanguage();
@@ -20,16 +19,16 @@ export default function Login() {
   const queryMode = searchParams.get('mode') === 'admin' ? 'admin' : 'member';
   const [mode, setMode] = useState<LoginMode>(queryMode);
   const [memberMode, setMemberMode] = useState<MemberAuthMode>('signin');
-  const [memberMethod, setMemberMethod] = useState<MemberAuthMethod>('otp');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
-  const [otpTargetEmail, setOtpTargetEmail] = useState('');
+  const [signupPending, setSignupPending] = useState(false);
+  const [signupCode, setSignupCode] = useState('');
+  const [pendingEmail, setPendingEmail] = useState('');
+  const [resendingCode, setResendingCode] = useState(false);
   const { user, isAdmin } = useAuth();
 
   useEffect(() => {
@@ -42,34 +41,11 @@ export default function Login() {
     }
   }, [user, isAdmin, mode, navigate]);
 
-  const resetOtp = () => {
-    setOtpSent(false);
-    setOtpCode('');
-    setOtpTargetEmail('');
+  const resetSignupVerification = () => {
+    setSignupPending(false);
+    setSignupCode('');
+    setPendingEmail('');
     setNotice('');
-  };
-
-  const sendOtpCode = async (emailRedirectTo: string) => {
-    if (!supabase) return;
-
-    const { error: sendError } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo,
-        shouldCreateUser: memberMode === 'signup',
-        ...(memberMode === 'signup' && name ? { data: { full_name: name } } : {}),
-      },
-    });
-
-    if (sendError) {
-      setError(sendError.message);
-      return;
-    }
-
-    setOtpSent(true);
-    setOtpCode('');
-    setOtpTargetEmail(email);
-    setNotice(t('login.codeSent'));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,15 +53,26 @@ export default function Login() {
     setError('');
     setNotice('');
 
-    const isMemberOtp = mode === 'member' && memberMethod === 'otp';
+    const isMemberSignup = mode === 'member' && memberMode === 'signup';
+    const isMemberSignin = mode === 'member' && memberMode === 'signin';
 
-    if (!email || (mode === 'member' && memberMode === 'signup' && !name)) {
+    if (!email) {
       setError(t('login.errorRequired'));
       return;
     }
 
-    if (!isMemberOtp && !password) {
+    if (isMemberSignup && !signupPending && (!name || !password)) {
       setError(t('login.errorRequired'));
+      return;
+    }
+
+    if ((mode === 'admin' || isMemberSignin) && !password) {
+      setError(t('login.errorRequired'));
+      return;
+    }
+
+    if (isMemberSignup && signupPending && signupCode.trim().length < 6) {
+      setError(t('login.errorCodeRequired'));
       return;
     }
 
@@ -99,32 +86,6 @@ export default function Login() {
 
     try {
       const emailRedirectTo = `${window.location.origin}/login?mode=member`;
-
-      if (isMemberOtp) {
-        if (!otpSent) {
-          await sendOtpCode(emailRedirectTo);
-          return;
-        }
-
-        if (otpCode.trim().length < 6) {
-          setError(t('login.errorCodeRequired'));
-          return;
-        }
-
-        const { error: verifyError } = await supabase.auth.verifyOtp({
-          email: otpTargetEmail || email,
-          token: otpCode.trim(),
-          type: 'email',
-        });
-
-        if (verifyError) {
-          setError(verifyError.message);
-          return;
-        }
-
-        navigate(redirectTo || '/portal', { replace: true });
-        return;
-      }
 
       if (mode === 'admin') {
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -149,20 +110,39 @@ export default function Login() {
         return;
       }
 
-      if (memberMode === 'signup') {
-        const { error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: name },
-            emailRedirectTo,
-          },
-        });
-        if (signUpError) {
-          setError(signUpError.message);
+      if (isMemberSignup) {
+        if (!signupPending) {
+          const { error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { full_name: name },
+              emailRedirectTo,
+            },
+          });
+          if (signUpError) {
+            setError(signUpError.message);
+            return;
+          }
+          setSignupPending(true);
+          setPendingEmail(email);
+          setSignupCode('');
+          setNotice(t('login.codeSent'));
           return;
         }
-        setNotice(t('login.emailSent'));
+
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          email: pendingEmail || email,
+          token: signupCode.trim(),
+          type: 'email',
+        });
+
+        if (verifyError) {
+          setError(verifyError.message);
+          return;
+        }
+
+        navigate(redirectTo || '/portal', { replace: true });
         return;
       }
 
@@ -180,16 +160,36 @@ export default function Login() {
     }
   };
 
+  const handleResendCode = async () => {
+    if (!supabase || !pendingEmail) return;
+    setResendingCode(true);
+    setError('');
+    setNotice('');
+    const emailRedirectTo = `${window.location.origin}/login?mode=member`;
+    const { error: resendError } = await supabase.auth.resend({
+      type: 'signup',
+      email: pendingEmail,
+      options: { emailRedirectTo },
+    });
+    if (resendError) {
+      setError(resendError.message);
+    } else {
+      setNotice(t('login.codeSent'));
+    }
+    setResendingCode(false);
+  };
+
   const modeLabel = mode === 'admin' ? t('login.adminTab') : t('login.memberTab');
-  const isMemberOtp = mode === 'member' && memberMethod === 'otp';
+  const isMemberSignup = mode === 'member' && memberMode === 'signup';
+  const showSignupVerify = isMemberSignup && signupPending;
   const submitLabel = () => {
     if (loading) {
-      if (isMemberOtp && !otpSent) return t('login.sendingCode');
-      if (isMemberOtp && otpSent) return t('login.verifyingCode');
+      if (isMemberSignup && showSignupVerify) return t('login.verifyingCode');
+      if (isMemberSignup && !showSignupVerify) return t('login.sendingCode');
       return t('login.signingIn');
     }
-    if (isMemberOtp && !otpSent) return t('login.sendCode');
-    if (isMemberOtp && otpSent) return t('login.verifyCode');
+    if (isMemberSignup && showSignupVerify) return t('login.verifyCode');
+    if (isMemberSignup && !showSignupVerify) return t('login.signUpTab');
     return t('login.signIn');
   };
 
@@ -272,7 +272,7 @@ export default function Login() {
                       setMode(value);
                       setError('');
                       setNotice('');
-                      resetOtp();
+                      resetSignupVerification();
                       if (value === 'admin') setMemberMode('signin');
                     }}
                     className={cn(
@@ -287,7 +287,7 @@ export default function Login() {
             </div>
 
             <div className="space-y-4">
-              {mode === 'member' && memberMode === 'signup' && (
+              {mode === 'member' && memberMode === 'signup' && !showSignupVerify && (
                 <div>
                   <label className="mb-1 block text-sm font-medium text-charcoal">{t('login.name')}</label>
                   <input
@@ -306,13 +306,14 @@ export default function Login() {
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
-                    if (otpSent) resetOtp();
+                    if (signupPending) resetSignupVerification();
                   }}
-                  className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                  disabled={showSignupVerify}
+                  className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10 disabled:bg-[hsl(30,20%,96%)] disabled:text-mid"
                   placeholder="you@school.edu"
                 />
               </div>
-              {!isMemberOtp && (
+              {!showSignupVerify && (
                 <div>
                   <label className="mb-1 block text-sm font-medium text-charcoal">{t('login.password')}</label>
                   <input
@@ -324,12 +325,12 @@ export default function Login() {
                   />
                 </div>
               )}
-              {isMemberOtp && otpSent && (
+              {showSignupVerify && (
                 <div>
                   <label className="mb-2 block text-sm font-medium text-charcoal">{t('login.oneTimeCode')}</label>
                   <InputOTP
-                    value={otpCode}
-                    onChange={setOtpCode}
+                    value={signupCode}
+                    onChange={setSignupCode}
                     maxLength={6}
                     containerClassName="justify-start"
                   >
@@ -357,7 +358,7 @@ export default function Login() {
                       setMemberMode(memberMode === 'signin' ? 'signup' : 'signin');
                       setError('');
                       setNotice('');
-                      resetOtp();
+                      resetSignupVerification();
                     }}
                     className="text-xs font-semibold text-charcoal hover:text-[hsl(24,80%,50%)]"
                   >
@@ -365,34 +366,33 @@ export default function Login() {
                   </button>
                   <span>{memberMode === 'signin' ? t('login.memberHint') : t('login.memberHintAlt')}</span>
                 </div>
-                <div className="flex items-center justify-between">
+                {memberMode === 'signin' && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setMemberMethod(memberMethod === 'otp' ? 'password' : 'otp');
-                      setError('');
-                      setNotice('');
-                      resetOtp();
-                    }}
-                    className="text-xs font-semibold text-charcoal hover:text-[hsl(24,80%,50%)]"
-                  >
-                    {memberMethod === 'otp' ? t('login.usePassword') : t('login.useCode')}
-                  </button>
-                  <span>{memberMethod === 'otp' ? t('login.codeHintShort') : t('login.passwordHint')}</span>
-                </div>
-                {isMemberOtp && otpSent && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLoading(true);
-                      setError('');
-                      setNotice('');
-                      sendOtpCode(`${window.location.origin}/login?mode=member`).finally(() => setLoading(false));
-                    }}
+                    onClick={() => navigate('/forgot-password')}
                     className="w-fit text-xs font-semibold text-charcoal hover:text-[hsl(24,80%,50%)]"
                   >
-                    {t('login.resendCode')}
+                    {t('login.forgotPassword')}
                   </button>
+                )}
+                {showSignupVerify && (
+                  <div className="flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={handleResendCode}
+                      disabled={resendingCode}
+                      className="text-xs font-semibold text-charcoal hover:text-[hsl(24,80%,50%)] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {resendingCode ? t('login.sendingCode') : t('login.resendCode')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={resetSignupVerification}
+                      className="text-xs font-semibold text-charcoal hover:text-[hsl(24,80%,50%)]"
+                    >
+                      {t('login.changeEmail')}
+                    </button>
+                  </div>
                 )}
               </div>
             )}

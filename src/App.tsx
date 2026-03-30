@@ -18,6 +18,8 @@ const Cart = lazy(() => import('@/pages/Cart'));
 const Contact = lazy(() => import('@/pages/Contact'));
 const MemberPortal = lazy(() => import('@/pages/MemberPortal'));
 const Login = lazy(() => import('@/pages/Login'));
+const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const Admin = lazy(() => import('@/pages/Admin'));
 
 function LoadingFallback() {
@@ -52,6 +54,8 @@ export default function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route
               path="/portal"
               element={(

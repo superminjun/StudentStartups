@@ -75,7 +75,9 @@ In Supabase → **Authentication → URL Configuration**:
 - Set **Site URL** to your real domain (ex: `https://studentstartups.ca`).
 - Add **Redirect URLs** for local + production:
   - `http://localhost:8080/login?mode=member`
+  - `http://localhost:8080/reset-password`
   - `https://studentstartups.ca/login?mode=member`
+  - `https://studentstartups.ca/reset-password`
 
 In Supabase → **Authentication → Providers → Email**:
 - Enable **Email OTP** (required for one-time access codes).
