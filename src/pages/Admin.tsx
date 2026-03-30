@@ -691,16 +691,6 @@ export default function Admin() {
   }, [cmsImpactMetrics, cmsRevenueData, cmsDonationData, cmsGrowthData]);
 
   useEffect(() => {
-    setCopyDrafts(
-      defaultCopyList.map((row) => ({
-        ...row,
-        en: copy[row.key]?.en ?? row.en,
-        ko: copy[row.key]?.ko ?? row.ko,
-      }))
-    );
-  }, [copy, defaultCopyList]);
-
-  useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return;
     const channel = supabase
       .channel('admin-members-stream')
@@ -794,6 +784,16 @@ export default function Admin() {
       ko: koMap[key] ?? '',
     }));
   }, []);
+
+  useEffect(() => {
+    setCopyDrafts(
+      defaultCopyList.map((row) => ({
+        ...row,
+        en: copy[row.key]?.en ?? row.en,
+        ko: copy[row.key]?.ko ?? row.ko,
+      }))
+    );
+  }, [copy, defaultCopyList]);
 
   const themeColorFields = [
     { key: 'colorBeige', label: 'Beige' },
