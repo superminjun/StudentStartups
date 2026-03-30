@@ -7,7 +7,7 @@ import { useSiteThemeStore, type SiteTheme } from '@/stores/siteThemeStore';
 import { useSiteCopyStore } from '@/stores/siteCopyStore';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
-import { TEAM_OPTIONS } from '@/constants/config';
+import { TEAM_OPTIONS, STAGE_LABELS_EN, TERMS } from '@/constants/config';
 import { translations } from '@/constants/translations';
 import { normalizeHex } from '@/lib/color';
 import { Users as UsersIcon, FolderOpen, ShoppingBag, BarChart3, MessageSquare, CheckCircle, XCircle, Save, FileText, Trash2, Package, Palette, Type } from 'lucide-react';
@@ -117,6 +117,7 @@ export default function Admin() {
   const [copyDrafts, setCopyDrafts] = useState<CopyDraft[]>([]);
   const [copySearch, setCopySearch] = useState('');
   const [copyNotice, setCopyNotice] = useState('');
+  const [newTermInput, setNewTermInput] = useState('');
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const activeMember = members.find((m) => m.id === selectedMember);
@@ -405,7 +406,7 @@ export default function Admin() {
     name: 'New Project',
     description: '',
     stage: 1,
-    stageName: 'Planning',
+    stageName: STAGE_LABELS_EN[1],
     revenue: 0,
     expenses: 0,
     profit: 0,
@@ -434,24 +435,27 @@ export default function Admin() {
     status: 'available',
   });
 
-  const mapProjectToRow = (project: Project) => ({
-    id: project.id,
-    name: project.name,
-    description: project.description,
-    stage: Number(project.stage) || 1,
-    stage_name: project.stageName,
-    revenue: Number(project.revenue) || 0,
-    expenses: Number(project.expenses) || 0,
-    profit: Number(project.profit) || 0,
-    donation: Number(project.donation) || 0,
-    donation_percent: Number(project.donationPercent) || 0,
-    team: project.team ?? [],
-    image_url: project.image,
-    start_date: project.startDate,
-    category: project.category,
-    term: project.term,
-    status: project.status ?? 'active',
-  });
+  const mapProjectToRow = (project: Project) => {
+    const normalized = normalizeProject(project);
+    return ({
+      id: normalized.id,
+      name: normalized.name,
+      description: normalized.description,
+      stage: Number(normalized.stage) || 1,
+      stage_name: normalized.stageName,
+      revenue: Number(normalized.revenue) || 0,
+      expenses: Number(normalized.expenses) || 0,
+      profit: Number(normalized.profit) || 0,
+      donation: Number(normalized.donation) || 0,
+      donation_percent: Number(normalized.donationPercent) || 0,
+      team: normalized.team ?? [],
+      image_url: normalized.image,
+      start_date: normalized.startDate,
+      category: normalized.category,
+      term: normalized.term,
+      status: normalized.status ?? 'active',
+    });
+  };
 
   const mapProductToRow = (product: Product) => ({
     id: product.id,
@@ -648,8 +652,30 @@ export default function Admin() {
     await supabase.from(table).delete().eq('id', id);
   };
 
+  function normalizeProject(project: Project): Project {
+    const revenue = Number(project.revenue) || 0;
+    const expenses = Number(project.expenses) || 0;
+    const donation = Number(project.donation) || 0;
+    const profit = revenue - expenses;
+    const donationPercent = revenue > 0 ? Math.round((donation / revenue) * 1000) / 10 : 0;
+    const stage = Math.min(Math.max(Number(project.stage) || 1, 1), 7);
+    const stageName = STAGE_LABELS_EN[stage] ?? project.stageName;
+    return {
+      ...project,
+      revenue,
+      expenses,
+      donation,
+      profit,
+      donationPercent,
+      stage,
+      stageName,
+    };
+  }
+
   const updateProjectDraft = (projectId: string, patch: Partial<Project>) => {
-    setProjectDrafts((prev) => prev.map((p) => (p.id === projectId ? { ...p, ...patch } : p)));
+    setProjectDrafts((prev) =>
+      prev.map((p) => (p.id === projectId ? normalizeProject({ ...p, ...patch }) : p))
+    );
   };
 
   const updateProductDraft = (productId: string, patch: Partial<Product>) => {
@@ -676,7 +702,7 @@ export default function Admin() {
   }, [activeMember?.id]);
 
   useEffect(() => {
-    setProjectDrafts(cmsProjects);
+    setProjectDrafts(cmsProjects.map((project) => normalizeProject(project)));
   }, [cmsProjects]);
 
   useEffect(() => {
@@ -740,6 +766,24 @@ export default function Admin() {
     setCopyDrafts(defaultCopyList);
   };
 
+  const updateShopTerms = (terms: string[]) => {
+    const cleaned = terms.map((term) => term.trim()).filter(Boolean);
+    updateContent({ shopTerms: cleaned.join(', ') });
+  };
+
+  const handleAddTerm = () => {
+    const nextTerm = newTermInput.trim();
+    if (!nextTerm) return;
+    const next = Array.from(new Set([...termOptions, nextTerm]));
+    updateShopTerms(next);
+    setNewTermInput('');
+  };
+
+  const handleRemoveTerm = (term: string) => {
+    const next = termOptions.filter((t) => t !== term);
+    updateShopTerms(next);
+  };
+
   const toggleAttendance = async (attendanceId: string, currentStatus: 'present' | 'absent') => {
     if (!supabase) return;
     await supabase
@@ -785,6 +829,24 @@ export default function Admin() {
     }));
   }, []);
 
+  const parseTerms = (value: string) =>
+    value
+      .split(',')
+      .map((term) => term.trim())
+      .filter(Boolean);
+
+  const termOptions = useMemo(() => {
+    const parsed = parseTerms(siteContent.shopTerms ?? '');
+    return parsed.length ? parsed : TERMS;
+  }, [siteContent.shopTerms]);
+
+  const stageOptions = useMemo(
+    () => Object.entries(STAGE_LABELS_EN)
+      .map(([value, label]) => ({ value: Number(value), label }))
+      .sort((a, b) => a.value - b.value),
+    []
+  );
+
   useEffect(() => {
     setCopyDrafts(
       defaultCopyList.map((row) => ({
@@ -820,7 +882,7 @@ export default function Admin() {
   }, [copyDrafts, copySearch]);
 
   const contentEntries = (Object.entries(siteContent) as [keyof SiteContent, string][])
-    .filter(([key]) => key !== 'heroBackgroundUrl');
+    .filter(([key]) => key !== 'heroBackgroundUrl' && key !== 'shopTerms');
 
   const normalizedOrders = orders.map((order, index) => {
     let items: { name: string; qty: number; price: number }[] = [];
@@ -1213,25 +1275,25 @@ export default function Admin() {
                         className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
                       />
                     </div>
-                    <div>
+                    <div className="sm:col-span-2">
                       <label className="text-xs font-semibold text-mid">Stage</label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={7}
-                        value={project.stage}
-                        onChange={(e) => updateProjectDraft(project.id, { stage: Number(e.target.value) })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-mid">Stage Name</label>
-                      <input
-                        type="text"
-                        value={project.stageName}
-                        onChange={(e) => updateProjectDraft(project.id, { stageName: e.target.value })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
-                      />
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {stageOptions.map((option) => (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => updateProjectDraft(project.id, { stage: option.value })}
+                            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
+                              project.stage === option.value
+                                ? 'bg-charcoal text-white'
+                                : 'bg-white text-mid border border-[hsl(30,12%,90%)] hover:text-charcoal'
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="mt-2 text-xs text-light">Current: {project.stage} · {project.stageName}</p>
                     </div>
                     <div>
                       <label className="text-xs font-semibold text-mid">Category</label>
@@ -1242,14 +1304,24 @@ export default function Admin() {
                         className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
                       />
                     </div>
-                    <div>
+                    <div className="sm:col-span-2">
                       <label className="text-xs font-semibold text-mid">Term</label>
-                      <input
-                        type="text"
-                        value={project.term}
-                        onChange={(e) => updateProjectDraft(project.id, { term: e.target.value })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
-                      />
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {termOptions.map((term) => (
+                          <button
+                            key={`${project.id}-${term}`}
+                            type="button"
+                            onClick={() => updateProjectDraft(project.id, { term })}
+                            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
+                              project.term === term
+                                ? 'bg-charcoal text-white'
+                                : 'bg-white text-mid border border-[hsl(30,12%,90%)] hover:text-charcoal'
+                            }`}
+                          >
+                            {term}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <div>
                       <label className="text-xs font-semibold text-mid">Start Date</label>
@@ -1261,12 +1333,12 @@ export default function Admin() {
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-mid">Donation %</label>
+                      <label className="text-xs font-semibold text-mid">Donation % (auto)</label>
                       <input
-                        type="number"
-                        value={project.donationPercent}
-                        onChange={(e) => updateProjectDraft(project.id, { donationPercent: Number(e.target.value) })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        type="text"
+                        value={`${Number(project.donationPercent || 0).toFixed(1)}%`}
+                        readOnly
+                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] bg-[hsl(30,15%,96%)] px-3 py-2 text-sm text-mid outline-none"
                       />
                     </div>
                     <div>
@@ -1288,12 +1360,12 @@ export default function Admin() {
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-mid">Profit</label>
+                      <label className="text-xs font-semibold text-mid">Profit (auto)</label>
                       <input
                         type="number"
-                        value={project.profit}
-                        onChange={(e) => updateProjectDraft(project.id, { profit: Number(e.target.value) })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        value={Number(project.profit || 0)}
+                        readOnly
+                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] bg-[hsl(30,15%,96%)] px-3 py-2 text-sm text-mid outline-none"
                       />
                     </div>
                     <div>
@@ -1421,6 +1493,47 @@ export default function Admin() {
               )}
             </div>
 
+            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h4 className="text-sm font-semibold text-charcoal">Term Options</h4>
+                  <p className="text-xs text-light">These show up as filter buttons and product term options.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={newTermInput}
+                    onChange={(e) => setNewTermInput(e.target.value)}
+                    placeholder="Add term (ex: Term 1 2026)"
+                    className="w-48 rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                  />
+                  <button
+                    onClick={handleAddTerm}
+                    className="rounded-full bg-charcoal px-4 py-2 text-xs font-semibold text-white"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {termOptions.length === 0 ? (
+                  <span className="text-xs text-light">No terms yet.</span>
+                ) : (
+                  termOptions.map((term) => (
+                    <div key={term} className="flex items-center gap-2 rounded-full border border-[hsl(30,12%,90%)] bg-[hsl(30,15%,96%)] px-3 py-1.5 text-xs text-charcoal">
+                      {term}
+                      <button
+                        onClick={() => handleRemoveTerm(term)}
+                        className="text-[10px] text-red-500 hover:text-red-600"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
             {productDrafts.map((product) => (
               <div key={product.id} className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5 space-y-4">
                 <div className="flex flex-col gap-4 lg:flex-row">
@@ -1487,14 +1600,24 @@ export default function Admin() {
                         className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
                       />
                     </div>
-                    <div>
+                    <div className="sm:col-span-2">
                       <label className="text-xs font-semibold text-mid">Term</label>
-                      <input
-                        type="text"
-                        value={product.term}
-                        onChange={(e) => updateProductDraft(product.id, { term: e.target.value })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
-                      />
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {termOptions.map((term) => (
+                          <button
+                            key={`${product.id}-${term}`}
+                            type="button"
+                            onClick={() => updateProductDraft(product.id, { term })}
+                            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
+                              product.term === term
+                                ? 'bg-charcoal text-white'
+                                : 'bg-white text-mid border border-[hsl(30,12%,90%)] hover:text-charcoal'
+                            }`}
+                          >
+                            {term}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <div>
                       <label className="text-xs font-semibold text-mid">Price</label>
@@ -1598,35 +1721,35 @@ export default function Admin() {
                       type="text"
                       value={metric.labelEn}
                       onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, labelEn: e.target.value } : m))}
-                      placeholder="Label (EN)"
+                      placeholder="Label (EN) ex: Total Revenue"
                       className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <input
                       type="text"
                       value={metric.labelKo}
                       onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, labelKo: e.target.value } : m))}
-                      placeholder="Label (KO)"
+                      placeholder="Label (KO) ex: 총 매출"
                       className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <input
                       type="text"
                       value={metric.prefix ?? ''}
                       onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, prefix: e.target.value } : m))}
-                      placeholder="Prefix"
+                      placeholder="Prefix ex: $"
                       className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <input
                       type="number"
                       value={metric.value}
                       onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, value: Number(e.target.value) } : m))}
-                      placeholder="Value"
+                      placeholder="Value ex: 12000"
                       className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <input
                       type="text"
                       value={metric.suffix ?? ''}
                       onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, suffix: e.target.value } : m))}
-                      placeholder="Suffix"
+                      placeholder="Suffix ex: +"
                       className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <button
@@ -1661,21 +1784,21 @@ export default function Admin() {
                       type="text"
                       value={row.month}
                       onChange={(e) => setRevenueDrafts((prev) => prev.map((r, i) => i === index ? { ...r, month: e.target.value } : r))}
-                      placeholder="Month"
+                      placeholder="Month ex: Jan"
                       className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <input
                       type="number"
                       value={row.revenue}
                       onChange={(e) => setRevenueDrafts((prev) => prev.map((r, i) => i === index ? { ...r, revenue: Number(e.target.value) } : r))}
-                      placeholder="Revenue"
+                      placeholder="Revenue ex: 2400"
                       className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <input
                       type="number"
                       value={row.expenses}
                       onChange={(e) => setRevenueDrafts((prev) => prev.map((r, i) => i === index ? { ...r, expenses: Number(e.target.value) } : r))}
-                      placeholder="Expenses"
+                      placeholder="Expenses ex: 1200"
                       className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <button
@@ -1710,14 +1833,14 @@ export default function Admin() {
                       type="text"
                       value={row.name}
                       onChange={(e) => setDonationDrafts((prev) => prev.map((r, i) => i === index ? { ...r, name: e.target.value } : r))}
-                      placeholder="Project"
+                      placeholder="Project ex: EcoBag"
                       className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <input
                       type="number"
                       value={row.value}
                       onChange={(e) => setDonationDrafts((prev) => prev.map((r, i) => i === index ? { ...r, value: Number(e.target.value) } : r))}
-                      placeholder="Donation"
+                      placeholder="Donation ex: 320"
                       className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <button
@@ -1752,14 +1875,14 @@ export default function Admin() {
                       type="text"
                       value={row.month}
                       onChange={(e) => setGrowthDrafts((prev) => prev.map((r, i) => i === index ? { ...r, month: e.target.value } : r))}
-                      placeholder="Month"
+                      placeholder="Month ex: Sep '24"
                       className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <input
                       type="number"
                       value={row.members}
                       onChange={(e) => setGrowthDrafts((prev) => prev.map((r, i) => i === index ? { ...r, members: Number(e.target.value) } : r))}
-                      placeholder="Members"
+                      placeholder="Members ex: 120"
                       className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <button

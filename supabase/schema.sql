@@ -219,8 +219,12 @@ create policy "Admins can manage contributions"
 -- Core content table for instant admin updates
 create table if not exists public.site_content (
   id text primary key,
+  hero_tagline text,
   hero_title text not null,
   hero_subtitle text not null,
+  hero_cta text,
+  hero_background_url text,
+  shop_terms text,
   total_revenue text not null,
   total_profit text not null,
   total_donated text not null,

@@ -1,16 +1,35 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCMSStore } from '@/stores/cmsStore';
 import { TERMS } from '@/constants/config';
+import { useSiteContentStore } from '@/stores/siteContentStore';
 import ProductCard from '@/components/features/ProductCard';
 import ScrollReveal from '@/components/features/ScrollReveal';
 
 export default function Shop() {
   const { t } = useLanguage();
+  const { content } = useSiteContentStore();
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeTerm, setActiveTerm] = useState('All');
   const products = useCMSStore((s) => s.products);
+
+  const parseTerms = (value: string) =>
+    value
+      .split(',')
+      .map((term) => term.trim())
+      .filter(Boolean);
+
+  const termOptions = useMemo(() => {
+    const parsed = parseTerms(content.shopTerms ?? '');
+    return parsed.length ? parsed : TERMS;
+  }, [content.shopTerms]);
+
+  useEffect(() => {
+    if (activeTerm !== 'All' && !termOptions.includes(activeTerm)) {
+      setActiveTerm('All');
+    }
+  }, [activeTerm, termOptions]);
 
   const categories = useMemo(() => {
     const cats = [...new Set(products.map((p) => p.category))].sort();
@@ -61,7 +80,7 @@ export default function Shop() {
                 >
                   {t('shop.allTerms')}
                 </button>
-                {TERMS.map((term) => (
+                {termOptions.map((term) => (
                   <button
                     key={term}
                     onClick={() => setActiveTerm(term)}

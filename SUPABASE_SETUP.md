@@ -29,6 +29,10 @@ For the newest hero content fields, run:
 
 `supabase/patches_2026-03-30.sql`
 
+For editable Shop terms, run:
+
+`supabase/patches_2026-03-31.sql`
+
 For the new Projects/Shop/Impact CMS, run:
 
 `supabase/cms_schema.sql`

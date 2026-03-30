@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { create } from 'zustand';
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
+import { TERMS } from '@/constants/config';
 
 const STORAGE_KEY = 'bnss-admin-content';
 const TABLE_NAME = 'site_content';
@@ -12,6 +13,7 @@ const defaultContent = {
   heroSubtitle: 'A student-led entrepreneurship program. Learn market research, production, finance, and design by creating and selling real products.',
   heroCta: 'Explore Projects',
   heroBackgroundUrl: '',
+  shopTerms: TERMS.join(', '),
   totalRevenue: '24850',
   totalProfit: '12430',
   totalDonated: '6200',
@@ -27,6 +29,7 @@ type SiteContentRow = {
   hero_subtitle: string | null;
   hero_cta: string | null;
   hero_background_url: string | null;
+  shop_terms: string | null;
   total_revenue: string | null;
   total_profit: string | null;
   total_donated: string | null;
@@ -41,6 +44,7 @@ const mapRowToContent = (row: SiteContentRow | null): SiteContent => ({
   heroSubtitle: row?.hero_subtitle ?? defaultContent.heroSubtitle,
   heroCta: row?.hero_cta ?? defaultContent.heroCta,
   heroBackgroundUrl: row?.hero_background_url ?? defaultContent.heroBackgroundUrl,
+  shopTerms: row?.shop_terms ?? defaultContent.shopTerms,
   totalRevenue: row?.total_revenue ?? defaultContent.totalRevenue,
   totalProfit: row?.total_profit ?? defaultContent.totalProfit,
   totalDonated: row?.total_donated ?? defaultContent.totalDonated,
@@ -54,6 +58,7 @@ const mapContentToRow = (content: SiteContent): SiteContentRow => ({
   hero_subtitle: content.heroSubtitle,
   hero_cta: content.heroCta,
   hero_background_url: content.heroBackgroundUrl,
+  shop_terms: content.shopTerms,
   total_revenue: content.totalRevenue,
   total_profit: content.totalProfit,
   total_donated: content.totalDonated,
