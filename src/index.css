@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Yellow Highlighter Selection ─── */
+::selection {
+  background: rgba(255, 224, 102, 0.5);
+  color: inherit;
+  -webkit-text-fill-color: inherit;
+}
+::-moz-selection {
+  background: rgba(255, 224, 102, 0.5);
+  color: inherit;
+}
+
+@layer base {
+  :root {
+    --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+    /* Warm beige palette */
+    --color-beige: 30 25% 95%;
+    --color-beige-dark: 30 15% 90%;
+    --color-warm-white: 30 30% 98%;
+    --color-charcoal: 20 10% 15%;
+    --color-dark: 20 8% 22%;
+    --color-mid: 20 5% 45%;
+    --color-light: 20 5% 62%;
+    --color-accent: 24 80% 50%;
+    --color-accent-soft: 24 60% 95%;
+
+    /* shadcn tokens */
+    --background: 30 25% 95%;
+    --foreground: 20 10% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 10% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 10% 15%;
+    --primary: 20 10% 15%;
+    --primary-foreground: 30 25% 95%;
+    --secondary: 30 15% 90%;
+    --secondary-foreground: 20 10% 15%;
+    --muted: 30 15% 90%;
+    --muted-foreground: 20 5% 45%;
+    --accent: 24 80% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 12% 87%;
+    --input: 30 12% 87%;
+    --ring: 24 80% 50%;
+    --radius: 0.5rem;
+
+    --sidebar-background: 20 10% 15%;
+    --sidebar-foreground: 30 25% 95%;
+    --sidebar-primary: 24 80% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 20 8% 22%;
+    --sidebar-accent-foreground: 30 25% 95%;
+    --sidebar-border: 20 8% 22%;
+    --sidebar-ring: 24 80% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-body);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-body);
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .text-charcoal { color: hsl(20 10% 15%); }
+  .text-dark { color: hsl(20 8% 22%); }
+  .text-mid { color: hsl(20 5% 45%); }
+  .text-light { color: hsl(20 5% 62%); }
+  .text-accent { color: hsl(24 80% 50%); }
+  .bg-beige { background-color: hsl(30 25% 95%); }
+  .bg-beige-dark { background-color: hsl(30 15% 90%); }
+  .bg-warm-white { background-color: hsl(30 30% 98%); }
+  .bg-charcoal { background-color: hsl(20 10% 15%); }
+  .bg-accent { background-color: hsl(24 80% 50%); }
+  .bg-accent-soft { background-color: hsl(24 60% 95%); }
+  .border-accent { border-color: hsl(24 80% 50%); }
+
+  .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(30 15% 82%);
+    border-radius: 3px;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes counter-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
