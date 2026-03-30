@@ -67,6 +67,8 @@ export default function ProductDetailPage() {
                 <img
                   src={allImages[activeImg]}
                   alt={product.name}
+                  loading="lazy"
+                  decoding="async"
                   className="aspect-square w-full object-cover"
                 />
               </div>
@@ -80,7 +82,7 @@ export default function ProductDetailPage() {
                         activeImg === i ? 'border-charcoal' : 'border-transparent opacity-60 hover:opacity-100'
                       }`}
                     >
-                      <img src={img} alt="" className="size-full object-cover" />
+                      <img src={img} alt="" loading="lazy" decoding="async" className="size-full object-cover" />
                     </button>
                   ))}
                 </div>

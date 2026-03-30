@@ -15,14 +15,14 @@ export default function Shop() {
   const categories = useMemo(() => {
     const cats = [...new Set(products.map((p) => p.category))].sort();
     return ['All', ...cats];
-  }, []);
+  }, [products]);
 
   const filtered = useMemo(() => {
     let result = products;
     if (activeCategory !== 'All') result = result.filter((p) => p.category === activeCategory);
     if (activeTerm !== 'All') result = result.filter((p) => p.term === activeTerm);
     return result;
-  }, [activeCategory, activeTerm]);
+  }, [products, activeCategory, activeTerm]);
 
   return (
     <div>

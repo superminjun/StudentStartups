@@ -19,7 +19,7 @@ export default function HeroSection() {
       <motion.div className="absolute inset-0" style={{ y: bgY }}>
         {heroBackgroundUrl ? (
           <div className="relative size-full">
-            <img src={heroBackgroundUrl} alt="" className="size-full object-cover" />
+            <img src={heroBackgroundUrl} alt="" loading="eager" decoding="async" className="size-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-br from-[hsl(30,30%,98%)] via-[hsl(30,25%,95%)] to-[hsl(28,20%,90%)] opacity-80" />
           </div>
         ) : (

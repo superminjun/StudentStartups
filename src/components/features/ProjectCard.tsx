@@ -20,6 +20,8 @@ export default function ProjectCard({ project }: { project: Project }) {
           <img
             src={project.image}
             alt={project.name}
+            loading="lazy"
+            decoding="async"
             className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           <span className={`absolute left-3 top-3 rounded-full border px-2.5 py-1 text-xs font-medium ${STAGE_COLORS[project.stage] || ''}`}>

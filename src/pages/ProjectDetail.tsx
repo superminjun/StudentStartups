@@ -41,7 +41,13 @@ export default function ProjectDetail() {
   return (
     <div>
       <section className="relative h-[40vh] min-h-[320px] overflow-hidden">
-        <img src={project.image} alt={project.name} className="size-full object-cover" />
+        <img
+          src={project.image}
+          alt={project.name}
+          loading="lazy"
+          decoding="async"
+          className="size-full object-cover"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-8 lg:p-12">
           <div className="mx-auto max-w-6xl">

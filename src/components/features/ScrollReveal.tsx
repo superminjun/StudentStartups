@@ -1,5 +1,5 @@
 import { useRef, type ReactNode } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, useReducedMotion } from 'framer-motion';
 
 interface Props {
   children: ReactNode;
@@ -26,7 +26,16 @@ export default function ScrollReveal({
   duration = 0.6,
 }: Props) {
   const ref = useRef(null);
+  const reduceMotion = useReducedMotion();
   const isInView = useInView(ref, { once: true, margin: '-50px' });
+
+  if (reduceMotion) {
+    return (
+      <div ref={ref} className={className}>
+        {children}
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -34,6 +43,7 @@ export default function ScrollReveal({
       initial={{ opacity: 0, ...offsets[direction] }}
       animate={isInView ? { opacity: 1, y: 0, x: 0, scale: 1 } : undefined}
       transition={{ duration, delay, ease: [0.22, 1, 0.36, 1] }}
+      style={{ willChange: 'transform, opacity' }}
       className={className}
     >
       {children}

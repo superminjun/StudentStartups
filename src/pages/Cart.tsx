@@ -114,7 +114,13 @@ export default function Cart() {
             <div className="lg:col-span-3 space-y-3">
               {cartProducts.map((product) => (
                 <div key={product.id} className="flex gap-4 rounded-xl border border-[hsl(30,12%,90%)] bg-white p-4">
-                  <img src={product.image} alt={product.name} className="size-20 rounded-lg object-cover" />
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    loading="lazy"
+                    decoding="async"
+                    className="size-20 rounded-lg object-cover"
+                  />
                   <div className="flex-1">
                     <h3 className="text-sm font-semibold text-charcoal">{product.name}</h3>
                     <p className="mt-1 text-sm font-medium text-mid tabular-nums">${product.price.toFixed(2)}</p>
