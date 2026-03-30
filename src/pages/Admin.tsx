@@ -849,7 +849,7 @@ export default function Admin() {
   const contributionTotal = contributions.reduce((sum, c) => sum + (Number(c.points) || 0), 0);
 
   return (
-    <div className="min-h-screen bg-beige pt-20">
+    <div className="min-h-screen bg-beige pt-20 overflow-x-hidden">
       <div className="mx-auto max-w-6xl px-6 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -1926,21 +1926,21 @@ export default function Admin() {
 
               <div className="mt-4 space-y-3">
                 {filteredCopyDrafts.map((row) => (
-                  <div key={row.key} className="grid gap-2 lg:grid-cols-[220px,1fr,1fr] items-start">
+                  <div key={row.key} className="grid gap-2 lg:grid-cols-[220px,1fr,1fr] items-start min-w-0">
                     <div className="text-xs font-semibold text-mid break-all">{row.key}</div>
                     <input
                       type="text"
                       value={row.en}
                       onChange={(e) => setCopyDrafts((prev) => prev.map((item) => item.key === row.key ? { ...item, en: e.target.value } : item))}
                       placeholder="English"
-                      className="w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                      className="w-full min-w-0 rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
                     />
                     <input
                       type="text"
                       value={row.ko}
                       onChange={(e) => setCopyDrafts((prev) => prev.map((item) => item.key === row.key ? { ...item, ko: e.target.value } : item))}
                       placeholder="Korean"
-                      className="w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                      className="w-full min-w-0 rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
                     />
                   </div>
                 ))}
