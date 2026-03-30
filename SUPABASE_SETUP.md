@@ -25,12 +25,26 @@ If you already have everything running, apply the latest admin upgrades:
 
 `supabase/patches_2026-03-29.sql`
 
+For the newest hero content fields, run:
+
+`supabase/patches_2026-03-30.sql`
+
 For the new Projects/Shop/Impact CMS, run:
 
 `supabase/cms_schema.sql`
 
+For editable site copy (all text), run:
+
+`supabase/copy_schema.sql`
+
+For the new Design controls (fonts/colors), run:
+
+`supabase/theme_schema.sql`
+
 This creates:
 - `site_content` (for live updates)
+- `site_copy` (text overrides)
+- `site_theme` (fonts + colors)
 - `admin_users` (admin allowlist)
 - `orders` (checkout)
 - `messages` (contact form)
@@ -50,13 +64,16 @@ values ('YOUR-USER-UUID', 'you@yourdomain.com');
 
 ## 4) Enable realtime updates (once)
 In Supabase → Database → Replication:
-- Enable replication for `site_content`, `members`, `meetings`, `attendance`, `contributions`, `orders`, `messages`,
+- Enable replication for `site_content`, `site_copy`, `site_theme`, `members`, `meetings`, `attendance`, `contributions`, `orders`, `messages`,
   `projects`, `products`, `impact_metrics`, `impact_revenue`, `impact_donations`, `impact_member_growth`.
 
 ## 5) Storage buckets (images)
 In Supabase → Storage, create public buckets:
 - `project-images`
 - `product-images`
+- `site-images`
+
+If file uploads show broken images, double-check the buckets are Public.
 
 ---
 After this:

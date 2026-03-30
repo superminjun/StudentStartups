@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { translations } from '@/constants/translations';
+import { useSiteCopyStore } from '@/stores/siteCopyStore';
 import type { Language } from '@/types';
 
 interface LanguageContextType {
@@ -15,6 +16,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem('bnss-lang');
     return (saved === 'ko' ? 'ko' : 'en') as Language;
   });
+  const overrides = useSiteCopyStore((s) => s.copy);
 
   const setLang = useCallback((newLang: Language) => {
     setLangState(newLang);
@@ -23,6 +25,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const t = useCallback(
     (path: string): string => {
+      const override = overrides[path];
+      const overrideValue = lang === 'en' ? override?.en : override?.ko;
+      if (overrideValue && overrideValue.trim() !== '') {
+        return overrideValue;
+      }
       const keys = path.split('.');
       let result: unknown = translations[lang];
       for (const key of keys) {
@@ -34,7 +41,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       }
       return typeof result === 'string' ? result : path;
     },
-    [lang]
+    [lang, overrides]
   );
 
   return (

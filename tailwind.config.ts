@@ -19,7 +19,8 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				body: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+				body: ['var(--font-body)'],
+				heading: ['var(--font-heading)'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',

@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/hooks/useLanguage';
 import { Megaphone, Hammer, PiggyBank, Palette } from 'lucide-react';
-import type { TeamInfo } from '@/types';
 
 const iconMap: Record<string, React.ElementType> = {
   megaphone: Megaphone,
@@ -10,8 +9,15 @@ const iconMap: Record<string, React.ElementType> = {
   palette: Palette,
 };
 
-export default function TeamCard({ team, index }: { team: TeamInfo; index: number }) {
-  const { lang } = useLanguage();
+type TeamCardInfo = {
+  nameKey: string;
+  descKey: string;
+  icon: string;
+  color: string;
+};
+
+export default function TeamCard({ team, index }: { team: TeamCardInfo; index: number }) {
+  const { t } = useLanguage();
   const Icon = iconMap[team.icon] || Megaphone;
 
   return (
@@ -27,10 +33,10 @@ export default function TeamCard({ team, index }: { team: TeamInfo; index: numbe
         <Icon className="size-6" />
       </div>
       <h3 className="mt-4 text-base font-semibold text-charcoal">
-        {lang === 'en' ? team.nameEn : team.nameKo}
+        {t(team.nameKey)}
       </h3>
       <p className="mt-2 text-sm leading-relaxed text-mid">
-        {lang === 'en' ? team.descEn : team.descKo}
+        {t(team.descKey)}
       </p>
     </motion.div>
   );

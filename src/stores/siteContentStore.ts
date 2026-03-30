@@ -7,8 +7,11 @@ const TABLE_NAME = 'site_content';
 const SINGLETON_ID = 'global';
 
 const defaultContent = {
+  heroTagline: 'Student Startups',
   heroTitle: 'Where Students Build Real Businesses',
   heroSubtitle: 'A student-led entrepreneurship program. Learn market research, production, finance, and design by creating and selling real products.',
+  heroCta: 'Explore Projects',
+  heroBackgroundUrl: '',
   totalRevenue: '24850',
   totalProfit: '12430',
   totalDonated: '6200',
@@ -19,8 +22,11 @@ export type SiteContent = typeof defaultContent;
 
 type SiteContentRow = {
   id: string;
+  hero_tagline: string | null;
   hero_title: string | null;
   hero_subtitle: string | null;
+  hero_cta: string | null;
+  hero_background_url: string | null;
   total_revenue: string | null;
   total_profit: string | null;
   total_donated: string | null;
@@ -30,8 +36,11 @@ type SiteContentRow = {
 type SiteContentStatus = 'idle' | 'loading' | 'ready' | 'error' | 'demo';
 
 const mapRowToContent = (row: SiteContentRow | null): SiteContent => ({
+  heroTagline: row?.hero_tagline ?? defaultContent.heroTagline,
   heroTitle: row?.hero_title ?? defaultContent.heroTitle,
   heroSubtitle: row?.hero_subtitle ?? defaultContent.heroSubtitle,
+  heroCta: row?.hero_cta ?? defaultContent.heroCta,
+  heroBackgroundUrl: row?.hero_background_url ?? defaultContent.heroBackgroundUrl,
   totalRevenue: row?.total_revenue ?? defaultContent.totalRevenue,
   totalProfit: row?.total_profit ?? defaultContent.totalProfit,
   totalDonated: row?.total_donated ?? defaultContent.totalDonated,
@@ -40,8 +49,11 @@ const mapRowToContent = (row: SiteContentRow | null): SiteContent => ({
 
 const mapContentToRow = (content: SiteContent): SiteContentRow => ({
   id: SINGLETON_ID,
+  hero_tagline: content.heroTagline,
   hero_title: content.heroTitle,
   hero_subtitle: content.heroSubtitle,
+  hero_cta: content.heroCta,
+  hero_background_url: content.heroBackgroundUrl,
   total_revenue: content.totalRevenue,
   total_profit: content.totalProfit,
   total_donated: content.totalDonated,

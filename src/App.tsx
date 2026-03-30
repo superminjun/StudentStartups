@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import RequireAuth from '@/components/auth/RequireAuth';
 import { useSiteContentSync } from '@/stores/siteContentStore';
+import { useSiteThemeSync } from '@/stores/siteThemeStore';
+import { useSiteCopySync } from '@/stores/siteCopyStore';
 import { useCMSDataSync } from '@/stores/cmsStore';
 
 const Home = lazy(() => import('@/pages/Home'));
@@ -31,6 +33,8 @@ function LoadingFallback() {
 
 export default function App() {
   useSiteContentSync();
+  useSiteThemeSync();
+  useSiteCopySync();
   useCMSDataSync();
 
   return (

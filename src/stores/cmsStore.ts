@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { create } from 'zustand';
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
+import { resolveStorageUrl } from '@/lib/storage';
 import {
   projects as mockProjects,
   products as mockProducts,
@@ -290,9 +291,26 @@ export const useCMSStore = create<{
 
     const firstError = projectsRes.error || productsRes.error || metricsRes.error || revenueRes.error || donationRes.error || growthRes.error;
 
+    const projectsWithImages = await Promise.all(
+      resolvedProjects.map(async (project) => ({
+        ...project,
+        image: project.image ? await resolveStorageUrl(project.image) : project.image,
+      }))
+    );
+
+    const productsWithImages = await Promise.all(
+      resolvedProducts.map(async (product) => ({
+        ...product,
+        image: product.image ? await resolveStorageUrl(product.image) : product.image,
+        images: Array.isArray(product.images)
+          ? await Promise.all(product.images.map((img) => (img ? resolveStorageUrl(img) : img)))
+          : [],
+      }))
+    );
+
     set({
-      projects: resolvedProjects,
-      products: resolvedProducts,
+      projects: projectsWithImages,
+      products: productsWithImages,
       impactMetrics: metricsData,
       revenueData,
       donationData,

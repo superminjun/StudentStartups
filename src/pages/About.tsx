@@ -1,7 +1,6 @@
 import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useLanguage } from '@/hooks/useLanguage';
-import { teamInfos } from '@/constants/mockData';
 import TeamCard from '@/components/features/TeamCard';
 import ScrollReveal from '@/components/features/ScrollReveal';
 
@@ -9,6 +8,13 @@ const howSteps = [
   { num: '01', titleKey: 'about.howRotation', descKey: 'about.howRotationDesc' },
   { num: '02', titleKey: 'about.howVoting', descKey: 'about.howVotingDesc' },
   { num: '03', titleKey: 'about.howRewards', descKey: 'about.howRewardsDesc' },
+];
+
+const teamInfos = [
+  { nameKey: 'about.teamCards.marketingName', descKey: 'about.teamCards.marketingDesc', icon: 'megaphone', color: 'from-rose-500 to-orange-400' },
+  { nameKey: 'about.teamCards.productionName', descKey: 'about.teamCards.productionDesc', icon: 'hammer', color: 'from-blue-500 to-cyan-400' },
+  { nameKey: 'about.teamCards.financeName', descKey: 'about.teamCards.financeDesc', icon: 'piggybank', color: 'from-emerald-500 to-teal-400' },
+  { nameKey: 'about.teamCards.designName', descKey: 'about.teamCards.designDesc', icon: 'palette', color: 'from-violet-500 to-purple-400' },
 ];
 
 function ScrollTimeline() {
@@ -58,7 +64,7 @@ function ScrollTimeline() {
 }
 
 function TeamWheel() {
-  const { lang } = useLanguage();
+  const { t } = useLanguage();
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ['start 0.7', 'end 0.3'] });
   const rotation = useTransform(scrollYProgress, [0, 1], [0, 360]);
@@ -77,7 +83,7 @@ function TeamWheel() {
             const y = 50 + r * Math.sin(rad);
             return (
               <div
-                key={team.nameEn}
+                key={team.nameKey}
                 className="absolute flex flex-col items-center"
                 style={{
                   left: `${x}%`,
@@ -92,7 +98,7 @@ function TeamWheel() {
                 >
                   <div className="flex size-16 items-center justify-center rounded-full" style={{ backgroundColor: colors[i] }}>
                     <span className="text-center text-[11px] font-semibold leading-tight px-1">
-                      {lang === 'en' ? team.nameEn : team.nameKo}
+                      {t(team.nameKey)}
                     </span>
                   </div>
                 </motion.div>
@@ -102,7 +108,9 @@ function TeamWheel() {
         </motion.div>
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           <div className="flex size-20 items-center justify-center rounded-full bg-charcoal text-white">
-            <span className="text-xs font-bold text-center leading-tight">Rotate<br />Each Term</span>
+            <span className="text-xs font-bold text-center leading-tight">
+              {t('about.teamWheelCenterLine1')}<br />{t('about.teamWheelCenterLine2')}
+            </span>
           </div>
         </div>
         <svg className="absolute inset-0 size-full" viewBox="0 0 100 100">
@@ -112,12 +120,10 @@ function TeamWheel() {
 
       <div className="flex-1">
         <h3 className="text-xl font-bold text-charcoal">
-          {lang === 'en' ? 'Rotating Teams' : '팀 순환'}
+          {t('about.teamWheelTitle')}
         </h3>
         <p className="mt-3 text-sm leading-relaxed text-mid">
-          {lang === 'en'
-            ? 'Every term, members rotate to a different team. This ensures everyone gains experience in marketing, production, finance, and design — building well-rounded entrepreneurial skills.'
-            : '매 학기마다 멤버들은 다른 팀으로 이동합니다. 이를 통해 모든 멤버가 마케팅, 생산, 재무, 디자인을 경험하며 균형 잡힌 창업 역량을 키웁니다.'}
+          {t('about.teamWheelDesc')}
         </p>
         <div className="mt-6 grid grid-cols-2 gap-3">
           {['Q1', 'Q2', 'Q3', 'Q4'].map((q, qi) => (
@@ -127,9 +133,9 @@ function TeamWheel() {
                 {teamInfos.map((team, ti) => {
                   const rotated = teamInfos[(ti + qi) % 4];
                   return (
-                    <div key={team.nameEn} className="flex items-center gap-2 text-xs text-mid">
+                    <div key={`${team.nameKey}-${q}`} className="flex items-center gap-2 text-xs text-mid">
                       <span className="size-2 rounded-full" style={{ backgroundColor: colors[(ti + qi) % 4] }} />
-                      {lang === 'en' ? rotated.nameEn : rotated.nameKo}
+                      {t(rotated.nameKey)}
                     </div>
                   );
                 })}

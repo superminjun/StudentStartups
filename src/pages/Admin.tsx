@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { Project, Product } from '@/types';
 import { useCMSStore, type ImpactMetricRecord, type RevenuePoint, type DonationPoint, type MemberGrowthPoint } from '@/stores/cmsStore';
 import { useSiteContentStore, type SiteContent } from '@/stores/siteContentStore';
+import { useSiteThemeStore, type SiteTheme } from '@/stores/siteThemeStore';
+import { useSiteCopyStore } from '@/stores/siteCopyStore';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { TEAM_OPTIONS } from '@/constants/config';
-import { Users as UsersIcon, FolderOpen, ShoppingBag, BarChart3, MessageSquare, CheckCircle, XCircle, Save, FileText, Trash2, Package } from 'lucide-react';
+import { translations } from '@/constants/translations';
+import { normalizeHex } from '@/lib/color';
+import { Users as UsersIcon, FolderOpen, ShoppingBag, BarChart3, MessageSquare, CheckCircle, XCircle, Save, FileText, Trash2, Package, Palette, Type } from 'lucide-react';
 
 type MemberRow = {
   id: string;
@@ -39,6 +43,17 @@ type MeetingView = {
   status: 'present' | 'absent';
   feedback: string;
   meetingRole: string;
+};
+
+type MeetingRow = {
+  id: string;
+  meeting_date: string;
+};
+
+type CopyDraft = {
+  key: string;
+  en: string;
+  ko: string;
 };
 
 type ContributionRow = {
@@ -85,6 +100,8 @@ export default function Admin() {
   const [meetingEdits, setMeetingEdits] = useState<Record<string, { feedback?: string; role?: string }>>({});
   const [memberMeetings, setMemberMeetings] = useState<MeetingView[]>([]);
   const [memberMeetingsLoading, setMemberMeetingsLoading] = useState(false);
+  const [meetings, setMeetings] = useState<MeetingRow[]>([]);
+  const [meetingsLoading, setMeetingsLoading] = useState(false);
   const [newMeetingDate, setNewMeetingDate] = useState('');
   const [meetingError, setMeetingError] = useState('');
   const [memberRoleInput, setMemberRoleInput] = useState('');
@@ -94,6 +111,12 @@ export default function Admin() {
   const [newContribution, setNewContribution] = useState({ title: '', points: '', notes: '', date: '' });
   const { content: siteContent, updateContent, status, error } = useSiteContentStore();
   const [saved, setSaved] = useState(false);
+  const { theme, updateTheme, status: themeStatus, error: themeError } = useSiteThemeStore();
+  const [themeSaved, setThemeSaved] = useState(false);
+  const { copy, status: copyStatus, error: copyError } = useSiteCopyStore();
+  const [copyDrafts, setCopyDrafts] = useState<CopyDraft[]>([]);
+  const [copySearch, setCopySearch] = useState('');
+  const [copyNotice, setCopyNotice] = useState('');
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const activeMember = members.find((m) => m.id === selectedMember);
@@ -235,6 +258,17 @@ export default function Admin() {
     setMemberMeetingsLoading(false);
   };
 
+  const loadMeetings = async () => {
+    if (!supabase) return;
+    setMeetingsLoading(true);
+    const { data } = await supabase
+      .from('meetings')
+      .select('id, meeting_date')
+      .order('meeting_date', { ascending: false });
+    setMeetings((data as MeetingRow[] | null) ?? []);
+    setMeetingsLoading(false);
+  };
+
   const handleCreateMeeting = async () => {
     if (!newMeetingDate || !supabase) return;
     setMeetingError('');
@@ -246,6 +280,15 @@ export default function Admin() {
       return;
     }
     setNewMeetingDate('');
+    loadMeetings();
+  };
+
+  const handleDeleteMeeting = async (meetingId: string) => {
+    if (!supabase) return;
+    await supabase.from('meetings').delete().eq('id', meetingId);
+    loadMeetings();
+    if (selectedMember) loadMemberMeetings(selectedMember);
+    loadMembers();
   };
 
   const loadContributions = async (memberId: string) => {
@@ -527,6 +570,15 @@ export default function Admin() {
     });
   };
 
+  const handleHeroBackgroundUpload = async (file?: File | null) => {
+    if (!file) return;
+    const safeName = file.name.replace(/\s+/g, '-');
+    const path = `hero/${Date.now()}-${safeName}`;
+    const url = await uploadToBucket('site-images', path, file);
+    if (!url) return;
+    updateContent({ heroBackgroundUrl: url });
+  };
+
   const handleSeedProjects = async () => {
     if (!supabase) return;
     const { error: seedError } = await supabase.from('projects').upsert(cmsProjects.map(mapProjectToRow));
@@ -607,6 +659,7 @@ export default function Admin() {
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return;
     loadMembers();
+    loadMeetings();
   }, []);
 
   useEffect(() => {
@@ -638,6 +691,16 @@ export default function Admin() {
   }, [cmsImpactMetrics, cmsRevenueData, cmsDonationData, cmsGrowthData]);
 
   useEffect(() => {
+    setCopyDrafts(
+      defaultCopyList.map((row) => ({
+        ...row,
+        en: copy[row.key]?.en ?? row.en,
+        ko: copy[row.key]?.ko ?? row.ko,
+      }))
+    );
+  }, [copy, defaultCopyList]);
+
+  useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return;
     const channel = supabase
       .channel('admin-members-stream')
@@ -649,6 +712,7 @@ export default function Admin() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'meetings' }, () => {
         loadMembers();
         if (selectedMember) loadMemberMeetings(selectedMember);
+        loadMeetings();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'contributions' }, () => {
         if (selectedMember) loadContributions(selectedMember);
@@ -665,6 +729,27 @@ export default function Admin() {
     window.setTimeout(() => setSaved(false), 1800);
   };
 
+  const handleSaveTheme = () => {
+    setThemeSaved(true);
+    window.setTimeout(() => setThemeSaved(false), 1800);
+  };
+
+  const handleSaveCopy = async () => {
+    if (!supabase) return;
+    const payload = copyDrafts.map((row) => ({
+      key: row.key,
+      value_en: row.en,
+      value_ko: row.ko,
+    }));
+    const { error: saveError } = await supabase.from('site_copy').upsert(payload);
+    setCopyNotice(saveError ? saveError.message : 'Copy saved');
+    window.setTimeout(() => setCopyNotice(''), 1800);
+  };
+
+  const handleResetCopy = () => {
+    setCopyDrafts(defaultCopyList);
+  };
+
   const toggleAttendance = async (attendanceId: string, currentStatus: 'present' | 'absent') => {
     if (!supabase) return;
     await supabase
@@ -678,11 +763,64 @@ export default function Admin() {
     { key: 'projects', label: 'Projects', icon: FolderOpen },
     { key: 'shop', label: 'Shop', icon: Package },
     { key: 'impact', label: 'Impact', icon: BarChart3 },
+    { key: 'design', label: 'Design', icon: Palette },
+    { key: 'copy', label: 'Copy', icon: Type },
     { key: 'content', label: 'Site Content', icon: FileText },
     { key: 'orders', label: 'Orders', icon: ShoppingBag },
     { key: 'messages', label: 'Messages', icon: MessageSquare },
     { key: 'overview', label: 'Overview', icon: BarChart3 },
   ];
+
+  const flattenTranslations = (source: Record<string, unknown>, prefix = ''): Record<string, string> => {
+    const output: Record<string, string> = {};
+    Object.entries(source).forEach(([key, value]) => {
+      const path = prefix ? `${prefix}.${key}` : key;
+      if (typeof value === 'string') {
+        output[path] = value;
+      } else if (value && typeof value === 'object') {
+        Object.assign(output, flattenTranslations(value as Record<string, unknown>, path));
+      }
+    });
+    return output;
+  };
+
+  const defaultCopyList = useMemo<CopyDraft[]>(() => {
+    const enMap = flattenTranslations(translations.en as Record<string, unknown>);
+    const koMap = flattenTranslations(translations.ko as Record<string, unknown>);
+    const keys = Array.from(new Set([...Object.keys(enMap), ...Object.keys(koMap)])).sort();
+    return keys.map((key) => ({
+      key,
+      en: enMap[key] ?? '',
+      ko: koMap[key] ?? '',
+    }));
+  }, []);
+
+  const themeColorFields = [
+    { key: 'colorBeige', label: 'Beige' },
+    { key: 'colorBeigeDark', label: 'Beige Dark' },
+    { key: 'colorWarmWhite', label: 'Warm White' },
+    { key: 'colorCharcoal', label: 'Charcoal' },
+    { key: 'colorDark', label: 'Dark' },
+    { key: 'colorMid', label: 'Mid' },
+    { key: 'colorLight', label: 'Light' },
+    { key: 'colorAccent', label: 'Accent' },
+    { key: 'colorAccentSoft', label: 'Accent Soft' },
+  ] as const;
+
+  const getThemeColor = (key: keyof SiteTheme) => normalizeHex(theme[key] as string) ?? '#000000';
+
+  const filteredCopyDrafts = useMemo(() => {
+    const query = copySearch.trim().toLowerCase();
+    if (!query) return copyDrafts;
+    return copyDrafts.filter((row) =>
+      row.key.toLowerCase().includes(query)
+      || row.en.toLowerCase().includes(query)
+      || row.ko.toLowerCase().includes(query)
+    );
+  }, [copyDrafts, copySearch]);
+
+  const contentEntries = (Object.entries(siteContent) as [keyof SiteContent, string][])
+    .filter(([key]) => key !== 'heroBackgroundUrl');
 
   const normalizedOrders = orders.map((order, index) => {
     let items: { name: string; qty: number; price: number }[] = [];
@@ -764,6 +902,34 @@ export default function Admin() {
                 {meetingError && <p className="text-xs text-red-500">{meetingError}</p>}
               </div>
               <p className="mt-2 text-xs text-light">New meetings automatically add attendance rows for all members.</p>
+            </div>
+
+            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-charcoal">Meetings</p>
+                <span className="text-xs text-light">{meetings.length} total</span>
+              </div>
+              {meetingsLoading ? (
+                <p className="mt-3 text-xs text-light">Loading meetings...</p>
+              ) : meetings.length === 0 ? (
+                <p className="mt-3 text-xs text-light">No meetings yet.</p>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {meetings.map((meeting) => (
+                    <div key={meeting.id} className="flex items-center justify-between rounded-lg border border-[hsl(30,12%,92%)] px-3 py-2">
+                      <span className="text-sm text-charcoal">
+                        {meeting.meeting_date ? new Date(meeting.meeting_date).toLocaleDateString() : '—'}
+                      </span>
+                      <button
+                        onClick={() => handleDeleteMeeting(meeting.id)}
+                        className="text-xs text-red-500 hover:text-red-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {membersLoading ? (
@@ -1618,12 +1784,213 @@ export default function Admin() {
           </motion.div>
         )}
 
+        {/* Design */}
+        {tab === 'design' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+              <h3 className="text-lg font-bold text-charcoal">Design Controls</h3>
+              <p className="text-sm text-light mt-1">Update fonts and colors without redeploying.</p>
+              <div className="mt-6 grid gap-6 lg:grid-cols-2">
+                <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-[hsl(30,25%,98%)] p-5">
+                  <p className="text-sm font-semibold text-charcoal">Typography</p>
+                  <label className="mt-4 block text-xs font-semibold text-mid">Font URL (Google Fonts)</label>
+                  <input
+                    type="text"
+                    value={theme.fontUrl}
+                    onChange={(e) => updateTheme({ fontUrl: e.target.value })}
+                    placeholder="https://fonts.googleapis.com/css2?family=Inter..."
+                    className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                  />
+                  <label className="mt-4 block text-xs font-semibold text-mid">Body Font Family</label>
+                  <input
+                    type="text"
+                    value={theme.fontBody}
+                    onChange={(e) => updateTheme({ fontBody: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                  />
+                  <label className="mt-4 block text-xs font-semibold text-mid">Heading Font Family</label>
+                  <input
+                    type="text"
+                    value={theme.fontHeading}
+                    onChange={(e) => updateTheme({ fontHeading: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                  />
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="text-xs font-semibold text-mid">Base Font Size</label>
+                      <input
+                        type="text"
+                        value={theme.baseFontSize}
+                        onChange={(e) => updateTheme({ baseFontSize: e.target.value })}
+                        placeholder="16px"
+                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-mid">Radius</label>
+                      <input
+                        type="text"
+                        value={theme.radius}
+                        onChange={(e) => updateTheme({ radius: e.target.value })}
+                        placeholder="0.5rem"
+                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-[hsl(30,25%,98%)] p-5">
+                  <p className="text-sm font-semibold text-charcoal">Colors</p>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {themeColorFields.map(({ key, label }) => (
+                      <div key={key}>
+                        <label className="text-xs font-semibold text-mid">{label}</label>
+                        <div className="mt-1 flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={getThemeColor(key)}
+                            onChange={(e) => updateTheme({ [key]: e.target.value } as Partial<SiteTheme>)}
+                            className="h-9 w-12 rounded-md border border-[hsl(30,12%,87%)] bg-white"
+                          />
+                          <input
+                            type="text"
+                            value={theme[key]}
+                            onChange={(e) => {
+                              const normalized = normalizeHex(e.target.value);
+                              if (normalized) updateTheme({ [key]: normalized } as Partial<SiteTheme>);
+                            }}
+                            className="w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex items-center gap-3">
+                <button onClick={handleSaveTheme} className="rounded-full bg-charcoal px-6 py-2.5 text-sm font-semibold text-white">
+                  Save Changes
+                </button>
+                <span className={`text-xs ${themeError ? 'text-red-500' : themeSaved ? 'text-emerald-600' : 'text-light'}`}>
+                  {themeError
+                    ? themeError
+                    : themeSaved
+                      ? 'Saved'
+                      : themeStatus === 'loading'
+                        ? 'Syncing...'
+                        : themeStatus === 'demo'
+                          ? 'Local demo mode (not synced)'
+                          : 'Changes sync instantly'}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Copy */}
+        {tab === 'copy' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-charcoal">Edit All Text</h3>
+                  <p className="text-sm text-light">Search any key and update the English/Korean copy instantly.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={handleResetCopy}
+                    className="rounded-full border border-[hsl(30,12%,85%)] px-4 py-2 text-xs text-mid hover:text-charcoal hover:border-charcoal"
+                  >
+                    Reset to Defaults
+                  </button>
+                  <button
+                    onClick={handleSaveCopy}
+                    className="rounded-full bg-charcoal px-5 py-2 text-xs font-semibold text-white"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <input
+                  type="text"
+                  value={copySearch}
+                  onChange={(e) => setCopySearch(e.target.value)}
+                  placeholder="Search by key or text..."
+                  className="w-full rounded-lg border border-[hsl(30,12%,87%)] px-4 py-2 text-sm outline-none focus:border-charcoal"
+                />
+                <span className="text-xs text-light">{filteredCopyDrafts.length} items</span>
+              </div>
+
+              <div className="mt-4 max-h-[520px] space-y-3 overflow-y-auto pr-1 scrollbar-thin">
+                {filteredCopyDrafts.map((row) => (
+                  <div key={row.key} className="grid gap-2 lg:grid-cols-[220px,1fr,1fr] items-start">
+                    <div className="text-xs font-semibold text-mid break-all">{row.key}</div>
+                    <input
+                      type="text"
+                      value={row.en}
+                      onChange={(e) => setCopyDrafts((prev) => prev.map((item) => item.key === row.key ? { ...item, en: e.target.value } : item))}
+                      placeholder="English"
+                      className="w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                    />
+                    <input
+                      type="text"
+                      value={row.ko}
+                      onChange={(e) => setCopyDrafts((prev) => prev.map((item) => item.key === row.key ? { ...item, ko: e.target.value } : item))}
+                      placeholder="Korean"
+                      className="w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 text-xs text-light">
+                {copyError
+                  ? copyError
+                  : copyNotice
+                    ? copyNotice
+                    : copyStatus === 'loading'
+                      ? 'Syncing...'
+                      : copyStatus === 'demo'
+                        ? 'Local demo mode (not synced)'
+                        : 'Changes sync instantly'}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Site Content */}
         {tab === 'content' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
             <h3 className="text-lg font-bold text-charcoal mb-5">Edit Site Content</h3>
             <div className="space-y-4">
-              {(Object.entries(siteContent) as [keyof SiteContent, string][]).map(([key, val]) => (
+              <div>
+                <label className="mb-1 block text-sm font-medium text-charcoal">Hero Background Image</label>
+                <div className="aspect-[16/9] w-full overflow-hidden rounded-lg border border-[hsl(30,12%,90%)] bg-[hsl(30,15%,94%)]">
+                  {siteContent.heroBackgroundUrl ? (
+                    <img src={siteContent.heroBackgroundUrl} alt="Hero Background" className="size-full object-cover" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-xs text-light">No image</div>
+                  )}
+                </div>
+                <input
+                  type="text"
+                  value={siteContent.heroBackgroundUrl}
+                  onChange={(e) => updateContent({ heroBackgroundUrl: e.target.value })}
+                  placeholder="Paste image URL"
+                  className="mt-2 w-full rounded-lg border border-[hsl(30,12%,87%)] px-4 py-2.5 text-sm outline-none focus:border-charcoal"
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleHeroBackgroundUpload(e.target.files?.[0])}
+                  className="mt-2 w-full text-xs text-mid"
+                />
+              </div>
+
+              {contentEntries.map(([key, val]) => (
                 <div key={key}>
                   <label className="mb-1 block text-sm font-medium text-charcoal capitalize">{key.replace(/([A-Z])/g, ' $1')}</label>
                   <input

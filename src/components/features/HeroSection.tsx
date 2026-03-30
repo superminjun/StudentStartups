@@ -12,11 +12,19 @@ export default function HeroSection() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
   const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '25%']);
   const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+  const heroBackgroundUrl = content.heroBackgroundUrl?.trim();
 
   return (
     <section ref={ref} className="relative h-screen min-h-[640px] overflow-hidden">
       <motion.div className="absolute inset-0" style={{ y: bgY }}>
-        <div className="size-full bg-gradient-to-br from-[hsl(30,30%,98%)] via-[hsl(30,25%,95%)] to-[hsl(28,20%,90%)]" />
+        {heroBackgroundUrl ? (
+          <div className="relative size-full">
+            <img src={heroBackgroundUrl} alt="" className="size-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(30,30%,98%)] via-[hsl(30,25%,95%)] to-[hsl(28,20%,90%)] opacity-80" />
+          </div>
+        ) : (
+          <div className="size-full bg-gradient-to-br from-[hsl(30,30%,98%)] via-[hsl(30,25%,95%)] to-[hsl(28,20%,90%)]" />
+        )}
         <div className="pointer-events-none absolute -top-24 right-[-10%] h-80 w-80 rounded-full bg-[hsl(24,80%,90%)] blur-3xl opacity-45" />
         <div className="pointer-events-none absolute bottom-[-20%] left-[-8%] h-72 w-72 rounded-full bg-[hsl(30,18%,88%)] blur-3xl opacity-60" />
       </motion.div>
@@ -29,7 +37,7 @@ export default function HeroSection() {
             transition={{ delay: 0.2, duration: 0.6 }}
             className="text-sm font-medium tracking-widest text-mid uppercase"
           >
-            {t('hero.tagline')}
+            {content.heroTagline || t('hero.tagline')}
           </motion.p>
 
           <motion.h1
@@ -60,7 +68,7 @@ export default function HeroSection() {
               to="/projects"
               className="group inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-3 text-sm font-semibold text-white transition-all hover:shadow-lg hover:-translate-y-0.5 hover:bg-[hsl(20,8%,28%)] active:scale-[0.98]"
             >
-              {t('hero.cta')}
+              {content.heroCta || t('hero.cta')}
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </motion.div>

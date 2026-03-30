@@ -2,10 +2,18 @@ import { useRef } from 'react';
 import { useInView } from 'framer-motion';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCounter } from '@/hooks/useCounter';
-import { impactMetrics } from '@/constants/mockData';
+import { useCMSStore } from '@/stores/cmsStore';
 import ScrollReveal from './ScrollReveal';
 
-function CounterCard({ metric, index }: { metric: typeof impactMetrics[0]; index: number }) {
+type Metric = {
+  labelEn: string;
+  labelKo: string;
+  value: number;
+  prefix?: string;
+  suffix?: string;
+};
+
+function CounterCard({ metric, index }: { metric: Metric; index: number }) {
   const { lang } = useLanguage();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-40px' });
@@ -27,6 +35,7 @@ function CounterCard({ metric, index }: { metric: typeof impactMetrics[0]; index
 
 export default function ImpactCounters() {
   const { t } = useLanguage();
+  const metrics = useCMSStore((s) => s.impactMetrics);
 
   return (
     <section className="bg-charcoal py-20 lg:py-28">
@@ -39,8 +48,18 @@ export default function ImpactCounters() {
         </ScrollReveal>
 
         <div className="mt-14 grid grid-cols-2 gap-8 lg:grid-cols-4">
-          {impactMetrics.map((metric, i) => (
-            <CounterCard key={metric.labelEn} metric={metric} index={i} />
+          {metrics.map((metric, i) => (
+            <CounterCard
+              key={`${metric.labelEn}-${i}`}
+              metric={{
+                labelEn: metric.labelEn,
+                labelKo: metric.labelKo,
+                value: metric.value,
+                prefix: metric.prefix,
+                suffix: metric.suffix,
+              }}
+              index={i}
+            />
           ))}
         </div>
       </div>

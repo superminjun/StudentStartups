@@ -16,6 +16,8 @@
 @layer base {
   :root {
     --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-heading: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-size-base: 16px;
 
     /* Warm beige palette */
     --color-beige: 30 25% 95%;
@@ -68,9 +70,10 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-body);
+    font-size: var(--font-size-base);
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-body);
+    font-family: var(--font-heading);
     letter-spacing: -0.02em;
   }
 }

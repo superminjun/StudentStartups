@@ -1,13 +1,20 @@
 import { motion } from 'framer-motion';
 import { Lightbulb, Search, Layers, FlaskConical, Factory, Megaphone, BarChart3 } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
-import { workflowSteps } from '@/constants/mockData';
 import ScrollReveal from './ScrollReveal';
 
-const icons = [Lightbulb, Search, Layers, FlaskConical, Factory, Megaphone, BarChart3];
+const steps = [
+  { id: '01', titleKey: 'workflow.steps.step1Title', descKey: 'workflow.steps.step1Desc', icon: Lightbulb },
+  { id: '02', titleKey: 'workflow.steps.step2Title', descKey: 'workflow.steps.step2Desc', icon: Search },
+  { id: '03', titleKey: 'workflow.steps.step3Title', descKey: 'workflow.steps.step3Desc', icon: Layers },
+  { id: '04', titleKey: 'workflow.steps.step4Title', descKey: 'workflow.steps.step4Desc', icon: FlaskConical },
+  { id: '05', titleKey: 'workflow.steps.step5Title', descKey: 'workflow.steps.step5Desc', icon: Factory },
+  { id: '06', titleKey: 'workflow.steps.step6Title', descKey: 'workflow.steps.step6Desc', icon: Megaphone },
+  { id: '07', titleKey: 'workflow.steps.step7Title', descKey: 'workflow.steps.step7Desc', icon: BarChart3 },
+];
 
 export default function WorkflowSteps() {
-  const { lang, t } = useLanguage();
+  const { t } = useLanguage();
 
   return (
     <section className="bg-white py-20 lg:py-28">
@@ -21,8 +28,8 @@ export default function WorkflowSteps() {
 
         <div className="mt-14">
           <div className="flex flex-wrap justify-center gap-6">
-            {workflowSteps.map((step, i) => {
-              const Icon = icons[i];
+            {steps.map((step, i) => {
+              const Icon = step.icon;
               return (
                 <ScrollReveal key={step.id} delay={i * 0.06} direction="up">
                   <motion.div
@@ -39,10 +46,10 @@ export default function WorkflowSteps() {
                     </div>
                     <span className="mt-3 text-xs font-semibold text-light">{step.id}</span>
                     <h3 className="mt-1 text-sm font-semibold leading-tight text-charcoal">
-                      {lang === 'en' ? step.titleEn : step.titleKo}
+                      {t(step.titleKey)}
                     </h3>
                     <p className="mt-1.5 text-xs leading-relaxed text-mid/80">
-                      {lang === 'en' ? step.descEn : step.descKo}
+                      {t(step.descKey)}
                     </p>
                   </motion.div>
                 </ScrollReveal>
