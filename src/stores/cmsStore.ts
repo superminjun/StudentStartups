@@ -65,6 +65,7 @@ type ProjectRow = {
   donation_percent: number;
   team: unknown;
   image_url: string;
+  banner_image_url?: string | null;
   start_date: string;
   category: string;
   term: string;
@@ -131,6 +132,7 @@ const mapProjectRow = (row: ProjectRow): Project => ({
   donationPercent: Number(row.donation_percent) || 0,
   team: Array.isArray(row.team) ? (row.team as Project['team']) : [],
   image: row.image_url,
+  bannerImage: row.banner_image_url ?? '',
   startDate: row.start_date,
   category: row.category,
   term: row.term,
@@ -316,6 +318,7 @@ export const useCMSStore = create<{
       previewProjects.map(async (project) => ({
         ...project,
         image: project.image ? await resolveStorageUrl(project.image) : project.image,
+        bannerImage: project.bannerImage ? await resolveStorageUrl(project.bannerImage) : project.bannerImage,
       }))
     );
 

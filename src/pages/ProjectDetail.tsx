@@ -19,6 +19,7 @@ export default function ProjectDetail() {
   const revenueChartData = useCMSStore((s) => s.revenueData);
   const project = projects.find((p) => p.id === id);
   const stageLabels = lang === 'en' ? STAGE_LABELS_EN : STAGE_LABELS_KO;
+  const bannerImage = project?.bannerImage || project?.image;
 
   if (!project) {
     return (
@@ -42,7 +43,7 @@ export default function ProjectDetail() {
     <div>
       <section className="relative h-[40vh] min-h-[320px] overflow-hidden">
         <img
-          src={project.image}
+          src={bannerImage}
           alt={project.name}
           loading="lazy"
           decoding="async"

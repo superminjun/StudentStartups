@@ -11,6 +11,7 @@ export interface Project {
   donationPercent: number;
   team: TeamAssignment[];
   image: string;
+  bannerImage?: string;
   startDate: string;
   category: string;
   term: string;

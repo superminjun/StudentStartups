@@ -158,6 +158,7 @@ export default function Admin() {
   const [projectDirty, setProjectDirty] = useState<Record<string, boolean>>({});
   const [productDirty, setProductDirty] = useState<Record<string, boolean>>({});
   const [projectImagePreview, setProjectImagePreview] = useState<Record<string, string>>({});
+  const [projectBannerPreview, setProjectBannerPreview] = useState<Record<string, string>>({});
   const [productImagePreview, setProductImagePreview] = useState<Record<string, string>>({});
 
   const loadOrders = async () => {
@@ -456,6 +457,17 @@ export default function Admin() {
       : `${Date.now()}`
   );
 
+  const dedupeImages = (images: string[]) => (
+    Array.from(new Set(images.map((img) => img.trim()).filter(Boolean)))
+  );
+
+  const normalizeProductImages = (mainImage: string, images: string[] | undefined) => {
+    const base = dedupeImages(images ?? []);
+    if (!mainImage) return base;
+    const withoutMain = base.filter((img) => img !== mainImage);
+    return [mainImage, ...withoutMain];
+  };
+
   const createProjectDraft = (): Project => ({
     id: `project-${createId()}`,
     name: 'New Project',
@@ -469,6 +481,7 @@ export default function Admin() {
     donationPercent: 0,
     team: [],
     image: '',
+    bannerImage: '',
     startDate: new Date().toISOString().slice(0, 10),
     category: '',
     term: '',
@@ -505,6 +518,7 @@ export default function Admin() {
       donation_percent: Number(normalized.donationPercent) || 0,
       team: normalized.team ?? [],
       image_url: normalized.image,
+      banner_image_url: normalized.bannerImage ?? '',
       start_date: normalized.startDate,
       category: normalized.category,
       term: normalized.term,
@@ -512,26 +526,30 @@ export default function Admin() {
     });
   };
 
-  const mapProductToRow = (product: Product) => ({
-    id: product.id,
-    name: product.name,
-    description: product.description,
-    price: Number(product.price) || 0,
-    image_url: product.image,
-    images: product.images ?? [],
-    category: product.category,
-    inventory: Number(product.inventory) || 0,
-    is_preorder: Boolean(product.isPreOrder),
-    project_id: product.projectId ?? null,
-    term: product.term,
-    status: product.status ?? 'available',
-  });
+  const mapProductToRow = (product: Product) => {
+    const images = normalizeProductImages(product.image, product.images);
+    return ({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: Number(product.price) || 0,
+      image_url: product.image,
+      images,
+      category: product.category,
+      inventory: Number(product.inventory) || 0,
+      is_preorder: Boolean(product.isPreOrder),
+      project_id: product.projectId ?? null,
+      term: product.term,
+      status: product.status ?? 'available',
+    });
+  };
 
   const syncProjectToCMS = async (project: Project) => {
     const normalized = normalizeProject(project);
     const image = normalized.image ? await resolveStorageUrl(normalized.image) : normalized.image;
+    const bannerImage = normalized.bannerImage ? await resolveStorageUrl(normalized.bannerImage) : normalized.bannerImage;
     useCMSStore.setState((state) => {
-      const nextProject = { ...normalized, image };
+      const nextProject = { ...normalized, image, bannerImage };
       const existingIndex = state.projects.findIndex((item) => item.id === normalized.id);
       const nextProjects = existingIndex === -1
         ? [...state.projects, nextProject]
@@ -541,9 +559,10 @@ export default function Admin() {
   };
 
   const syncProductToCMS = async (product: Product) => {
+    const normalizedImages = normalizeProductImages(product.image, product.images);
     const image = product.image ? await resolveStorageUrl(product.image) : product.image;
-    const images = Array.isArray(product.images)
-      ? await Promise.all(product.images.map((img) => (img ? resolveStorageUrl(img) : img)))
+    const images = normalizedImages.length
+      ? await Promise.all(normalizedImages.map((img) => (img ? resolveStorageUrl(img) : img)))
       : [];
     useCMSStore.setState((state) => {
       const nextProduct = { ...product, image, images };
@@ -602,6 +621,11 @@ export default function Admin() {
       return next;
     });
     setProjectImagePreview((prev) => {
+      const next = { ...prev };
+      delete next[projectId];
+      return next;
+    });
+    setProjectBannerPreview((prev) => {
       const next = { ...prev };
       delete next[projectId];
       return next;
@@ -705,6 +729,28 @@ export default function Admin() {
     }, 1800);
   };
 
+  const handleProjectBannerUpload = async (projectId: string, file?: File | null) => {
+    if (!file) return;
+    setProjectUploadState((prev) => ({ ...prev, [projectId]: { status: 'uploading' } }));
+    const safeName = file.name.replace(/\\s+/g, '-');
+    const path = `${projectId}/banner-${Date.now()}-${safeName}`;
+    const { url, error } = await uploadToBucket('project-images', path, file);
+    if (!url) {
+      setProjectUploadState((prev) => ({ ...prev, [projectId]: { status: 'error', message: error ?? 'Upload failed' } }));
+      return;
+    }
+    const previewUrl = await resolveStorageUrl(url);
+    setProjectDrafts((prev) => (
+      prev.map((p) => (p.id === projectId ? { ...p, bannerImage: url } : p))
+    ));
+    setProjectBannerPreview((prev) => ({ ...prev, [projectId]: previewUrl }));
+    setProjectDirty((prev) => ({ ...prev, [projectId]: true }));
+    setProjectUploadState((prev) => ({ ...prev, [projectId]: { status: 'done' } }));
+    window.setTimeout(() => {
+      setProjectUploadState((prev) => ({ ...prev, [projectId]: { status: 'idle' } }));
+    }, 1800);
+  };
+
   const handleProductImageUpload = async (productId: string, file?: File | null) => {
     if (!file) return;
     setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'uploading' } }));
@@ -716,10 +762,13 @@ export default function Admin() {
       return;
     }
     const previewUrl = await resolveStorageUrl(url);
-    setProductDrafts((prev) => {
-      const next = prev.map((p) => (p.id === productId ? { ...p, image: url } : p));
-      return next;
-    });
+    setProductDrafts((prev) => (
+      prev.map((p) => (
+        p.id === productId
+          ? { ...p, image: url, images: normalizeProductImages(url, p.images) }
+          : p
+      ))
+    ));
     setProductImagePreview((prev) => ({ ...prev, [productId]: previewUrl }));
     setProductDirty((prev) => ({ ...prev, [productId]: true }));
     setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'done' } }));
@@ -743,12 +792,14 @@ export default function Admin() {
       setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'error', message: 'Upload failed' } }));
       return;
     }
-    setProductDrafts((prev) => {
-      const next = prev.map((p) => (
-        p.id === productId ? { ...p, images: [...(p.images ?? []), ...uploaded] } : p
-      ));
-      return next;
-    });
+    setProductDrafts((prev) => (
+      prev.map((p) => {
+        if (p.id !== productId) return p;
+        const mergedImages = normalizeProductImages(p.image, [...(p.images ?? []), ...uploaded]);
+        const nextMain = p.image || mergedImages[0] || '';
+        return { ...p, image: nextMain, images: normalizeProductImages(nextMain, mergedImages) };
+      })
+    ));
     setProductDirty((prev) => ({ ...prev, [productId]: true }));
     setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'done' } }));
     window.setTimeout(() => {
@@ -896,6 +947,13 @@ export default function Admin() {
       return [...next, ...newDrafts];
     });
     setProjectImagePreview((prev) => {
+      const next = { ...prev };
+      normalized.forEach((project) => {
+        if (!projectDirty[project.id]) delete next[project.id];
+      });
+      return next;
+    });
+    setProjectBannerPreview((prev) => {
       const next = { ...prev };
       normalized.forEach((project) => {
         if (!projectDirty[project.id]) delete next[project.id];
@@ -1457,6 +1515,7 @@ export default function Admin() {
 
             {projectDrafts.map((project) => {
               const imageSrc = projectImagePreview[project.id] ?? project.image;
+              const bannerSrc = projectBannerPreview[project.id] ?? project.bannerImage ?? project.image;
               const saveState = projectSaveState[project.id]?.status ?? 'idle';
               const saveMessage = projectSaveState[project.id]?.message;
               const uploadState = projectUploadState[project.id]?.status ?? 'idle';
@@ -1500,6 +1559,32 @@ export default function Admin() {
                       type="file"
                       accept="image/*"
                       onChange={(e) => handleProjectImageUpload(project.id, e.target.files?.[0])}
+                      className="mt-1 w-full text-xs text-mid"
+                    />
+                    <label className="mt-4 block text-xs font-semibold text-mid">Banner Preview</label>
+                    <div className="mt-2 aspect-[16/9] overflow-hidden rounded-lg border border-[hsl(30,12%,90%)] bg-[hsl(30,15%,94%)]">
+                      {bannerSrc ? (
+                        <img src={bannerSrc} alt={`${project.name} banner`} className="size-full object-cover" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-xs text-light">No banner</div>
+                      )}
+                    </div>
+                    <label className="mt-3 block text-xs font-semibold text-mid">Banner Image URL</label>
+                    <input
+                      type="text"
+                      value={project.bannerImage ?? ''}
+                      onChange={(e) => {
+                        const nextUrl = e.target.value;
+                        updateProjectDraft(project.id, { bannerImage: nextUrl });
+                        setProjectBannerPreview((prev) => ({ ...prev, [project.id]: nextUrl }));
+                      }}
+                      className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                    />
+                    <label className="mt-3 block text-xs font-semibold text-mid">Upload Banner Image</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleProjectBannerUpload(project.id, e.target.files?.[0])}
                       className="mt-1 w-full text-xs text-mid"
                     />
                     {uploadState !== 'idle' && (
@@ -1797,6 +1882,7 @@ export default function Admin() {
 
             {productDrafts.map((product) => {
               const imageSrc = productImagePreview[product.id] ?? product.image;
+              const galleryImages = normalizeProductImages(product.image, product.images);
               const saveState = productSaveState[product.id]?.status ?? 'idle';
               const saveMessage = productSaveState[product.id]?.message;
               const uploadState = productUploadState[product.id]?.status ?? 'idle';
@@ -1830,7 +1916,7 @@ export default function Admin() {
                       value={product.image}
                       onChange={(e) => {
                         const nextUrl = e.target.value;
-                        updateProductDraft(product.id, { image: nextUrl });
+                        updateProductDraft(product.id, { image: nextUrl, images: normalizeProductImages(nextUrl, product.images) });
                         setProductImagePreview((prev) => ({ ...prev, [product.id]: nextUrl }));
                       }}
                       className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
@@ -1842,7 +1928,7 @@ export default function Admin() {
                       onChange={(e) => handleProductImageUpload(product.id, e.target.files?.[0])}
                       className="mt-1 w-full text-xs text-mid"
                     />
-                    <label className="mt-3 block text-xs font-semibold text-mid">Upload Gallery Images</label>
+                    <label className="mt-3 block text-xs font-semibold text-mid">Upload Gallery Images (auto sets main if empty)</label>
                     <input
                       type="file"
                       accept="image/*"
@@ -1952,14 +2038,44 @@ export default function Admin() {
                     <div className="sm:col-span-2">
                       <label className="text-xs font-semibold text-mid">Gallery Images (comma separated URLs)</label>
                       <textarea
-                        value={(product.images ?? []).join(', ')}
+                        value={galleryImages.join(', ')}
                         onChange={(e) => {
                           const urls = e.target.value.split(',').map((u) => u.trim()).filter(Boolean);
-                          updateProductDraft(product.id, { images: urls });
+                          const normalized = normalizeProductImages(product.image, urls);
+                          const nextMain = product.image || normalized[0] || '';
+                          updateProductDraft(product.id, { image: nextMain, images: normalizeProductImages(nextMain, normalized) });
                         }}
                         className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
                         rows={2}
                       />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-semibold text-mid">Gallery Preview (click to set main)</label>
+                      {galleryImages.length === 0 ? (
+                        <p className="mt-2 text-xs text-light">No gallery images yet.</p>
+                      ) : (
+                        <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-6">
+                          {galleryImages.map((img) => (
+                            <button
+                              key={img}
+                              type="button"
+                              onClick={() => {
+                                const nextImages = normalizeProductImages(img, galleryImages);
+                                updateProductDraft(product.id, { image: img, images: nextImages });
+                                setProductImagePreview((prev) => ({ ...prev, [product.id]: img }));
+                              }}
+                              className={`group relative aspect-square overflow-hidden rounded-lg border-2 ${
+                                product.image === img ? 'border-charcoal' : 'border-transparent hover:border-[hsl(30,12%,70%)]'
+                              }`}
+                            >
+                              <img src={img} alt="" className="size-full object-cover" />
+                              {product.image === img && (
+                                <span className="absolute left-1 top-1 rounded-full bg-charcoal px-2 py-0.5 text-[10px] text-white">Main</span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
