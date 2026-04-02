@@ -297,24 +297,17 @@ export const useCMSStore = create<{
       ? []
       : (growthRes.data?.length ? (growthRes.data as GrowthRow[]).map(mapGrowthRow) : []);
 
-    const useMockProjects = resolvedProjects.length === 0;
-    const useMockProducts = resolvedProducts.length === 0;
-    const useMockImpact = metricsData.length === 0;
-    const useMockRevenue = revenueData.length === 0;
-    const useMockDonations = donationData.length === 0;
-    const useMockGrowth = memberGrowthData.length === 0;
-
-    const previewProjects = useMockProjects ? mockProjects : resolvedProjects;
-    const previewProducts = useMockProducts ? mockProducts : resolvedProducts;
-    const previewMetrics = useMockImpact ? mockMetricRecords : metricsData;
-    const previewRevenue = useMockRevenue ? mockRevenueRecords : revenueData;
-    const previewDonations = useMockDonations ? mockDonationRecords : donationData;
-    const previewGrowth = useMockGrowth ? mockGrowthRecords : memberGrowthData;
+    const previewProjects = resolvedProjects;
+    const previewProducts = resolvedProducts;
+    const previewMetrics = metricsData;
+    const previewRevenue = revenueData;
+    const previewDonations = donationData;
+    const previewGrowth = memberGrowthData;
 
     const nextSources: SourceMap = {
-      projects: useMockProjects ? 'mock' : 'db',
-      products: useMockProducts ? 'mock' : 'db',
-      impact: useMockImpact ? 'mock' : 'db',
+      projects: 'db',
+      products: 'db',
+      impact: 'db',
     };
 
     const firstError = projectsRes.error || productsRes.error || metricsRes.error || revenueRes.error || donationRes.error || growthRes.error;
