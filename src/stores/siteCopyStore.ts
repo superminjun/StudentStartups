@@ -88,7 +88,6 @@ export const useSiteCopyStore = create<{
       });
       return;
     }
-    }
   },
 }));
 
