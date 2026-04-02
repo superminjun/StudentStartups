@@ -528,10 +528,16 @@ export default function Admin() {
   });
 
   const syncProjectToCMS = async (project: Project) => {
-    const image = project.image ? await resolveStorageUrl(project.image) : project.image;
-    useCMSStore.setState((state) => ({
-      projects: state.projects.map((item) => (item.id === project.id ? { ...project, image } : item)),
-    }));
+    const normalized = normalizeProject(project);
+    const image = normalized.image ? await resolveStorageUrl(normalized.image) : normalized.image;
+    useCMSStore.setState((state) => {
+      const nextProject = { ...normalized, image };
+      const existingIndex = state.projects.findIndex((item) => item.id === normalized.id);
+      const nextProjects = existingIndex === -1
+        ? [...state.projects, nextProject]
+        : state.projects.map((item) => (item.id === normalized.id ? nextProject : item));
+      return { projects: nextProjects };
+    });
   };
 
   const syncProductToCMS = async (product: Product) => {
@@ -539,9 +545,14 @@ export default function Admin() {
     const images = Array.isArray(product.images)
       ? await Promise.all(product.images.map((img) => (img ? resolveStorageUrl(img) : img)))
       : [];
-    useCMSStore.setState((state) => ({
-      products: state.products.map((item) => (item.id === product.id ? { ...product, image, images } : item)),
-    }));
+    useCMSStore.setState((state) => {
+      const nextProduct = { ...product, image, images };
+      const existingIndex = state.products.findIndex((item) => item.id === product.id);
+      const nextProducts = existingIndex === -1
+        ? [...state.products, nextProduct]
+        : state.products.map((item) => (item.id === product.id ? nextProduct : item));
+      return { products: nextProducts };
+    });
   };
 
   const handleSaveProject = async (project: Project) => {
@@ -570,7 +581,35 @@ export default function Admin() {
       .from('projects')
       .delete()
       .eq('id', projectId);
-    setCmsNotice(deleteError ? deleteError.message : 'Project deleted');
+    if (deleteError) {
+      setCmsNotice(deleteError.message);
+      return;
+    }
+    setProjectDrafts((prev) => prev.filter((project) => project.id !== projectId));
+    setProjectDirty((prev) => {
+      const next = { ...prev };
+      delete next[projectId];
+      return next;
+    });
+    setProjectSaveState((prev) => {
+      const next = { ...prev };
+      delete next[projectId];
+      return next;
+    });
+    setProjectUploadState((prev) => {
+      const next = { ...prev };
+      delete next[projectId];
+      return next;
+    });
+    setProjectImagePreview((prev) => {
+      const next = { ...prev };
+      delete next[projectId];
+      return next;
+    });
+    useCMSStore.setState((state) => ({
+      projects: state.projects.filter((project) => project.id !== projectId),
+    }));
+    setCmsNotice('Project deleted');
   };
 
   const handleSaveProduct = async (product: Product) => {
@@ -599,7 +638,35 @@ export default function Admin() {
       .from('products')
       .delete()
       .eq('id', productId);
-    setCmsNotice(deleteError ? deleteError.message : 'Product deleted');
+    if (deleteError) {
+      setCmsNotice(deleteError.message);
+      return;
+    }
+    setProductDrafts((prev) => prev.filter((product) => product.id !== productId));
+    setProductDirty((prev) => {
+      const next = { ...prev };
+      delete next[productId];
+      return next;
+    });
+    setProductSaveState((prev) => {
+      const next = { ...prev };
+      delete next[productId];
+      return next;
+    });
+    setProductUploadState((prev) => {
+      const next = { ...prev };
+      delete next[productId];
+      return next;
+    });
+    setProductImagePreview((prev) => {
+      const next = { ...prev };
+      delete next[productId];
+      return next;
+    });
+    useCMSStore.setState((state) => ({
+      products: state.products.filter((product) => product.id !== productId),
+    }));
+    setCmsNotice('Product deleted');
   };
 
   const uploadToBucket = async (bucket: string, filePath: string, file: File) => {
