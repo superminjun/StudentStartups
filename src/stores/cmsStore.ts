@@ -12,6 +12,37 @@ import {
 } from '@/constants/mockData';
 import type { Project, Product } from '@/types';
 
+const isBrowser = typeof window !== 'undefined';
+
+const readCache = <T,>(key: string, fallback: T): T => {
+  if (!isBrowser) return fallback;
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return fallback;
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+};
+
+const writeCache = (key: string, value: unknown) => {
+  if (!isBrowser) return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // ignore write errors (private mode, storage full)
+  }
+};
+
+const CACHE_KEYS = {
+  projects: 'bnss-cms-projects',
+  products: 'bnss-cms-products',
+  impactMetrics: 'bnss-cms-impact-metrics',
+  revenue: 'bnss-cms-impact-revenue',
+  donations: 'bnss-cms-impact-donations',
+  growth: 'bnss-cms-impact-growth',
+};
+
 export type ImpactMetricRecord = {
   id: string;
   labelEn: string;
@@ -218,12 +249,19 @@ const mockGrowthRecords: MemberGrowthPoint[] = mockMemberGrowth.map((d, idx) => 
   sortOrder: idx + 1,
 }));
 
-const initialProjects = isSupabaseConfigured ? [] : mockProjects;
-const initialProducts = isSupabaseConfigured ? [] : mockProducts;
-const initialMetrics = isSupabaseConfigured ? [] : mockMetricRecords;
-const initialRevenue = isSupabaseConfigured ? [] : mockRevenueRecords;
-const initialDonations = isSupabaseConfigured ? [] : mockDonationRecords;
-const initialGrowth = isSupabaseConfigured ? [] : mockGrowthRecords;
+const cachedProjects = isSupabaseConfigured ? readCache<Project[]>(CACHE_KEYS.projects, []) : [];
+const cachedProducts = isSupabaseConfigured ? readCache<Product[]>(CACHE_KEYS.products, []) : [];
+const cachedMetrics = isSupabaseConfigured ? readCache<ImpactMetricRecord[]>(CACHE_KEYS.impactMetrics, []) : [];
+const cachedRevenue = isSupabaseConfigured ? readCache<RevenuePoint[]>(CACHE_KEYS.revenue, []) : [];
+const cachedDonations = isSupabaseConfigured ? readCache<DonationPoint[]>(CACHE_KEYS.donations, []) : [];
+const cachedGrowth = isSupabaseConfigured ? readCache<MemberGrowthPoint[]>(CACHE_KEYS.growth, []) : [];
+
+const initialProjects = isSupabaseConfigured ? cachedProjects : mockProjects;
+const initialProducts = isSupabaseConfigured ? cachedProducts : mockProducts;
+const initialMetrics = isSupabaseConfigured ? cachedMetrics : mockMetricRecords;
+const initialRevenue = isSupabaseConfigured ? cachedRevenue : mockRevenueRecords;
+const initialDonations = isSupabaseConfigured ? cachedDonations : mockDonationRecords;
+const initialGrowth = isSupabaseConfigured ? cachedGrowth : mockGrowthRecords;
 const initialSources: SourceMap = isSupabaseConfigured
   ? { projects: 'db', products: 'db', impact: 'db' }
   : { projects: 'mock', products: 'mock', impact: 'mock' };
@@ -331,6 +369,13 @@ export const useCMSStore = create<{
           : [],
       }))
     );
+
+    writeCache(CACHE_KEYS.projects, projectsWithImages);
+    writeCache(CACHE_KEYS.products, productsWithImages);
+    writeCache(CACHE_KEYS.impactMetrics, previewMetrics);
+    writeCache(CACHE_KEYS.revenue, previewRevenue);
+    writeCache(CACHE_KEYS.donations, previewDonations);
+    writeCache(CACHE_KEYS.growth, previewGrowth);
 
     set({
       projects: projectsWithImages,

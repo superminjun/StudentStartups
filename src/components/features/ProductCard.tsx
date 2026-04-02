@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -11,22 +11,60 @@ export default function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((s) => s.addItem);
   const cartItems = useCartStore((s) => s.items);
   const [added, setAdded] = useState(false);
+  const [activeImage, setActiveImage] = useState(0);
+  const pauseUntilRef = useRef(0);
   const cartQty = cartItems.find((i) => i.productId === product.id)?.quantity ?? 0;
   const availableStock = Math.max(product.inventory - cartQty, 0);
-  const isSoldOut = availableStock <= 0 || product.status === 'sold-out';
+  const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
+  const isSoldOut = product.status === 'sold-out' || (product.status === 'available' && availableStock <= 0);
+  const canAddToCart = (product.status === 'available' && availableStock > 0) || isPreOrderOpen;
+
+  const images = useMemo(() => {
+    const list = [product.image, ...(product.images ?? [])].filter(Boolean);
+    return Array.from(new Set(list));
+  }, [product.image, product.images]);
+
+  useEffect(() => {
+    if (images.length <= 1) return undefined;
+    const interval = window.setInterval(() => {
+      if (Date.now() < pauseUntilRef.current) return;
+      setActiveImage((prev) => (prev + 1) % images.length);
+    }, 3500);
+    return () => window.clearInterval(interval);
+  }, [images.length]);
+
+  useEffect(() => {
+    if (activeImage >= images.length) setActiveImage(0);
+  }, [activeImage, images.length]);
+
+  const pauseAuto = (ms: number) => {
+    pauseUntilRef.current = Date.now() + ms;
+  };
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isSoldOut) return;
+    if (!canAddToCart) return;
     addItem(product.id);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
 
-  const statusLabel = isSoldOut ? t('shop.soldOut')
-    : product.status === 'in-production' ? t('shop.inProduction')
-    : null;
+  const statusLabel = isSoldOut
+    ? t('shop.soldOut')
+    : isPreOrderOpen
+      ? t('shop.preOrder')
+      : product.status === 'in-production'
+        ? t('shop.inProduction')
+        : null;
+
+  const buttonLabel = isSoldOut
+    ? t('shop.soldOut')
+    : isPreOrderOpen
+      ? t('shop.preOrder')
+      : product.status === 'in-production'
+        ? t('shop.inProduction')
+        : t('shop.addToCart');
 
   return (
     <Link to={`/shop/${product.id}`}>
@@ -36,13 +74,20 @@ export default function ProductCard({ product }: { product: Product }) {
         className="group overflow-hidden rounded-xl border border-[hsl(30,12%,90%)] bg-white"
       >
         <div className="relative aspect-square overflow-hidden bg-[hsl(30,15%,94%)]">
-          <img
-            src={product.image}
-            alt={product.name}
-            loading="lazy"
-            decoding="async"
-            className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={images[activeImage] ?? product.image}
+              src={images[activeImage] ?? product.image}
+              alt={product.name}
+              loading="lazy"
+              decoding="async"
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -24 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          </AnimatePresence>
           {statusLabel && (
             <span className="absolute left-3 top-3 rounded-full bg-charcoal px-2.5 py-1 text-[10px] font-semibold text-white">
               {statusLabel}
@@ -66,6 +111,26 @@ export default function ProductCard({ product }: { product: Product }) {
           {isSoldOut && (
             <div className="absolute inset-0 bg-black/30" />
           )}
+          {images.length > 1 && (
+            <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center gap-1.5">
+              {images.map((img, index) => (
+                <button
+                  key={img}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setActiveImage(index);
+                    pauseAuto(8000);
+                  }}
+                  className={`h-1.5 w-1.5 rounded-full transition-all ${
+                    activeImage === index ? 'bg-white' : 'bg-white/50 hover:bg-white/80'
+                  }`}
+                  aria-label={`Show image ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="p-4">
@@ -76,7 +141,7 @@ export default function ProductCard({ product }: { product: Product }) {
             <span className="text-base font-bold text-charcoal tabular-nums">${product.price.toFixed(2)}</span>
             <button
               onClick={handleAdd}
-              disabled={isSoldOut}
+              disabled={!canAddToCart}
               className="flex items-center gap-1.5 rounded-full bg-charcoal px-3 py-1.5 text-xs font-medium text-white transition-all hover:bg-[hsl(20,8%,28%)] disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
             >
               {added ? (
@@ -87,7 +152,7 @@ export default function ProductCard({ product }: { product: Product }) {
               ) : (
                 <>
                   <ShoppingBag className="size-3" />
-                  {t('shop.addToCart')}
+                  {buttonLabel}
                 </>
               )}
             </button>

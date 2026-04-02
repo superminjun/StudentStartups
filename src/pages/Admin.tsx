@@ -1543,6 +1543,7 @@ export default function Admin() {
                         <div className="flex h-full items-center justify-center text-xs text-light">No image</div>
                       )}
                     </div>
+                    <p className="mt-1 text-[10px] text-light">Recommended 1200×900 (4:3)</p>
                     <label className="mt-3 block text-xs font-semibold text-mid">Image URL</label>
                     <input
                       type="text"
@@ -1562,13 +1563,14 @@ export default function Admin() {
                       className="mt-1 w-full text-xs text-mid"
                     />
                     <label className="mt-4 block text-xs font-semibold text-mid">Banner Preview</label>
-                    <div className="mt-2 aspect-[16/9] overflow-hidden rounded-lg border border-[hsl(30,12%,90%)] bg-[hsl(30,15%,94%)]">
+                    <div className="mt-2 aspect-[21/9] overflow-hidden rounded-lg border border-[hsl(30,12%,90%)] bg-[hsl(30,15%,94%)]">
                       {bannerSrc ? (
                         <img src={bannerSrc} alt={`${project.name} banner`} className="size-full object-cover" />
                       ) : (
                         <div className="flex h-full items-center justify-center text-xs text-light">No banner</div>
                       )}
                     </div>
+                    <p className="mt-1 text-[10px] text-light">Recommended 1920×824 (21:9)</p>
                     <label className="mt-3 block text-xs font-semibold text-mid">Banner Image URL</label>
                     <input
                       type="text"
@@ -1910,6 +1912,7 @@ export default function Admin() {
                         <div className="flex h-full items-center justify-center text-xs text-light">No image</div>
                       )}
                     </div>
+                    <p className="mt-1 text-[10px] text-light">Recommended 1000×1000 (1:1)</p>
                     <label className="mt-3 block text-xs font-semibold text-mid">Image URL</label>
                     <input
                       type="text"
@@ -2075,6 +2078,9 @@ export default function Admin() {
                             </button>
                           ))}
                         </div>
+                      )}
+                      {galleryImages.length > 0 && (
+                        <p className="mt-2 text-[10px] text-light">Recommended 1000×1000 (1:1)</p>
                       )}
                     </div>
                   </div>

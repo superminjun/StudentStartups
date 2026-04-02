@@ -29,25 +29,29 @@ export default function ProductDetailPage() {
     );
   }
 
+  const cartQty = cartItems.find((i) => i.productId === product.id)?.quantity ?? 0;
+  const availableStock = Math.max(product.inventory - cartQty, 0);
+  const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
+  const isSoldOut = product.status === 'sold-out' || (product.status === 'available' && availableStock <= 0);
+  const canAddToCart = (product.status === 'available' && availableStock > 0) || isPreOrderOpen;
+
   const handleAdd = () => {
-    if (isSoldOut) return;
+    if (!canAddToCart) return;
     addItem(product.id);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
 
-  const allImages = product.images.length > 0 ? product.images : [product.image];
+  const allImages = Array.from(new Set([product.image, ...(product.images ?? [])].filter(Boolean)));
   const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
 
-  const cartQty = cartItems.find((i) => i.productId === product.id)?.quantity ?? 0;
-  const availableStock = Math.max(product.inventory - cartQty, 0);
-  const isSoldOut = availableStock <= 0 || product.status === 'sold-out';
-
   const statusLabel = isSoldOut ? t('shop.soldOut')
+    : isPreOrderOpen ? t('shop.preOrder')
     : product.status === 'in-production' ? t('shop.inProduction')
     : t('shop.available');
 
   const statusColor = isSoldOut ? 'text-red-500'
+    : isPreOrderOpen ? 'text-amber-600'
     : product.status === 'in-production' ? 'text-amber-600'
     : 'text-emerald-600';
 
@@ -117,7 +121,7 @@ export default function ProductDetailPage() {
 
               <button
                 onClick={handleAdd}
-                disabled={isSoldOut}
+                disabled={!canAddToCart}
                 className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-charcoal px-8 py-3.5 text-sm font-semibold text-white transition-all hover:bg-[hsl(20,8%,28%)] disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.98]"
               >
                 {added ? (
@@ -127,7 +131,13 @@ export default function ProductDetailPage() {
                 ) : (
                   <>
                     <ShoppingBag className="size-4" />
-                    {product.status === 'in-production' ? t('shop.preOrder') : t('shop.addToCart')}
+                    {isSoldOut
+                      ? t('shop.soldOut')
+                      : isPreOrderOpen
+                        ? t('shop.preOrder')
+                        : product.status === 'in-production'
+                          ? t('shop.inProduction')
+                          : t('shop.addToCart')}
                   </>
                 )}
               </button>
