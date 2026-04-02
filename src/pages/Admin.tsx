@@ -1395,10 +1395,20 @@ export default function Admin() {
               const uploadState = projectUploadState[project.id]?.status ?? 'idle';
               const uploadMessage = projectUploadState[project.id]?.message;
               const isDirty = projectDirty[project.id];
+              const uploadTone = uploadState === 'error'
+                ? 'text-red-500'
+                : uploadState === 'done'
+                  ? 'text-emerald-600'
+                  : 'text-mid';
+              const uploadLabel = uploadState === 'uploading'
+                ? 'Uploading image...'
+                : uploadState === 'done'
+                  ? 'Upload complete. Click Save.'
+                  : uploadMessage ?? 'Upload failed';
 
-              return (
-              <div key={project.id} className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5 space-y-4">
-                <div className="flex flex-col gap-4 lg:flex-row">
+              const projectCard = (
+                <div key={project.id} className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5 space-y-4">
+                  <div className="flex flex-col gap-4 lg:flex-row">
                   <div className="w-full lg:w-56">
                     <div className="aspect-[4/3] overflow-hidden rounded-lg border border-[hsl(30,12%,90%)] bg-[hsl(30,15%,94%)]">
                       {imageSrc ? (
@@ -1426,17 +1436,7 @@ export default function Admin() {
                       className="mt-1 w-full text-xs text-mid"
                     />
                     {uploadState !== 'idle' && (
-                      <p className={`mt-2 text-xs ${
-                        uploadState === 'error'
-                          ? 'text-red-500'
-                          : uploadState === 'done'
-                            ? 'text-emerald-600'
-                            : 'text-mid'
-                      }`}>
-                        {uploadState === 'uploading' && 'Uploading image...'}
-                        {uploadState === 'done' && 'Upload complete. Click Save.'}
-                        {uploadState === 'error' && (uploadMessage ?? 'Upload failed')}
-                      </p>
+                      <p className={`mt-2 text-xs ${uploadTone}`}>{uploadLabel}</p>
                     )}
                   </div>
 
@@ -1650,8 +1650,8 @@ export default function Admin() {
                   )}
                 </div>
               </div>
-            </div>
-            );
+              );
+              return projectCard;
             })}
           </motion.div>
         )}
@@ -1735,10 +1735,20 @@ export default function Admin() {
               const uploadState = productUploadState[product.id]?.status ?? 'idle';
               const uploadMessage = productUploadState[product.id]?.message;
               const isDirty = productDirty[product.id];
+              const uploadTone = uploadState === 'error'
+                ? 'text-red-500'
+                : uploadState === 'done'
+                  ? 'text-emerald-600'
+                  : 'text-mid';
+              const uploadLabel = uploadState === 'uploading'
+                ? 'Uploading images...'
+                : uploadState === 'done'
+                  ? 'Upload complete. Click Save.'
+                  : uploadMessage ?? 'Upload failed';
 
-              return (
-              <div key={product.id} className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5 space-y-4">
-                <div className="flex flex-col gap-4 lg:flex-row">
+              const productCard = (
+                <div key={product.id} className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5 space-y-4">
+                  <div className="flex flex-col gap-4 lg:flex-row">
                   <div className="w-full lg:w-56">
                     <div className="aspect-square overflow-hidden rounded-lg border border-[hsl(30,12%,90%)] bg-[hsl(30,15%,94%)]">
                       {imageSrc ? (
@@ -1774,17 +1784,7 @@ export default function Admin() {
                       className="mt-1 w-full text-xs text-mid"
                     />
                     {uploadState !== 'idle' && (
-                      <p className={`mt-2 text-xs ${
-                        uploadState === 'error'
-                          ? 'text-red-500'
-                          : uploadState === 'done'
-                            ? 'text-emerald-600'
-                            : 'text-mid'
-                      }`}>
-                        {uploadState === 'uploading' && 'Uploading images...'}
-                        {uploadState === 'done' && 'Upload complete. Click Save.'}
-                        {uploadState === 'error' && (uploadMessage ?? 'Upload failed')}
-                      </p>
+                      <p className={`mt-2 text-xs ${uploadTone}`}>{uploadLabel}</p>
                     )}
                   </div>
 
@@ -1922,8 +1922,8 @@ export default function Admin() {
                   )}
                 </div>
               </div>
-            </div>
-            );
+              );
+              return productCard;
             })}
           </motion.div>
         )}
