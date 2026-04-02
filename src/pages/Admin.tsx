@@ -840,7 +840,20 @@ export default function Admin() {
       sort_order: idx + 1,
     }));
     const { error: saveError } = await supabase.from('impact_metrics').upsert(payload);
-    setCmsNotice(saveError ? saveError.message : 'Impact metrics saved');
+    if (saveError) {
+      setCmsNotice(saveError.message);
+      return;
+    }
+    const nextMetrics = metricDrafts.map((metric, idx) => ({
+      ...metric,
+      id: metric.id || `metric-${idx}`,
+      value: Number(metric.value) || 0,
+      prefix: metric.prefix ?? '',
+      suffix: metric.suffix ?? '',
+      sortOrder: idx + 1,
+    }));
+    useCMSStore.setState({ impactMetrics: nextMetrics });
+    setCmsNotice('Impact metrics saved');
   };
 
   const handleSaveRevenue = async () => {
@@ -853,7 +866,19 @@ export default function Admin() {
       sort_order: idx + 1,
     }));
     const { error: saveError } = await supabase.from('impact_revenue').upsert(payload);
-    setCmsNotice(saveError ? saveError.message : 'Revenue chart saved');
+    if (saveError) {
+      setCmsNotice(saveError.message);
+      return;
+    }
+    const nextRevenue = revenueDrafts.map((row, idx) => ({
+      ...row,
+      id: row.id || createId(),
+      revenue: Number(row.revenue) || 0,
+      expenses: Number(row.expenses) || 0,
+      sortOrder: idx + 1,
+    }));
+    useCMSStore.setState({ revenueData: nextRevenue });
+    setCmsNotice('Revenue chart saved');
   };
 
   const handleSaveDonations = async () => {
@@ -865,7 +890,18 @@ export default function Admin() {
       sort_order: idx + 1,
     }));
     const { error: saveError } = await supabase.from('impact_donations').upsert(payload);
-    setCmsNotice(saveError ? saveError.message : 'Donations chart saved');
+    if (saveError) {
+      setCmsNotice(saveError.message);
+      return;
+    }
+    const nextDonations = donationDrafts.map((row, idx) => ({
+      ...row,
+      id: row.id || createId(),
+      value: Number(row.value) || 0,
+      sortOrder: idx + 1,
+    }));
+    useCMSStore.setState({ donationData: nextDonations });
+    setCmsNotice('Donations chart saved');
   };
 
   const handleSaveGrowth = async () => {
@@ -877,7 +913,18 @@ export default function Admin() {
       sort_order: idx + 1,
     }));
     const { error: saveError } = await supabase.from('impact_member_growth').upsert(payload);
-    setCmsNotice(saveError ? saveError.message : 'Member growth saved');
+    if (saveError) {
+      setCmsNotice(saveError.message);
+      return;
+    }
+    const nextGrowth = growthDrafts.map((row, idx) => ({
+      ...row,
+      id: row.id || createId(),
+      members: Number(row.members) || 0,
+      sortOrder: idx + 1,
+    }));
+    useCMSStore.setState({ memberGrowthData: nextGrowth });
+    setCmsNotice('Member growth saved');
   };
 
   const handleDeleteImpactRow = async (table: 'impact_revenue' | 'impact_donations' | 'impact_member_growth' | 'impact_metrics', id?: string) => {
@@ -1029,6 +1076,14 @@ export default function Admin() {
       value_ko: row.ko,
     }));
     const { error: saveError } = await supabase.from('site_copy').upsert(payload);
+    if (!saveError) {
+      useSiteCopyStore.setState((state) => ({
+        copy: payload.reduce((acc, row) => {
+          acc[row.key] = { en: row.value_en, ko: row.value_ko };
+          return acc;
+        }, { ...state.copy } as Record<string, { en?: string | null; ko?: string | null }>)
+      }));
+    }
     setCopyNotice(saveError ? saveError.message : 'Copy saved');
     window.setTimeout(() => setCopyNotice(''), 1800);
   };
@@ -1563,14 +1618,14 @@ export default function Admin() {
                       className="mt-1 w-full text-xs text-mid"
                     />
                     <label className="mt-4 block text-xs font-semibold text-mid">Banner Preview</label>
-                    <div className="mt-2 aspect-[21/9] overflow-hidden rounded-lg border border-[hsl(30,12%,90%)] bg-[hsl(30,15%,94%)]">
+                    <div className="mt-2 aspect-[3/1] overflow-hidden rounded-lg border border-[hsl(30,12%,90%)] bg-[hsl(30,15%,94%)]">
                       {bannerSrc ? (
                         <img src={bannerSrc} alt={`${project.name} banner`} className="size-full object-cover" />
                       ) : (
                         <div className="flex h-full items-center justify-center text-xs text-light">No banner</div>
                       )}
                     </div>
-                    <p className="mt-1 text-[10px] text-light">Recommended 1920×824 (21:9)</p>
+                    <p className="mt-1 text-[10px] text-light">Recommended 1920×640 (3:1)</p>
                     <label className="mt-3 block text-xs font-semibold text-mid">Banner Image URL</label>
                     <input
                       type="text"
@@ -2518,6 +2573,7 @@ export default function Admin() {
                     <div className="flex h-full items-center justify-center text-xs text-light">No image</div>
                   )}
                 </div>
+                <p className="mt-1 text-[10px] text-light">Recommended 1600×900 (16:9)</p>
                 <input
                   type="text"
                   value={siteContent.heroBackgroundUrl}

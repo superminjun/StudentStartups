@@ -4,6 +4,7 @@ import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
 import { hexToHsl, normalizeHex } from '@/lib/color';
 
 const STORAGE_KEY = 'bnss-admin-theme';
+const CACHE_KEY = 'bnss-site-theme-cache';
 const TABLE_NAME = 'site_theme';
 const SINGLETON_ID = 'global';
 
@@ -162,8 +163,33 @@ const applyThemeToDocument = (theme: SiteTheme) => {
   }
 };
 
+const isBrowser = typeof window !== 'undefined';
+
+const readCache = (): SiteTheme | null => {
+  if (!isBrowser) return null;
+  try {
+    const raw = window.localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as SiteTheme;
+  } catch {
+    return null;
+  }
+};
+
+const writeCache = (theme: SiteTheme) => {
+  if (!isBrowser) return;
+  try {
+    window.localStorage.setItem(CACHE_KEY, JSON.stringify(theme));
+  } catch {
+    // ignore
+  }
+};
+
 const loadFallback = (): SiteTheme => {
-  if (typeof window === 'undefined') return defaultTheme;
+  if (!isBrowser) return defaultTheme;
+  if (isSupabaseConfigured) {
+    return readCache() ?? defaultTheme;
+  }
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) return defaultTheme;
   try {
@@ -205,6 +231,7 @@ export const useSiteThemeStore = create<{
     }
 
     const mapped = mapRowToTheme(data as SiteThemeRow | null);
+    writeCache(mapped);
     set({ theme: mapped, status: 'ready' });
     applyThemeToDocument(mapped);
   },
@@ -224,6 +251,7 @@ export const useSiteThemeStore = create<{
     if (error) {
       set({ status: 'error', error: error.message });
     } else {
+      writeCache(merged);
       set({ status: 'ready', error: null });
     }
   },
@@ -246,6 +274,7 @@ export function useSiteThemeSync() {
         { event: '*', schema: 'public', table: TABLE_NAME, filter: `id=eq.${SINGLETON_ID}` },
         (payload) => {
           const next = mapRowToTheme(payload.new as SiteThemeRow);
+          writeCache(next);
           useSiteThemeStore.setState({ theme: next, status: 'ready', error: null });
           applyThemeToDocument(next);
         }

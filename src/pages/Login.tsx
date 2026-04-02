@@ -84,6 +84,9 @@ export default function Login() {
     setLoading(true);
     const redirectTo = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
 
+    const isInvalidCredentials = (message?: string) =>
+      message?.toLowerCase().includes('invalid login credentials');
+
     try {
       const emailRedirectTo = `${window.location.origin}/login?mode=member`;
 
@@ -93,7 +96,11 @@ export default function Login() {
           password,
         });
         if (signInError || !data.user) {
-          setError(t('login.errorAdmin'));
+          if (isInvalidCredentials(signInError?.message)) {
+            setError(t('login.errorInvalid'));
+          } else {
+            setError(t('login.errorAdmin'));
+          }
           return;
         }
         const { data: adminRow } = await supabase
@@ -151,7 +158,11 @@ export default function Login() {
         password,
       });
       if (signInError) {
-        setError(signInError.message);
+        if (isInvalidCredentials(signInError.message)) {
+          setError(t('login.errorInvalid'));
+        } else {
+          setError(signInError.message);
+        }
         return;
       }
       navigate(redirectTo || '/portal', { replace: true });

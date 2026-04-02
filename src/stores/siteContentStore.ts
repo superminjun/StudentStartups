@@ -4,6 +4,7 @@ import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
 import { TERMS } from '@/constants/config';
 
 const STORAGE_KEY = 'bnss-admin-content';
+const CACHE_KEY = 'bnss-site-content-cache';
 const TABLE_NAME = 'site_content';
 const SINGLETON_ID = 'global';
 
@@ -65,8 +66,33 @@ const mapContentToRow = (content: SiteContent): SiteContentRow => ({
   active_members: content.activeMembers,
 });
 
+const isBrowser = typeof window !== 'undefined';
+
+const readCache = (): SiteContent | null => {
+  if (!isBrowser) return null;
+  try {
+    const raw = window.localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as SiteContent;
+  } catch {
+    return null;
+  }
+};
+
+const writeCache = (content: SiteContent) => {
+  if (!isBrowser) return;
+  try {
+    window.localStorage.setItem(CACHE_KEY, JSON.stringify(content));
+  } catch {
+    // ignore
+  }
+};
+
 const loadFallback = (): SiteContent => {
   if (typeof window === 'undefined') return defaultContent;
+  if (isSupabaseConfigured) {
+    return readCache() ?? defaultContent;
+  }
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) return defaultContent;
   try {
@@ -106,6 +132,7 @@ export const useSiteContentStore = create<{
     }
 
     const mapped = mapRowToContent(data as SiteContentRow | null);
+    writeCache(mapped);
     set({ content: mapped, status: 'ready' });
   },
   updateContent: async (next) => {
@@ -123,6 +150,7 @@ export const useSiteContentStore = create<{
     if (error) {
       set({ status: 'error', error: error.message });
     } else {
+      writeCache(merged);
       set({ status: 'ready', error: null });
     }
   },
@@ -145,6 +173,7 @@ export function useSiteContentSync() {
         { event: '*', schema: 'public', table: TABLE_NAME, filter: `id=eq.${SINGLETON_ID}` },
         (payload) => {
           const next = mapRowToContent(payload.new as SiteContentRow);
+          writeCache(next);
           useSiteContentStore.setState({ content: next, status: 'ready', error: null });
         }
       )

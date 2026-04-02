@@ -13,6 +13,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const [added, setAdded] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
   const pauseUntilRef = useRef(0);
+  const intervalRef = useRef<number | null>(null);
   const cartQty = cartItems.find((i) => i.productId === product.id)?.quantity ?? 0;
   const availableStock = Math.max(product.inventory - cartQty, 0);
   const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
@@ -24,14 +25,23 @@ export default function ProductCard({ product }: { product: Product }) {
     return Array.from(new Set(list));
   }, [product.image, product.images]);
 
-  useEffect(() => {
-    if (images.length <= 1) return undefined;
-    const interval = window.setInterval(() => {
+  const startHoverCycle = () => {
+    if (images.length <= 1 || intervalRef.current) return;
+    intervalRef.current = window.setInterval(() => {
       if (Date.now() < pauseUntilRef.current) return;
       setActiveImage((prev) => (prev + 1) % images.length);
-    }, 3500);
-    return () => window.clearInterval(interval);
-  }, [images.length]);
+    }, 3200);
+  };
+
+  const stopHoverCycle = () => {
+    if (intervalRef.current) {
+      window.clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setActiveImage(0);
+  };
+
+  useEffect(() => () => stopHoverCycle(), []);
 
   useEffect(() => {
     if (activeImage >= images.length) setActiveImage(0);
@@ -72,6 +82,8 @@ export default function ProductCard({ product }: { product: Product }) {
         whileHover={{ y: -3 }}
         transition={{ duration: 0.2 }}
         className="group overflow-hidden rounded-xl border border-[hsl(30,12%,90%)] bg-white"
+        onMouseEnter={startHoverCycle}
+        onMouseLeave={stopHoverCycle}
       >
         <div className="relative aspect-square overflow-hidden bg-[hsl(30,15%,94%)]">
           <AnimatePresence mode="wait">
@@ -81,10 +93,10 @@ export default function ProductCard({ product }: { product: Product }) {
               alt={product.name}
               loading="lazy"
               decoding="async"
-              initial={{ opacity: 0, x: 24 }}
+              initial={{ opacity: 0, x: 48 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -24 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
+              exit={{ opacity: 0, x: -48 }}
+              transition={{ duration: 0.7, ease: 'easeOut' }}
               className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           </AnimatePresence>

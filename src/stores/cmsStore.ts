@@ -391,6 +391,17 @@ export const useCMSStore = create<{
   },
 }));
 
+if (isBrowser && isSupabaseConfigured) {
+  useCMSStore.subscribe((state) => {
+    writeCache(CACHE_KEYS.projects, state.projects);
+    writeCache(CACHE_KEYS.products, state.products);
+    writeCache(CACHE_KEYS.impactMetrics, state.impactMetrics);
+    writeCache(CACHE_KEYS.revenue, state.revenueData);
+    writeCache(CACHE_KEYS.donations, state.donationData);
+    writeCache(CACHE_KEYS.growth, state.memberGrowthData);
+  });
+}
+
 export function useCMSDataSync() {
   const hydrate = useCMSStore((s) => s.hydrate);
 

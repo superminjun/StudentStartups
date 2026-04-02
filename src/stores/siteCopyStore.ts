@@ -3,6 +3,29 @@ import { create } from 'zustand';
 import { isSupabaseConfigured, supabase } from '@/lib/supabaseClient';
 
 const TABLE_NAME = 'site_copy';
+const CACHE_KEY = 'bnss-site-copy-cache';
+
+const isBrowser = typeof window !== 'undefined';
+
+const readCache = (): Record<string, SiteCopyEntry> | null => {
+  if (!isBrowser) return null;
+  try {
+    const raw = window.localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as Record<string, SiteCopyEntry>;
+  } catch {
+    return null;
+  }
+};
+
+const writeCache = (copy: Record<string, SiteCopyEntry>) => {
+  if (!isBrowser) return;
+  try {
+    window.localStorage.setItem(CACHE_KEY, JSON.stringify(copy));
+  } catch {
+    // ignore
+  }
+};
 
 export type SiteCopyEntry = {
   en?: string | null;
@@ -32,7 +55,7 @@ export const useSiteCopyStore = create<{
   hydrate: () => Promise<void>;
   upsertMany: (rows: SiteCopyRow[]) => Promise<void>;
 }>((set) => ({
-  copy: {},
+  copy: isSupabaseConfigured ? readCache() ?? {} : {},
   status: 'idle',
   error: null,
   hydrate: async () => {
@@ -47,7 +70,9 @@ export const useSiteCopyStore = create<{
       set({ status: 'error', error: error.message });
       return;
     }
-    set({ copy: mapRowsToCopy(data as SiteCopyRow[] | null), status: 'ready', error: null });
+    const mapped = mapRowsToCopy(data as SiteCopyRow[] | null);
+    writeCache(mapped);
+    set({ copy: mapped, status: 'ready', error: null });
   },
   upsertMany: async (rows) => {
     if (!isSupabaseConfigured || !supabase) return;
@@ -55,7 +80,14 @@ export const useSiteCopyStore = create<{
     if (error) {
       set({ status: 'error', error: error.message });
     } else {
-      set({ status: 'ready', error: null });
+      const patch = mapRowsToCopy(rows);
+      set((state) => {
+        const nextCopy = { ...state.copy, ...patch };
+        writeCache(nextCopy);
+        return { copy: nextCopy, status: 'ready', error: null };
+      });
+      return;
+    }
     }
   },
 }));
