@@ -12,7 +12,7 @@ const defaultContent = {
   heroTitle: 'Where Students Build Real Businesses',
   heroSubtitle: 'A student-led entrepreneurship program. Learn market research, production, finance, and design by creating and selling real products.',
   heroCta: 'Explore Projects',
-  heroBackgroundUrl: '',
+  heroBackgroundUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1400&h=900&fit=crop',
   shopTerms: TERMS.join(', '),
   totalRevenue: '24850',
   totalProfit: '12430',

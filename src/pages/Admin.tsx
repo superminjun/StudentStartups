@@ -7,6 +7,7 @@ import { useSiteThemeStore, type SiteTheme } from '@/stores/siteThemeStore';
 import { useSiteCopyStore } from '@/stores/siteCopyStore';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
+import { resolveStorageUrl } from '@/lib/storage';
 import { TEAM_OPTIONS, STAGE_LABELS_EN, TERMS } from '@/constants/config';
 import { translations } from '@/constants/translations';
 import { normalizeHex } from '@/lib/color';
@@ -91,6 +92,16 @@ type MessageRow = {
   is_resolved?: boolean;
 };
 
+type SaveState = {
+  status: 'idle' | 'saving' | 'saved' | 'error';
+  message?: string;
+};
+
+type UploadState = {
+  status: 'idle' | 'uploading' | 'done' | 'error';
+  message?: string;
+};
+
 export default function Admin() {
   const { user } = useAuth();
   const [tab, setTab] = useState('members');
@@ -140,6 +151,14 @@ export default function Admin() {
   const [donationDrafts, setDonationDrafts] = useState<DonationPoint[]>([]);
   const [growthDrafts, setGrowthDrafts] = useState<MemberGrowthPoint[]>([]);
   const [cmsNotice, setCmsNotice] = useState('');
+  const [projectSaveState, setProjectSaveState] = useState<Record<string, SaveState>>({});
+  const [productSaveState, setProductSaveState] = useState<Record<string, SaveState>>({});
+  const [projectUploadState, setProjectUploadState] = useState<Record<string, UploadState>>({});
+  const [productUploadState, setProductUploadState] = useState<Record<string, UploadState>>({});
+  const [projectDirty, setProjectDirty] = useState<Record<string, boolean>>({});
+  const [productDirty, setProductDirty] = useState<Record<string, boolean>>({});
+  const [projectImagePreview, setProjectImagePreview] = useState<Record<string, string>>({});
+  const [productImagePreview, setProductImagePreview] = useState<Record<string, string>>({});
 
   const loadOrders = async () => {
     if (!supabase) return;
@@ -508,12 +527,41 @@ export default function Admin() {
     status: product.status ?? 'available',
   });
 
+  const syncProjectToCMS = async (project: Project) => {
+    const image = project.image ? await resolveStorageUrl(project.image) : project.image;
+    useCMSStore.setState((state) => ({
+      projects: state.projects.map((item) => (item.id === project.id ? { ...project, image } : item)),
+    }));
+  };
+
+  const syncProductToCMS = async (product: Product) => {
+    const image = product.image ? await resolveStorageUrl(product.image) : product.image;
+    const images = Array.isArray(product.images)
+      ? await Promise.all(product.images.map((img) => (img ? resolveStorageUrl(img) : img)))
+      : [];
+    useCMSStore.setState((state) => ({
+      products: state.products.map((item) => (item.id === product.id ? { ...product, image, images } : item)),
+    }));
+  };
+
   const handleSaveProject = async (project: Project) => {
     if (!supabase) return;
+    setProjectSaveState((prev) => ({ ...prev, [project.id]: { status: 'saving' } }));
     const { error: saveError } = await supabase
       .from('projects')
       .upsert(mapProjectToRow(project));
-    setCmsNotice(saveError ? saveError.message : 'Project saved');
+    if (saveError) {
+      setProjectSaveState((prev) => ({ ...prev, [project.id]: { status: 'error', message: saveError.message } }));
+      setCmsNotice(saveError.message);
+      return;
+    }
+    setProjectSaveState((prev) => ({ ...prev, [project.id]: { status: 'saved' } }));
+    setProjectDirty((prev) => ({ ...prev, [project.id]: false }));
+    setCmsNotice('Project saved');
+    void syncProjectToCMS(project);
+    window.setTimeout(() => {
+      setProjectSaveState((prev) => ({ ...prev, [project.id]: { status: 'idle' } }));
+    }, 1800);
   };
 
   const handleDeleteProject = async (projectId: string) => {
@@ -527,10 +575,22 @@ export default function Admin() {
 
   const handleSaveProduct = async (product: Product) => {
     if (!supabase) return;
+    setProductSaveState((prev) => ({ ...prev, [product.id]: { status: 'saving' } }));
     const { error: saveError } = await supabase
       .from('products')
       .upsert(mapProductToRow(product));
-    setCmsNotice(saveError ? saveError.message : 'Product saved');
+    if (saveError) {
+      setProductSaveState((prev) => ({ ...prev, [product.id]: { status: 'error', message: saveError.message } }));
+      setCmsNotice(saveError.message);
+      return;
+    }
+    setProductSaveState((prev) => ({ ...prev, [product.id]: { status: 'saved' } }));
+    setProductDirty((prev) => ({ ...prev, [product.id]: false }));
+    setCmsNotice('Product saved');
+    void syncProductToCMS(product);
+    window.setTimeout(() => {
+      setProductSaveState((prev) => ({ ...prev, [product.id]: { status: 'idle' } }));
+    }, 1800);
   };
 
   const handleDeleteProduct = async (productId: string) => {
@@ -543,78 +603,97 @@ export default function Admin() {
   };
 
   const uploadToBucket = async (bucket: string, filePath: string, file: File) => {
-    if (!supabase) return null;
+    if (!supabase) return { url: null, error: 'Supabase not configured' };
     const { error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(filePath, file, { upsert: true });
     if (uploadError) {
       setCmsNotice(uploadError.message);
-      return null;
+      return { url: null, error: uploadError.message };
     }
     const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
-    return data.publicUrl;
+    return { url: data.publicUrl, error: null };
   };
 
   const handleProjectImageUpload = async (projectId: string, file?: File | null) => {
     if (!file) return;
+    setProjectUploadState((prev) => ({ ...prev, [projectId]: { status: 'uploading' } }));
     const safeName = file.name.replace(/\\s+/g, '-');
     const path = `${projectId}/${Date.now()}-${safeName}`;
-    const url = await uploadToBucket('project-images', path, file);
-    if (!url) return;
+    const { url, error } = await uploadToBucket('project-images', path, file);
+    if (!url) {
+      setProjectUploadState((prev) => ({ ...prev, [projectId]: { status: 'error', message: error ?? 'Upload failed' } }));
+      return;
+    }
+    const previewUrl = await resolveStorageUrl(url);
     setProjectDrafts((prev) => {
       const next = prev.map((p) => (p.id === projectId ? { ...p, image: url } : p));
-      const updated = next.find((p) => p.id === projectId);
-      if (updated) {
-        void handleSaveProject(updated);
-      }
       return next;
     });
+    setProjectImagePreview((prev) => ({ ...prev, [projectId]: previewUrl }));
+    setProjectDirty((prev) => ({ ...prev, [projectId]: true }));
+    setProjectUploadState((prev) => ({ ...prev, [projectId]: { status: 'done' } }));
+    window.setTimeout(() => {
+      setProjectUploadState((prev) => ({ ...prev, [projectId]: { status: 'idle' } }));
+    }, 1800);
   };
 
   const handleProductImageUpload = async (productId: string, file?: File | null) => {
     if (!file) return;
+    setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'uploading' } }));
     const safeName = file.name.replace(/\\s+/g, '-');
     const path = `${productId}/${Date.now()}-${safeName}`;
-    const url = await uploadToBucket('product-images', path, file);
-    if (!url) return;
+    const { url, error } = await uploadToBucket('product-images', path, file);
+    if (!url) {
+      setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'error', message: error ?? 'Upload failed' } }));
+      return;
+    }
+    const previewUrl = await resolveStorageUrl(url);
     setProductDrafts((prev) => {
       const next = prev.map((p) => (p.id === productId ? { ...p, image: url } : p));
-      const updated = next.find((p) => p.id === productId);
-      if (updated) {
-        void handleSaveProduct(updated);
-      }
       return next;
     });
+    setProductImagePreview((prev) => ({ ...prev, [productId]: previewUrl }));
+    setProductDirty((prev) => ({ ...prev, [productId]: true }));
+    setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'done' } }));
+    window.setTimeout(() => {
+      setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'idle' } }));
+    }, 1800);
   };
 
   const handleProductGalleryUpload = async (productId: string, files: FileList | null) => {
     if (!files || !files.length) return;
+    setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'uploading' } }));
     const uploaded: string[] = [];
     for (const file of Array.from(files)) {
       const safeName = file.name.replace(/\\s+/g, '-');
       const path = `${productId}/gallery-${Date.now()}-${safeName}`;
       // eslint-disable-next-line no-await-in-loop
-      const url = await uploadToBucket('product-images', path, file);
+      const { url } = await uploadToBucket('product-images', path, file);
       if (url) uploaded.push(url);
     }
-    if (!uploaded.length) return;
+    if (!uploaded.length) {
+      setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'error', message: 'Upload failed' } }));
+      return;
+    }
     setProductDrafts((prev) => {
       const next = prev.map((p) => (
         p.id === productId ? { ...p, images: [...(p.images ?? []), ...uploaded] } : p
       ));
-      const updated = next.find((p) => p.id === productId);
-      if (updated) {
-        void handleSaveProduct(updated);
-      }
       return next;
     });
+    setProductDirty((prev) => ({ ...prev, [productId]: true }));
+    setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'done' } }));
+    window.setTimeout(() => {
+      setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'idle' } }));
+    }, 1800);
   };
 
   const handleHeroBackgroundUpload = async (file?: File | null) => {
     if (!file) return;
     const safeName = file.name.replace(/\s+/g, '-');
     const path = `hero/${Date.now()}-${safeName}`;
-    const url = await uploadToBucket('site-images', path, file);
+    const { url } = await uploadToBucket('site-images', path, file);
     if (!url) return;
     updateContent({ heroBackgroundUrl: url });
   };
@@ -712,10 +791,12 @@ export default function Admin() {
     setProjectDrafts((prev) =>
       prev.map((p) => (p.id === projectId ? normalizeProject({ ...p, ...patch }) : p))
     );
+    setProjectDirty((prev) => ({ ...prev, [projectId]: true }));
   };
 
   const updateProductDraft = (productId: string, patch: Partial<Product>) => {
     setProductDrafts((prev) => prev.map((p) => (p.id === productId ? { ...p, ...patch } : p)));
+    setProductDirty((prev) => ({ ...prev, [productId]: true }));
   };
 
   useEffect(() => {
@@ -738,12 +819,41 @@ export default function Admin() {
   }, [activeMember?.id]);
 
   useEffect(() => {
-    setProjectDrafts(cmsProjects.map((project) => normalizeProject(project)));
-  }, [cmsProjects]);
+    const normalized = cmsProjects.map((project) => normalizeProject(project));
+    setProjectDrafts((prev) => {
+      const prevMap = new Map(prev.map((item) => [item.id, item]));
+      const next = normalized.map((project) => (
+        projectDirty[project.id] ? (prevMap.get(project.id) ?? project) : project
+      ));
+      const newDrafts = prev.filter((item) => !normalized.some((proj) => proj.id === item.id));
+      return [...next, ...newDrafts];
+    });
+    setProjectImagePreview((prev) => {
+      const next = { ...prev };
+      normalized.forEach((project) => {
+        if (!projectDirty[project.id]) delete next[project.id];
+      });
+      return next;
+    });
+  }, [cmsProjects, projectDirty]);
 
   useEffect(() => {
-    setProductDrafts(cmsProducts);
-  }, [cmsProducts]);
+    setProductDrafts((prev) => {
+      const prevMap = new Map(prev.map((item) => [item.id, item]));
+      const next = cmsProducts.map((product) => (
+        productDirty[product.id] ? (prevMap.get(product.id) ?? product) : product
+      ));
+      const newDrafts = prev.filter((item) => !cmsProducts.some((prod) => prod.id === item.id));
+      return [...next, ...newDrafts];
+    });
+    setProductImagePreview((prev) => {
+      const next = { ...prev };
+      cmsProducts.forEach((product) => {
+        if (!productDirty[product.id]) delete next[product.id];
+      });
+      return next;
+    });
+  }, [cmsProducts, productDirty]);
 
   useEffect(() => {
     setMetricDrafts(cmsImpactMetrics);
@@ -1257,14 +1367,12 @@ export default function Admin() {
                   <p className="text-xs text-light">Edit every project detail, image, and status. Changes sync live.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {cmsSources.projects === 'mock' && (
-                    <button
-                      onClick={handleSeedProjects}
-                      className="rounded-full border border-[hsl(30,12%,85%)] px-4 py-2 text-xs font-semibold text-mid hover:text-charcoal hover:border-charcoal"
-                    >
-                      Seed From Mock
-                    </button>
-                  )}
+                  <button
+                    onClick={handleSeedProjects}
+                    className="rounded-full border border-[hsl(30,12%,85%)] px-4 py-2 text-xs font-semibold text-mid hover:text-charcoal hover:border-charcoal"
+                  >
+                    {cmsSources.projects === 'mock' ? 'Seed Example Data' : 'Re-seed Example Data'}
+                  </button>
                   <button
                     onClick={() => setProjectDrafts((prev) => [...prev, createProjectDraft()])}
                     className="rounded-full bg-charcoal px-4 py-2 text-xs font-semibold text-white hover:bg-[hsl(20,8%,28%)]"
@@ -1280,13 +1388,21 @@ export default function Admin() {
               )}
             </div>
 
-            {projectDrafts.map((project) => (
+            {projectDrafts.map((project) => {
+              const imageSrc = projectImagePreview[project.id] ?? project.image;
+              const saveState = projectSaveState[project.id]?.status ?? 'idle';
+              const saveMessage = projectSaveState[project.id]?.message;
+              const uploadState = projectUploadState[project.id]?.status ?? 'idle';
+              const uploadMessage = projectUploadState[project.id]?.message;
+              const isDirty = projectDirty[project.id];
+
+              return (
               <div key={project.id} className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5 space-y-4">
                 <div className="flex flex-col gap-4 lg:flex-row">
                   <div className="w-full lg:w-56">
                     <div className="aspect-[4/3] overflow-hidden rounded-lg border border-[hsl(30,12%,90%)] bg-[hsl(30,15%,94%)]">
-                      {project.image ? (
-                        <img src={project.image} alt={project.name} className="size-full object-cover" />
+                      {imageSrc ? (
+                        <img src={imageSrc} alt={project.name} className="size-full object-cover" />
                       ) : (
                         <div className="flex h-full items-center justify-center text-xs text-light">No image</div>
                       )}
@@ -1295,7 +1411,11 @@ export default function Admin() {
                     <input
                       type="text"
                       value={project.image}
-                      onChange={(e) => updateProjectDraft(project.id, { image: e.target.value })}
+                      onChange={(e) => {
+                        const nextUrl = e.target.value;
+                        updateProjectDraft(project.id, { image: nextUrl });
+                        setProjectImagePreview((prev) => ({ ...prev, [project.id]: nextUrl }));
+                      }}
                       className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
                     />
                     <label className="mt-3 block text-xs font-semibold text-mid">Upload Image</label>
@@ -1305,6 +1425,19 @@ export default function Admin() {
                       onChange={(e) => handleProjectImageUpload(project.id, e.target.files?.[0])}
                       className="mt-1 w-full text-xs text-mid"
                     />
+                    {uploadState !== 'idle' && (
+                      <p className={`mt-2 text-xs ${
+                        uploadState === 'error'
+                          ? 'text-red-500'
+                          : uploadState === 'done'
+                            ? 'text-emerald-600'
+                            : 'text-mid'
+                      }`}>
+                        {uploadState === 'uploading' && 'Uploading image...'}
+                        {uploadState === 'done' && 'Upload complete. Click Save.'}
+                        {uploadState === 'error' && (uploadMessage ?? 'Upload failed')}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex-1 grid gap-3 sm:grid-cols-2">
@@ -1495,9 +1628,10 @@ export default function Admin() {
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => handleSaveProject(project)}
-                    className="rounded-full bg-charcoal px-4 py-2 text-xs font-semibold text-white hover:bg-[hsl(20,8%,28%)]"
+                    disabled={saveState === 'saving' || uploadState === 'uploading'}
+                    className="rounded-full bg-charcoal px-4 py-2 text-xs font-semibold text-white hover:bg-[hsl(20,8%,28%)] disabled:cursor-not-allowed disabled:opacity-70"
                   >
-                    Save Project
+                    {saveState === 'saving' ? 'Saving...' : 'Save Project'}
                   </button>
                   <button
                     onClick={() => handleDeleteProject(project.id)}
@@ -1505,9 +1639,20 @@ export default function Admin() {
                   >
                     Delete
                   </button>
+                  {isDirty && saveState === 'idle' && (
+                    <span className="flex items-center text-xs text-amber-500">Unsaved changes</span>
+                  )}
+                  {saveState === 'saved' && (
+                    <span className="flex items-center text-xs text-emerald-600">Saved</span>
+                  )}
+                  {saveState === 'error' && (
+                    <span className="flex items-center text-xs text-red-500">{saveMessage ?? 'Save failed'}</span>
+                  )}
                 </div>
               </div>
-            ))}
+            </div>
+            );
+            })}
           </motion.div>
         )}
 
@@ -1521,14 +1666,12 @@ export default function Admin() {
                   <p className="text-xs text-light">Edit products, images, pricing, inventory, and status.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {cmsSources.products === 'mock' && (
-                    <button
-                      onClick={handleSeedProducts}
-                      className="rounded-full border border-[hsl(30,12%,85%)] px-4 py-2 text-xs font-semibold text-mid hover:text-charcoal hover:border-charcoal"
-                    >
-                      Seed From Mock
-                    </button>
-                  )}
+                  <button
+                    onClick={handleSeedProducts}
+                    className="rounded-full border border-[hsl(30,12%,85%)] px-4 py-2 text-xs font-semibold text-mid hover:text-charcoal hover:border-charcoal"
+                  >
+                    {cmsSources.products === 'mock' ? 'Seed Example Data' : 'Re-seed Example Data'}
+                  </button>
                   <button
                     onClick={() => setProductDrafts((prev) => [...prev, createProductDraft()])}
                     className="rounded-full bg-charcoal px-4 py-2 text-xs font-semibold text-white hover:bg-[hsl(20,8%,28%)]"
@@ -1585,13 +1728,21 @@ export default function Admin() {
               </div>
             </div>
 
-            {productDrafts.map((product) => (
+            {productDrafts.map((product) => {
+              const imageSrc = productImagePreview[product.id] ?? product.image;
+              const saveState = productSaveState[product.id]?.status ?? 'idle';
+              const saveMessage = productSaveState[product.id]?.message;
+              const uploadState = productUploadState[product.id]?.status ?? 'idle';
+              const uploadMessage = productUploadState[product.id]?.message;
+              const isDirty = productDirty[product.id];
+
+              return (
               <div key={product.id} className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5 space-y-4">
                 <div className="flex flex-col gap-4 lg:flex-row">
                   <div className="w-full lg:w-56">
                     <div className="aspect-square overflow-hidden rounded-lg border border-[hsl(30,12%,90%)] bg-[hsl(30,15%,94%)]">
-                      {product.image ? (
-                        <img src={product.image} alt={product.name} className="size-full object-cover" />
+                      {imageSrc ? (
+                        <img src={imageSrc} alt={product.name} className="size-full object-cover" />
                       ) : (
                         <div className="flex h-full items-center justify-center text-xs text-light">No image</div>
                       )}
@@ -1600,7 +1751,11 @@ export default function Admin() {
                     <input
                       type="text"
                       value={product.image}
-                      onChange={(e) => updateProductDraft(product.id, { image: e.target.value })}
+                      onChange={(e) => {
+                        const nextUrl = e.target.value;
+                        updateProductDraft(product.id, { image: nextUrl });
+                        setProductImagePreview((prev) => ({ ...prev, [product.id]: nextUrl }));
+                      }}
                       className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
                     />
                     <label className="mt-3 block text-xs font-semibold text-mid">Upload Main Image</label>
@@ -1618,6 +1773,19 @@ export default function Admin() {
                       onChange={(e) => handleProductGalleryUpload(product.id, e.target.files)}
                       className="mt-1 w-full text-xs text-mid"
                     />
+                    {uploadState !== 'idle' && (
+                      <p className={`mt-2 text-xs ${
+                        uploadState === 'error'
+                          ? 'text-red-500'
+                          : uploadState === 'done'
+                            ? 'text-emerald-600'
+                            : 'text-mid'
+                      }`}>
+                        {uploadState === 'uploading' && 'Uploading images...'}
+                        {uploadState === 'done' && 'Upload complete. Click Save.'}
+                        {uploadState === 'error' && (uploadMessage ?? 'Upload failed')}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex-1 grid gap-3 sm:grid-cols-2">
@@ -1732,9 +1900,10 @@ export default function Admin() {
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => handleSaveProduct(product)}
-                    className="rounded-full bg-charcoal px-4 py-2 text-xs font-semibold text-white hover:bg-[hsl(20,8%,28%)]"
+                    disabled={saveState === 'saving' || uploadState === 'uploading'}
+                    className="rounded-full bg-charcoal px-4 py-2 text-xs font-semibold text-white hover:bg-[hsl(20,8%,28%)] disabled:cursor-not-allowed disabled:opacity-70"
                   >
-                    Save Product
+                    {saveState === 'saving' ? 'Saving...' : 'Save Product'}
                   </button>
                   <button
                     onClick={() => handleDeleteProduct(product.id)}
@@ -1742,9 +1911,20 @@ export default function Admin() {
                   >
                     Delete
                   </button>
+                  {isDirty && saveState === 'idle' && (
+                    <span className="flex items-center text-xs text-amber-500">Unsaved changes</span>
+                  )}
+                  {saveState === 'saved' && (
+                    <span className="flex items-center text-xs text-emerald-600">Saved</span>
+                  )}
+                  {saveState === 'error' && (
+                    <span className="flex items-center text-xs text-red-500">{saveMessage ?? 'Save failed'}</span>
+                  )}
                 </div>
               </div>
-            ))}
+            </div>
+            );
+            })}
           </motion.div>
         )}
 

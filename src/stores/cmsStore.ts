@@ -273,8 +273,6 @@ export const useCMSStore = create<{
       supabase.from('impact_member_growth').select('*').order('sort_order', { ascending: true }),
     ]);
 
-    const nextSources: SourceMap = { projects: 'db', products: 'db', impact: 'db' };
-
     const resolvedProjects = projectsRes.error
       ? []
       : (projectsRes.data?.length ? (projectsRes.data as ProjectRow[]).map(mapProjectRow) : []);
@@ -299,17 +297,37 @@ export const useCMSStore = create<{
       ? []
       : (growthRes.data?.length ? (growthRes.data as GrowthRow[]).map(mapGrowthRow) : []);
 
+    const useMockProjects = resolvedProjects.length === 0;
+    const useMockProducts = resolvedProducts.length === 0;
+    const useMockImpact = metricsData.length === 0;
+    const useMockRevenue = revenueData.length === 0;
+    const useMockDonations = donationData.length === 0;
+    const useMockGrowth = memberGrowthData.length === 0;
+
+    const previewProjects = useMockProjects ? mockProjects : resolvedProjects;
+    const previewProducts = useMockProducts ? mockProducts : resolvedProducts;
+    const previewMetrics = useMockImpact ? mockMetricRecords : metricsData;
+    const previewRevenue = useMockRevenue ? mockRevenueRecords : revenueData;
+    const previewDonations = useMockDonations ? mockDonationRecords : donationData;
+    const previewGrowth = useMockGrowth ? mockGrowthRecords : memberGrowthData;
+
+    const nextSources: SourceMap = {
+      projects: useMockProjects ? 'mock' : 'db',
+      products: useMockProducts ? 'mock' : 'db',
+      impact: useMockImpact ? 'mock' : 'db',
+    };
+
     const firstError = projectsRes.error || productsRes.error || metricsRes.error || revenueRes.error || donationRes.error || growthRes.error;
 
     const projectsWithImages = await Promise.all(
-      resolvedProjects.map(async (project) => ({
+      previewProjects.map(async (project) => ({
         ...project,
         image: project.image ? await resolveStorageUrl(project.image) : project.image,
       }))
     );
 
     const productsWithImages = await Promise.all(
-      resolvedProducts.map(async (product) => ({
+      previewProducts.map(async (product) => ({
         ...product,
         image: product.image ? await resolveStorageUrl(product.image) : product.image,
         images: Array.isArray(product.images)
@@ -321,10 +339,10 @@ export const useCMSStore = create<{
     set({
       projects: projectsWithImages,
       products: productsWithImages,
-      impactMetrics: metricsData,
-      revenueData,
-      donationData,
-      memberGrowthData,
+      impactMetrics: previewMetrics,
+      revenueData: previewRevenue,
+      donationData: previewDonations,
+      memberGrowthData: previewGrowth,
       status: firstError ? 'error' : 'ready',
       error: firstError?.message ?? null,
       sources: nextSources,
