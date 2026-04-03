@@ -7,7 +7,7 @@ import { useSiteThemeStore, type SiteTheme } from '@/stores/siteThemeStore';
 import { useSiteCopyStore } from '@/stores/siteCopyStore';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
-import { resolveStorageUrl } from '@/lib/storage';
+import { resolveStorageUrl, toPublicStorageUrl } from '@/lib/storage';
 import { TEAM_OPTIONS, STAGE_LABELS_EN, TERMS } from '@/constants/config';
 import { translations } from '@/constants/translations';
 import { normalizeHex } from '@/lib/color';
@@ -458,14 +458,15 @@ export default function Admin() {
   );
 
   const dedupeImages = (images: string[]) => (
-    Array.from(new Set(images.map((img) => img.trim()).filter(Boolean)))
+    Array.from(new Set(images.map((img) => toPublicStorageUrl(img.trim())).filter(Boolean)))
   );
 
   const normalizeProductImages = (mainImage: string, images: string[] | undefined) => {
+    const normalizedMain = toPublicStorageUrl(mainImage);
     const base = dedupeImages(images ?? []);
-    if (!mainImage) return base;
-    const withoutMain = base.filter((img) => img !== mainImage);
-    return [mainImage, ...withoutMain];
+    if (!normalizedMain) return base;
+    const withoutMain = base.filter((img) => img !== normalizedMain);
+    return [normalizedMain, ...withoutMain];
   };
 
   const createProjectDraft = (): Project => ({
@@ -955,6 +956,8 @@ export default function Admin() {
       donationPercent,
       stage,
       stageName,
+      image: toPublicStorageUrl(project.image),
+      bannerImage: toPublicStorageUrl(project.bannerImage ?? ''),
     };
   }
 
@@ -966,7 +969,12 @@ export default function Admin() {
   };
 
   const updateProductDraft = (productId: string, patch: Partial<Product>) => {
-    setProductDrafts((prev) => prev.map((p) => (p.id === productId ? { ...p, ...patch } : p)));
+    setProductDrafts((prev) => prev.map((p) => {
+      if (p.id !== productId) return p;
+      const nextImage = patch.image !== undefined ? toPublicStorageUrl(patch.image) : p.image;
+      const nextImages = patch.images !== undefined ? patch.images.map((img) => toPublicStorageUrl(img)) : p.images;
+      return { ...p, ...patch, image: nextImage, images: nextImages };
+    }));
     setProductDirty((prev) => ({ ...prev, [productId]: true }));
   };
 
@@ -1613,7 +1621,7 @@ export default function Admin() {
                       value={project.image}
                       onChange={(e) => {
                         const nextUrl = e.target.value;
-                        updateProjectDraft(project.id, { image: nextUrl });
+                        updateProjectDraft(project.id, { image: toPublicStorageUrl(nextUrl) });
                         setProjectImagePreview((prev) => ({ ...prev, [project.id]: nextUrl }));
                       }}
                       className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
@@ -1640,7 +1648,7 @@ export default function Admin() {
                       value={project.bannerImage ?? ''}
                       onChange={(e) => {
                         const nextUrl = e.target.value;
-                        updateProjectDraft(project.id, { bannerImage: nextUrl });
+                        updateProjectDraft(project.id, { bannerImage: toPublicStorageUrl(nextUrl) });
                         setProjectBannerPreview((prev) => ({ ...prev, [project.id]: nextUrl }));
                       }}
                       className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
@@ -1982,7 +1990,7 @@ export default function Admin() {
                       value={product.image}
                       onChange={(e) => {
                         const nextUrl = e.target.value;
-                        updateProductDraft(product.id, { image: nextUrl, images: normalizeProductImages(nextUrl, product.images) });
+                        updateProductDraft(product.id, { image: toPublicStorageUrl(nextUrl), images: normalizeProductImages(nextUrl, product.images) });
                         setProductImagePreview((prev) => ({ ...prev, [product.id]: nextUrl }));
                       }}
                       className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
@@ -2127,8 +2135,9 @@ export default function Admin() {
                               type="button"
                               onClick={() => {
                                 const nextImages = normalizeProductImages(img, galleryImages);
-                                updateProductDraft(product.id, { image: img, images: nextImages });
-                                setProductImagePreview((prev) => ({ ...prev, [product.id]: img }));
+                                const nextMain = toPublicStorageUrl(img);
+                                updateProductDraft(product.id, { image: nextMain, images: normalizeProductImages(nextMain, nextImages) });
+                                setProductImagePreview((prev) => ({ ...prev, [product.id]: nextMain }));
                               }}
                               className={`group relative aspect-square overflow-hidden rounded-lg border-2 ${
                                 product.image === img ? 'border-charcoal' : 'border-transparent hover:border-[hsl(30,12%,70%)]'

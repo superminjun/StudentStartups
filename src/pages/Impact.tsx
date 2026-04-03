@@ -87,6 +87,14 @@ export default function Impact() {
   const memberGrowth = useCMSStore((s) => s.memberGrowthData);
   const projects = useCMSStore((s) => s.projects);
 
+  const fallbackDonations = projects
+    .map((project) => ({ name: project.name, value: project.donation }))
+    .filter((row) => row.value > 0);
+
+  const donationChartData = donationByProject.some((row) => row.value > 0)
+    ? donationByProject
+    : fallbackDonations;
+
   const impactMetrics: ImpactMetricView[] = impactMetricsRaw.map((metric) => ({
     labelEn: metric.labelEn,
     labelKo: metric.labelKo,
@@ -217,10 +225,3 @@ export default function Impact() {
     </div>
   );
 }
-  const fallbackDonations = projects
-    .map((project) => ({ name: project.name, value: project.donation }))
-    .filter((row) => row.value > 0);
-
-  const donationChartData = donationByProject.some((row) => row.value > 0)
-    ? donationByProject
-    : fallbackDonations;
