@@ -4,7 +4,6 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { useCounter } from '@/hooks/useCounter';
 import { useCMSStore } from '@/stores/cmsStore';
 import ScrollReveal from '@/components/features/ScrollReveal';
-import { donationByProject as mockDonationByProject } from '@/constants/mockData';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, LineChart, Line, Cell,
@@ -84,21 +83,19 @@ function Bar3D({ data, emptyLabel }: { data: { name: string; value: number }[]; 
 
 export default function Impact() {
   const { t } = useLanguage();
-  const impactMetricsRaw = useCMSStore((s) => s.impactMetrics) ?? [];
-  const revenueChartData = useCMSStore((s) => s.revenueData) ?? [];
-  const donationByProject = useCMSStore((s) => s.donationData) ?? [];
-  const memberGrowth = useCMSStore((s) => s.memberGrowthData) ?? [];
-  const projects = useCMSStore((s) => s.projects) ?? [];
+  const impactMetricsRaw = useCMSStore((s) => s.impactMetrics);
+  const revenueChartData = useCMSStore((s) => s.revenueData);
+  const donationByProject = useCMSStore((s) => s.donationData);
+  const memberGrowth = useCMSStore((s) => s.memberGrowthData);
+  const projects = useCMSStore((s) => s.projects);
 
-  const projectDonations = projects
+  const fallbackDonations = projects
     .map((project) => ({ name: project.name, value: project.donation }))
     .filter((row) => row.name);
 
-  const donationChartData = projectDonations.length
-    ? projectDonations
-    : donationByProject.length
-      ? donationByProject
-      : mockDonationByProject;
+  const donationChartData = donationByProject.some((row) => row.value > 0)
+    ? donationByProject
+    : fallbackDonations;
 
   const impactMetrics: ImpactMetricView[] = impactMetricsRaw.map((metric) => ({
     labelEn: metric.labelEn,
