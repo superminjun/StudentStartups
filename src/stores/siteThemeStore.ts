@@ -10,8 +10,8 @@ const SINGLETON_ID = 'global';
 
 const BRAND_PALETTE = {
   colorBeige: '#faf1eb',
-  colorWarmWhite: '#f5f2ef',
-  colorBeigeDark: '#f5f2ef',
+  colorWarmWhite: '#faf1eb',
+  colorBeigeDark: '#faf1eb',
   colorCharcoal: '#2a2522',
   colorDark: '#2a2522',
   colorMid: '#2a2522',
