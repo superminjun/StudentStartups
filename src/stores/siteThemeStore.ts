@@ -8,21 +8,32 @@ const CACHE_KEY = 'bnss-site-theme-cache';
 const TABLE_NAME = 'site_theme';
 const SINGLETON_ID = 'global';
 
+const BRAND_PALETTE = {
+  colorBeige: '#faf1eb',
+  colorWarmWhite: '#f5f2ef',
+  colorBeigeDark: '#f5f2ef',
+  colorCharcoal: '#2a2522',
+  colorDark: '#2a2522',
+  colorMid: '#2a2522',
+  colorLight: '#2a2522',
+  colorAccentSoft: '#faf1eb',
+};
+
 const defaultTheme = {
   fontUrl: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
   fontBody: "'Inter', system-ui, -apple-system, sans-serif",
   fontHeading: "'Inter', system-ui, -apple-system, sans-serif",
   baseFontSize: '16px',
   radius: '0.5rem',
-  colorBeige: '#f5f2ef',
-  colorBeigeDark: '#e9e6e2',
-  colorWarmWhite: '#fbfaf8',
-  colorCharcoal: '#2a2522',
-  colorDark: '#3d3734',
-  colorMid: '#78716d',
-  colorLight: '#a39c99',
+  colorBeige: BRAND_PALETTE.colorBeige,
+  colorBeigeDark: BRAND_PALETTE.colorBeigeDark,
+  colorWarmWhite: BRAND_PALETTE.colorWarmWhite,
+  colorCharcoal: BRAND_PALETTE.colorCharcoal,
+  colorDark: BRAND_PALETTE.colorDark,
+  colorMid: BRAND_PALETTE.colorMid,
+  colorLight: BRAND_PALETTE.colorLight,
   colorAccent: '#e66b19',
-  colorAccentSoft: '#faf1eb',
+  colorAccentSoft: BRAND_PALETTE.colorAccentSoft,
 };
 
 export type SiteTheme = typeof defaultTheme;
@@ -63,6 +74,14 @@ const mapRowToTheme = (row: SiteThemeRow | null): SiteTheme => ({
   colorAccent: row?.color_accent ?? defaultTheme.colorAccent,
   colorAccentSoft: row?.color_accent_soft ?? defaultTheme.colorAccentSoft,
 });
+
+const applyBrandPalette = (theme: SiteTheme): SiteTheme => ({
+  ...theme,
+  ...BRAND_PALETTE,
+});
+
+const isBrandPalette = (theme: SiteTheme): boolean =>
+  Object.entries(BRAND_PALETTE).every(([key, value]) => normalizeHex((theme as SiteTheme)[key as keyof SiteTheme] as string) === normalizeHex(value));
 
 const mapThemeToRow = (theme: SiteTheme): SiteThemeRow => ({
   id: SINGLETON_ID,
@@ -188,15 +207,16 @@ const writeCache = (theme: SiteTheme) => {
 const loadFallback = (): SiteTheme => {
   if (!isBrowser) return defaultTheme;
   if (isSupabaseConfigured) {
-    return readCache() ?? defaultTheme;
+    const cached = readCache() ?? defaultTheme;
+    return applyBrandPalette(cached);
   }
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (!saved) return defaultTheme;
+  if (!saved) return applyBrandPalette(defaultTheme);
   try {
     const parsed = JSON.parse(saved) as Partial<SiteTheme>;
-    return { ...defaultTheme, ...parsed };
+    return applyBrandPalette({ ...defaultTheme, ...parsed });
   } catch {
-    return defaultTheme;
+    return applyBrandPalette(defaultTheme);
   }
 };
 
@@ -231,12 +251,16 @@ export const useSiteThemeStore = create<{
     }
 
     const mapped = mapRowToTheme(data as SiteThemeRow | null);
-    writeCache(mapped);
-    set({ theme: mapped, status: 'ready' });
-    applyThemeToDocument(mapped);
+    const branded = applyBrandPalette(mapped);
+    writeCache(branded);
+    set({ theme: branded, status: 'ready' });
+    applyThemeToDocument(branded);
+    if (!isBrandPalette(mapped)) {
+      await supabase.from(TABLE_NAME).upsert(mapThemeToRow(branded));
+    }
   },
   updateTheme: async (next) => {
-    const merged = { ...get().theme, ...next };
+    const merged = applyBrandPalette({ ...get().theme, ...next });
     set({ theme: merged });
     applyThemeToDocument(merged);
 
