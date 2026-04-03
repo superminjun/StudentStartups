@@ -14,6 +14,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const [activeImage, setActiveImage] = useState(0);
   const pauseUntilRef = useRef(0);
   const intervalRef = useRef<number | null>(null);
+  const quickStartRef = useRef<number | null>(null);
   const cartQty = cartItems.find((i) => i.productId === product.id)?.quantity ?? 0;
   const availableStock = Math.max(product.inventory - cartQty, 0);
   const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
@@ -27,16 +28,26 @@ export default function ProductCard({ product }: { product: Product }) {
 
   const startHoverCycle = () => {
     if (images.length <= 1 || intervalRef.current) return;
+    if (!quickStartRef.current) {
+      quickStartRef.current = window.setTimeout(() => {
+        setActiveImage((prev) => (prev + 1) % images.length);
+        quickStartRef.current = null;
+      }, 350);
+    }
     intervalRef.current = window.setInterval(() => {
       if (Date.now() < pauseUntilRef.current) return;
       setActiveImage((prev) => (prev + 1) % images.length);
-    }, 3200);
+    }, 2400);
   };
 
   const stopHoverCycle = () => {
     if (intervalRef.current) {
       window.clearInterval(intervalRef.current);
       intervalRef.current = null;
+    }
+    if (quickStartRef.current) {
+      window.clearTimeout(quickStartRef.current);
+      quickStartRef.current = null;
     }
     setActiveImage(0);
   };
@@ -93,11 +104,11 @@ export default function ProductCard({ product }: { product: Product }) {
               alt={product.name}
               loading="lazy"
               decoding="async"
-              initial={{ opacity: 0, x: 48 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -48 }}
-              transition={{ duration: 0.7, ease: 'easeOut' }}
-              className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+              initial={{ x: 64, opacity: 1 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -64, opacity: 1 }}
+              transition={{ duration: 0.45, ease: 'easeOut' }}
+              className="size-full object-cover"
             />
           </AnimatePresence>
           {statusLabel && (

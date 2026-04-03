@@ -589,6 +589,7 @@ export default function Admin() {
     setProjectDirty((prev) => ({ ...prev, [project.id]: false }));
     setCmsNotice('Project saved');
     void syncProjectToCMS(project);
+    void useCMSStore.getState().hydrate();
     window.setTimeout(() => {
       setProjectSaveState((prev) => ({ ...prev, [project.id]: { status: 'idle' } }));
     }, 1800);
@@ -651,6 +652,7 @@ export default function Admin() {
     setProductDirty((prev) => ({ ...prev, [product.id]: false }));
     setCmsNotice('Product saved');
     void syncProductToCMS(product);
+    void useCMSStore.getState().hydrate();
     window.setTimeout(() => {
       setProductSaveState((prev) => ({ ...prev, [product.id]: { status: 'idle' } }));
     }, 1800);
@@ -853,6 +855,7 @@ export default function Admin() {
       sortOrder: idx + 1,
     }));
     useCMSStore.setState({ impactMetrics: nextMetrics });
+    void useCMSStore.getState().hydrate();
     setCmsNotice('Impact metrics saved');
   };
 
@@ -878,6 +881,7 @@ export default function Admin() {
       sortOrder: idx + 1,
     }));
     useCMSStore.setState({ revenueData: nextRevenue });
+    void useCMSStore.getState().hydrate();
     setCmsNotice('Revenue chart saved');
   };
 
@@ -901,6 +905,7 @@ export default function Admin() {
       sortOrder: idx + 1,
     }));
     useCMSStore.setState({ donationData: nextDonations });
+    void useCMSStore.getState().hydrate();
     setCmsNotice('Donations chart saved');
   };
 
@@ -924,6 +929,7 @@ export default function Admin() {
       sortOrder: idx + 1,
     }));
     useCMSStore.setState({ memberGrowthData: nextGrowth });
+    void useCMSStore.getState().hydrate();
     setCmsNotice('Member growth saved');
   };
 
@@ -1058,12 +1064,14 @@ export default function Admin() {
     };
   }, [selectedMember]);
 
-  const handleSaveContent = () => {
+  const handleSaveContent = async () => {
+    await updateContent({ ...siteContent });
     setSaved(true);
     window.setTimeout(() => setSaved(false), 1800);
   };
 
-  const handleSaveTheme = () => {
+  const handleSaveTheme = async () => {
+    await updateTheme({ ...theme });
     setThemeSaved(true);
     window.setTimeout(() => setThemeSaved(false), 1800);
   };
@@ -2581,6 +2589,13 @@ export default function Admin() {
                   placeholder="Paste image URL"
                   className="mt-2 w-full rounded-lg border border-[hsl(30,12%,87%)] px-4 py-2.5 text-sm outline-none focus:border-charcoal"
                 />
+                <button
+                  type="button"
+                  onClick={() => updateContent({ heroBackgroundUrl: '' })}
+                  className="mt-2 text-xs text-red-500 hover:text-red-600"
+                >
+                  Remove background image
+                </button>
                 <input
                   type="file"
                   accept="image/*"
