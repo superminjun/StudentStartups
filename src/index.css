@@ -92,6 +92,8 @@
   .bg-accent-soft { background-color: hsl(var(--color-accent-soft)); }
   .border-accent { border-color: hsl(var(--color-accent)); }
 
+  .dark .bg-charcoal { background-color: hsl(var(--color-beige-dark)); }
+
   .scrollbar-thin::-webkit-scrollbar { width: 6px; }
   .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
   .scrollbar-thin::-webkit-scrollbar-thumb {

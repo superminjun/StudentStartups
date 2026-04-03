@@ -18,7 +18,7 @@ export default function AnimatedProgress({ value, max, label, color = 'bg-[hsl(2
       <div className="flex justify-between text-sm">
         <span className="font-medium text-charcoal">{label}</span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-[hsl(30,15%,92%)]">
+      <div className="h-2 overflow-hidden rounded-full bg-muted">
         <motion.div
           initial={{ width: 0 }}
           animate={isInView ? { width: `${Math.min(percent, 100)}%` } : { width: 0 }}

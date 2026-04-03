@@ -24,7 +24,7 @@ function ScrollTimeline() {
 
   return (
     <div ref={containerRef} className="relative">
-      <div className="absolute left-6 top-0 bottom-0 w-[2px] bg-[hsl(30,12%,90%)] lg:left-1/2 lg:-translate-x-px">
+      <div className="absolute left-6 top-0 bottom-0 w-[2px] bg-border lg:left-1/2 lg:-translate-x-px">
         <motion.div
           className="w-full bg-charcoal origin-top"
           style={{ height: '100%', scaleY: scrollYProgress, transformOrigin: 'top' }}
@@ -45,7 +45,7 @@ function ScrollTimeline() {
                   viewport={{ once: true }}
                   className="relative z-10 flex size-6 items-center justify-center rounded-full bg-charcoal"
                 >
-                  <div className="size-2 rounded-full bg-white" />
+                  <div className="size-2 rounded-full bg-card" />
                 </motion.div>
               </div>
               <div className={`lg:w-1/2 ${i % 2 === 0 ? 'lg:pl-16' : 'lg:pr-16 lg:text-right'} lg:hidden`} />
@@ -127,7 +127,7 @@ function TeamWheel() {
         </p>
         <div className="mt-6 grid grid-cols-2 gap-3">
           {['Q1', 'Q2', 'Q3', 'Q4'].map((q, qi) => (
-            <div key={q} className="rounded-lg border border-[hsl(30,12%,90%)] bg-white p-3">
+            <div key={q} className="rounded-lg border border-border bg-card p-3">
               <p className="text-xs font-semibold text-light">{q}</p>
               <div className="mt-2 space-y-1">
                 {teamInfos.map((team, ti) => {
@@ -189,7 +189,7 @@ export default function About() {
         </div>
       </section>
 
-      <section className="bg-white py-20 lg:py-28">
+      <section className="bg-card py-20 lg:py-28">
         <div className="mx-auto max-w-6xl px-6">
           <ScrollReveal>
             <h2 className="text-2xl font-bold tracking-tight text-charcoal sm:text-3xl">

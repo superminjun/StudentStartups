@@ -43,7 +43,7 @@ export default function Navbar() {
     <>
       <nav className={cn(
         'fixed top-0 left-0 right-0 z-nav transition-all duration-400',
-        'bg-white/90 backdrop-blur-xl border-b border-[hsl(30,12%,90%)]',
+        'bg-card/90 backdrop-blur-xl border-b border-border',
         elevated ? 'shadow-sm' : 'shadow-none'
       )}>
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
@@ -69,7 +69,7 @@ export default function Navbar() {
                   {active && (
                     <motion.span
                       layoutId="nav-underline"
-                      className={cn('absolute bottom-0 left-3 right-3 h-[1.5px]', solid ? 'bg-charcoal' : 'bg-white')}
+                      className={cn('absolute bottom-0 left-3 right-3 h-[1.5px]', solid ? 'bg-charcoal' : 'bg-card')}
                     />
                   )}
                 </Link>
@@ -82,7 +82,7 @@ export default function Navbar() {
               onClick={() => setLang(lang === 'en' ? 'ko' : 'en')}
               className={cn(
                 'flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium transition-all',
-                solid ? 'text-mid hover:text-charcoal hover:bg-[hsl(30,15%,92%)]' : 'text-white/70 hover:text-white hover:bg-white/10'
+                solid ? 'text-mid hover:text-charcoal hover:bg-muted' : 'text-white/70 hover:text-white hover:bg-card/10'
               )}
               aria-label="Toggle language"
             >
@@ -113,7 +113,7 @@ export default function Navbar() {
                 'hidden rounded-full px-4 py-1.5 text-sm font-medium transition-all lg:inline-flex',
                 solid
                   ? 'bg-charcoal text-white hover:bg-[hsl(20,8%,28%)]'
-                  : 'bg-white/15 text-white hover:bg-white/25 backdrop-blur-sm'
+                  : 'bg-card/15 text-white hover:bg-card/25 backdrop-blur-sm'
               )}
             >
               {authLabel}
@@ -137,7 +137,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-x-0 top-16 z-dropdown bg-white/98 backdrop-blur-xl border-b border-[hsl(30,12%,90%)] lg:hidden"
+            className="fixed inset-x-0 top-16 z-dropdown bg-card/98 backdrop-blur-xl border-b border-border lg:hidden"
           >
             <div className="flex flex-col p-6 gap-1">
               {navLinks.map((link, i) => (
@@ -145,7 +145,7 @@ export default function Navbar() {
                   <Link
                     to={link.path}
                     className={cn(
-                      'block py-3 text-base font-medium border-b border-[hsl(30,15%,92%)]',
+                      'block py-3 text-base font-medium border-b border-border',
                       location.pathname === link.path ? 'text-charcoal' : 'text-mid'
                     )}
                   >

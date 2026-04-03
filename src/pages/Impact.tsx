@@ -31,7 +31,7 @@ function BigCounter({ metric, index }: { metric: ImpactMetricView; index: number
       viewport={{ once: true }}
       transition={{ delay: index * 0.08, duration: 0.5 }}
       whileHover={{ y: -3 }}
-      className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6 text-center transition-shadow hover:shadow-md"
+      className="rounded-xl border border-border bg-card p-6 text-center transition-shadow hover:shadow-md"
     >
       <p className="text-3xl font-bold text-charcoal tabular-nums sm:text-4xl">
         {metric.prefix}{count.toLocaleString()}{metric.suffix}
@@ -144,28 +144,28 @@ export default function Impact() {
       </section>
 
       {/* Charts */}
-      <section className="bg-white py-14 lg:py-20">
+      <section className="bg-card py-14 lg:py-20">
         <div className="mx-auto max-w-6xl px-6">
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Revenue */}
             <ScrollReveal>
-              <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+              <div className="rounded-xl border border-border bg-card p-6">
                 <h3 className="text-lg font-semibold text-charcoal">{t('impact.revenueTitle')}</h3>
                 <div className="mt-5 h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={revenueChartData}>
                       <defs>
                         <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(20,10%,15%)" stopOpacity={0.15} />
-                          <stop offset="95%" stopColor="hsl(20,10%,15%)" stopOpacity={0} />
+                          <stop offset="5%" stopColor="hsl(var(--foreground))" stopOpacity={0.15} />
+                          <stop offset="95%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(30,12%,92%)" />
-                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(20,5%,55%)' }} />
-                      <YAxis tick={{ fontSize: 11, fill: 'hsl(20,5%,55%)' }} />
-                      <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid hsl(30,12%,90%)', fontSize: '13px' }} />
-                      <Area type="monotone" dataKey="revenue" stroke="hsl(20,10%,15%)" fill="url(#revGrad)" strokeWidth={2} />
-                      <Area type="monotone" dataKey="expenses" stroke="hsl(24,80%,50%)" fill="none" strokeWidth={1.5} strokeDasharray="5 5" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                      <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                      <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
+                      <Area type="monotone" dataKey="revenue" stroke="hsl(var(--foreground))" fill="url(#revGrad)" strokeWidth={2} />
+                      <Area type="monotone" dataKey="expenses" stroke="hsl(var(--accent))" fill="none" strokeWidth={1.5} strokeDasharray="5 5" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -174,7 +174,7 @@ export default function Impact() {
 
             {/* Donations 3D bars */}
             <ScrollReveal delay={0.08}>
-              <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+              <div className="rounded-xl border border-border bg-card p-6">
                 <h3 className="text-lg font-semibold text-charcoal">{t('impact.donationTitle')}</h3>
                 <div className="mt-5">
                   <Bar3D data={donationChartData} emptyLabel={t('impact.noDonations')} />
@@ -184,16 +184,16 @@ export default function Impact() {
 
             {/* Member growth */}
             <ScrollReveal>
-              <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+              <div className="rounded-xl border border-border bg-card p-6">
                 <h3 className="text-lg font-semibold text-charcoal">{t('impact.memberTitle')}</h3>
                 <div className="mt-5 h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={memberGrowth}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(30,12%,92%)" />
-                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(20,5%,55%)' }} />
-                      <YAxis tick={{ fontSize: 11, fill: 'hsl(20,5%,55%)' }} />
-                      <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '13px' }} />
-                      <Line type="monotone" dataKey="members" stroke="hsl(24,80%,50%)" strokeWidth={2.5} dot={{ r: 3, fill: 'hsl(24,80%,50%)' }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                      <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                      <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
+                      <Line type="monotone" dataKey="members" stroke="hsl(var(--accent))" strokeWidth={2.5} dot={{ r: 3, fill: 'hsl(var(--accent))' }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -202,18 +202,18 @@ export default function Impact() {
 
             {/* Stage distribution */}
             <ScrollReveal delay={0.08}>
-              <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+              <div className="rounded-xl border border-border bg-card p-6">
                 <h3 className="text-lg font-semibold text-charcoal">{t('impact.projectTitle')}</h3>
                 <div className="mt-5 h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={stageDistribution}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(30,12%,92%)" />
-                      <XAxis dataKey="stage" tick={{ fontSize: 11, fill: 'hsl(20,5%,55%)' }} />
-                      <YAxis tick={{ fontSize: 11, fill: 'hsl(20,5%,55%)' }} allowDecimals={false} />
-                      <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '13px' }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="stage" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                      <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} allowDecimals={false} />
+                      <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
                       <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                         {stageDistribution.map((_, i) => (
-                          <Cell key={i} fill={i % 2 === 0 ? 'hsl(20,10%,15%)' : 'hsl(24,80%,50%)'} />
+                          <Cell key={i} fill={i % 2 === 0 ? 'hsl(var(--foreground))' : 'hsl(var(--accent))'} />
                         ))}
                       </Bar>
                     </BarChart>

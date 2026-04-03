@@ -87,7 +87,7 @@ export default function ProjectDetail() {
 
               {/* Progress stages */}
               <ScrollReveal>
-                <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+                <div className="rounded-xl border border-border bg-card p-6">
                   <h3 className="text-lg font-semibold text-charcoal">{t('projectDetail.progress')}</h3>
                   <div className="mt-5 flex gap-1.5">
                     {[1, 2, 3, 4, 5, 6, 7].map((stage) => (
@@ -97,7 +97,7 @@ export default function ProjectDetail() {
                         whileInView={{ scaleX: 1 }}
                         viewport={{ once: true }}
                         transition={{ delay: stage * 0.08, duration: 0.4 }}
-                        className={`h-2.5 flex-1 origin-left rounded-full ${stage <= project.stage ? 'bg-charcoal' : 'bg-[hsl(30,15%,90%)]'}`}
+                        className={`h-2.5 flex-1 origin-left rounded-full ${stage <= project.stage ? 'bg-charcoal' : 'bg-muted'}`}
                       />
                     ))}
                   </div>
@@ -113,17 +113,17 @@ export default function ProjectDetail() {
 
               {/* Revenue chart */}
               <ScrollReveal>
-                <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+                <div className="rounded-xl border border-border bg-card p-6">
                   <h3 className="text-lg font-semibold text-charcoal">{t('projectDetail.revenueChart')}</h3>
                   <div className="mt-5 h-64">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={revenueChartData.slice(0, project.stage + 2)}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(30,12%,92%)" />
-                        <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'hsl(20,5%,55%)' }} />
-                        <YAxis tick={{ fontSize: 12, fill: 'hsl(20,5%,55%)' }} />
-                        <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid hsl(30,12%,90%)', fontSize: '13px' }} />
-                        <Bar dataKey="revenue" fill="hsl(20,10%,15%)" radius={[4, 4, 0, 0]} name={t('projects.revenue')} />
-                        <Bar dataKey="expenses" fill="hsl(30,15%,82%)" radius={[4, 4, 0, 0]} name={t('projectDetail.expenses')} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+                        <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+                        <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
+                        <Bar dataKey="revenue" fill="hsl(var(--foreground))" radius={[4, 4, 0, 0]} name={t('projects.revenue')} />
+                        <Bar dataKey="expenses" fill="hsl(var(--muted))" radius={[4, 4, 0, 0]} name={t('projectDetail.expenses')} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -133,7 +133,7 @@ export default function ProjectDetail() {
               {/* Donation */}
               {project.donation > 0 && (
                 <ScrollReveal>
-                  <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+                  <div className="rounded-xl border border-border bg-card p-6">
                     <h3 className="text-lg font-semibold text-charcoal">{t('projectDetail.donationImpact')}</h3>
                     <div className="mt-5 flex items-center gap-8">
                       <div className="h-44 w-44 shrink-0">
@@ -144,7 +144,7 @@ export default function ProjectDetail() {
                                 <Cell key={i} fill={COLORS[i]} />
                               ))}
                             </Pie>
-                            <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '13px' }} />
+                            <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
                           </PieChart>
                         </ResponsiveContainer>
                       </div>
@@ -167,7 +167,7 @@ export default function ProjectDetail() {
             {/* Sidebar */}
             <div className="lg:col-span-4 space-y-6">
               <ScrollReveal direction="right">
-                <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+                <div className="rounded-xl border border-border bg-card p-6">
                   <h3 className="text-lg font-semibold text-charcoal">{t('projectDetail.financial')}</h3>
                   <div className="mt-5 grid grid-cols-2 gap-4">
                     {[
@@ -186,7 +186,7 @@ export default function ProjectDetail() {
               </ScrollReveal>
 
               <ScrollReveal direction="right" delay={0.1}>
-                <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+                <div className="rounded-xl border border-border bg-card p-6">
                   <h3 className="text-lg font-semibold text-charcoal">{t('projectDetail.team')}</h3>
                   <div className="mt-4 space-y-4">
                     {project.team.map((ta) => (
@@ -194,7 +194,7 @@ export default function ProjectDetail() {
                         <p className="text-xs font-semibold text-[hsl(24,80%,50%)]">{ta.role}</p>
                         <div className="mt-1 flex flex-wrap gap-1">
                           {ta.members.map((m) => (
-                            <span key={m} className="rounded-full bg-[hsl(30,15%,92%)] px-2.5 py-0.5 text-xs text-mid">{m}</span>
+                            <span key={m} className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-mid">{m}</span>
                           ))}
                         </div>
                       </div>

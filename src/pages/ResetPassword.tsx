@@ -129,10 +129,10 @@ export default function ResetPassword() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl border border-[hsl(30,12%,90%)] bg-white p-6 lg:p-8"
+            className="rounded-2xl border border-border bg-card p-6 lg:p-8"
           >
             {!isSupabaseConfigured && (
-              <div className="mb-5 rounded-xl border border-[hsl(24,80%,80%)] bg-[hsl(24,80%,95%)] px-4 py-3 text-xs text-[hsl(24,60%,30%)]">
+              <div className="mb-5 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-xs text-accent">
                 {t('login.errorSupabase')}
               </div>
             )}
@@ -154,7 +154,7 @@ export default function ResetPassword() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                    className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
                     placeholder="••••••••"
                   />
                 </div>
@@ -164,7 +164,7 @@ export default function ResetPassword() {
                     type="password"
                     value={confirm}
                     onChange={(e) => setConfirm(e.target.value)}
-                    className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                    className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
                     placeholder="••••••••"
                   />
                 </div>

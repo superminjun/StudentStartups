@@ -62,8 +62,8 @@ export default function Contact() {
   };
 
   const inputClass = (field: string) =>
-    `w-full rounded-lg border bg-white px-4 py-3 text-sm text-charcoal outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10 ${
-      errors[field] ? 'border-red-400 bg-red-50/30' : 'border-[hsl(30,12%,87%)]'
+    `w-full rounded-lg border bg-card px-4 py-3 text-sm text-charcoal outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10 ${
+      errors[field] ? 'border-red-400 bg-red-50/30' : 'border-border'
     }`;
 
   return (
@@ -93,7 +93,7 @@ export default function Contact() {
           <div className="grid gap-10 lg:grid-cols-12">
             <div className="lg:col-span-7">
               <ScrollReveal>
-                <form onSubmit={handleSubmit} className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6 lg:p-8">
+                <form onSubmit={handleSubmit} className="rounded-xl border border-border bg-card p-6 lg:p-8">
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div>
                       <label className="mb-1.5 block text-sm font-medium text-charcoal">{t('contact.name')}</label>
@@ -161,7 +161,7 @@ export default function Contact() {
 
             <div className="lg:col-span-5">
               <ScrollReveal direction="right">
-                <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+                <div className="rounded-xl border border-border bg-card p-6">
                   <h3 className="text-base font-semibold text-charcoal">Contact</h3>
                   <div className="mt-4 space-y-3 text-sm text-mid">
                     <a
@@ -193,8 +193,8 @@ export default function Contact() {
                 </div>
               </ScrollReveal>
               <ScrollReveal direction="right" delay={0.1}>
-                <div className="mt-4 rounded-xl border border-[hsl(30,12%,90%)] bg-white p-4">
-                  <div className="overflow-hidden rounded-lg border border-[hsl(30,12%,92%)]">
+                <div className="mt-4 rounded-xl border border-border bg-card p-4">
+                  <div className="overflow-hidden rounded-lg border border-border">
                     <iframe
                       title="Student Startups location"
                       src={SITE_CONFIG.maps.embed}
@@ -223,7 +223,7 @@ export default function Contact() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-              className="mx-6 w-full max-w-sm rounded-2xl border border-emerald-100 bg-white p-6 text-center shadow-lg"
+              className="mx-6 w-full max-w-sm rounded-2xl border border-emerald-100 bg-card p-6 text-center shadow-lg"
             >
               <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                 <Send className="size-5" />

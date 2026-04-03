@@ -238,10 +238,10 @@ export default function Login() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.08 * index }}
-                className="rounded-2xl border border-[hsl(30,12%,90%)] bg-white p-6"
+                className="rounded-2xl border border-border bg-card p-6"
               >
                 <div className="flex items-start gap-4">
-                  <div className="flex size-11 items-center justify-center rounded-xl bg-[hsl(30,15%,92%)] text-charcoal">
+                  <div className="flex size-11 items-center justify-center rounded-xl bg-muted text-charcoal">
                     <item.icon className="size-5" />
                   </div>
                   <div>
@@ -257,16 +257,16 @@ export default function Login() {
             onSubmit={handleSubmit}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl border border-[hsl(30,12%,90%)] bg-white p-6 lg:p-8"
+            className="rounded-2xl border border-border bg-card p-6 lg:p-8"
           >
             {!isSupabaseConfigured && (
-              <div className="mb-5 rounded-xl border border-[hsl(24,80%,80%)] bg-[hsl(24,80%,95%)] px-4 py-3 text-xs text-[hsl(24,60%,30%)]">
+              <div className="mb-5 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-xs text-accent">
                 {t('login.errorSupabase')}
               </div>
             )}
             <div className="mb-6">
               <div className="flex items-center gap-2">
-                <div className="flex size-10 items-center justify-center rounded-full bg-[hsl(30,15%,92%)] text-charcoal">
+                <div className="flex size-10 items-center justify-center rounded-full bg-muted text-charcoal">
                   <LogIn className="size-4" />
                 </div>
                 <div>
@@ -274,7 +274,7 @@ export default function Login() {
                   <p className="text-lg font-semibold text-charcoal">{modeLabel}</p>
                 </div>
               </div>
-              <div className="mt-5 flex rounded-full border border-[hsl(30,12%,90%)] bg-[hsl(30,30%,98%)] p-1">
+              <div className="mt-5 flex rounded-full border border-border bg-card p-1">
                 {(['member', 'admin'] as const).map((value) => (
                   <button
                     key={value}
@@ -305,7 +305,7 @@ export default function Login() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                    className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
                     placeholder="Your name"
                   />
                 </div>
@@ -320,7 +320,7 @@ export default function Login() {
                     if (signupPending) resetSignupVerification();
                   }}
                   disabled={showSignupVerify}
-                  className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10 disabled:bg-[hsl(30,20%,96%)] disabled:text-mid"
+                  className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10 disabled:bg-muted disabled:text-mid"
                   placeholder="you@school.edu"
                 />
               </div>
@@ -331,7 +331,7 @@ export default function Login() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                    className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
                     placeholder="••••••••"
                   />
                 </div>
@@ -350,7 +350,7 @@ export default function Login() {
                         <InputOTPSlot
                           key={index}
                           index={index}
-                          className="h-11 w-11 rounded-lg border border-[hsl(30,12%,87%)] bg-white text-sm text-charcoal"
+                          className="h-11 w-11 rounded-lg border border-border bg-card text-sm text-charcoal"
                         />
                       ))}
                     </InputOTPGroup>

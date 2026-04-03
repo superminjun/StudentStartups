@@ -92,11 +92,11 @@ export default function ProductCard({ product }: { product: Product }) {
       <motion.div
         whileHover={{ y: -3 }}
         transition={{ duration: 0.2 }}
-        className="group overflow-hidden rounded-xl border border-[hsl(30,12%,90%)] bg-white"
+        className="group overflow-hidden rounded-xl border border-border bg-card"
         onMouseEnter={startHoverCycle}
         onMouseLeave={stopHoverCycle}
       >
-        <div className="relative aspect-square overflow-hidden bg-[hsl(30,15%,94%)]">
+        <div className="relative aspect-square overflow-hidden bg-muted">
           <div
             className="flex h-full w-full transition-transform duration-500 ease-out"
             style={{ transform: `translateX(-${activeImage * 100}%)` }}
@@ -117,7 +117,7 @@ export default function ProductCard({ product }: { product: Product }) {
               {statusLabel}
             </span>
           )}
-          <div className="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold text-charcoal shadow-sm">
+          <div className="absolute right-3 top-3 rounded-full bg-card/90 px-2.5 py-1 text-[10px] font-semibold text-charcoal shadow-sm">
             {t('shop.stocks')}:{' '}
             <AnimatePresence mode="popLayout">
               <motion.span
@@ -148,7 +148,7 @@ export default function ProductCard({ product }: { product: Product }) {
                     pauseAuto(8000);
                   }}
                   className={`h-1.5 w-1.5 rounded-full transition-all ${
-                    activeImage === index ? 'bg-white' : 'bg-white/50 hover:bg-white/80'
+                    activeImage === index ? 'bg-card' : 'bg-card/50 hover:bg-card/80'
                   }`}
                   aria-label={`Show image ${index + 1}`}
                 />

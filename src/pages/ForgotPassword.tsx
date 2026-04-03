@@ -121,10 +121,10 @@ export default function ForgotPassword() {
             onSubmit={handleSubmit}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl border border-[hsl(30,12%,90%)] bg-white p-6 lg:p-8"
+            className="rounded-2xl border border-border bg-card p-6 lg:p-8"
           >
             {!isSupabaseConfigured && (
-              <div className="mb-5 rounded-xl border border-[hsl(24,80%,80%)] bg-[hsl(24,80%,95%)] px-4 py-3 text-xs text-[hsl(24,60%,30%)]">
+              <div className="mb-5 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-xs text-accent">
                 {t('login.errorSupabase')}
               </div>
             )}
@@ -135,7 +135,7 @@ export default function ForgotPassword() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={sent}
-                className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10 disabled:bg-[hsl(30,20%,96%)] disabled:text-mid"
+                className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10 disabled:bg-muted disabled:text-mid"
                 placeholder="you@school.edu"
               />
             </div>
@@ -152,7 +152,7 @@ export default function ForgotPassword() {
             </button>
 
             {sent && (
-              <div className="mt-6 space-y-4 border-t border-[hsl(30,12%,90%)] pt-6">
+              <div className="mt-6 space-y-4 border-t border-border pt-6">
                 <p className="text-sm font-semibold text-charcoal">{t('forgotPassword.codeLabel')}</p>
                 <div>
                   <label className="mb-2 block text-sm font-medium text-charcoal">{t('forgotPassword.codeLabel')}</label>
@@ -162,7 +162,7 @@ export default function ForgotPassword() {
                         <InputOTPSlot
                           key={index}
                           index={index}
-                          className="h-11 w-11 rounded-lg border border-[hsl(30,12%,87%)] bg-white text-sm text-charcoal"
+                          className="h-11 w-11 rounded-lg border border-border bg-card text-sm text-charcoal"
                         />
                       ))}
                     </InputOTPGroup>
@@ -175,7 +175,7 @@ export default function ForgotPassword() {
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                    className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
                     placeholder="••••••••"
                   />
                 </div>
@@ -185,7 +185,7 @@ export default function ForgotPassword() {
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                    className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
                     placeholder="••••••••"
                   />
                 </div>

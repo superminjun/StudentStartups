@@ -226,7 +226,7 @@ export default function MemberPortal() {
     return (
       <div className="flex min-h-[60vh] items-center justify-center bg-beige">
         <div className="text-center">
-          <div className="mx-auto size-8 animate-spin rounded-full border-2 border-[hsl(30,12%,87%)] border-t-[hsl(24,80%,50%)]" />
+          <div className="mx-auto size-8 animate-spin rounded-full border-2 border-border border-t-[hsl(24,80%,50%)]" />
           <p className="mt-4 text-sm text-light">Loading...</p>
         </div>
       </div>
@@ -247,12 +247,12 @@ export default function MemberPortal() {
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      className="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xl font-bold text-white outline-none"
+                      className="rounded-lg border border-white/20 bg-card/10 px-3 py-1.5 text-xl font-bold text-white outline-none"
                     />
                     <button
                       onClick={handleSaveProfile}
                       disabled={savingProfile}
-                      className="rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+                      className="rounded-full bg-card/20 px-3 py-1 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {savingProfile ? t('portal.saving') : t('portal.save')}
                     </button>
@@ -269,7 +269,7 @@ export default function MemberPortal() {
             </div>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-white/60 hover:text-white hover:bg-white/10 transition-all"
+              className="flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-white/60 hover:text-white hover:bg-card/10 transition-all"
             >
               <LogOut className="size-4" />
               {t('portal.logout')}
@@ -309,7 +309,7 @@ export default function MemberPortal() {
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.06 }}
-                      className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5"
+                      className="rounded-xl border border-border bg-card p-5"
                     >
                       <div className={`inline-flex size-9 items-center justify-center rounded-lg ${item.color}`}>
                         <item.icon className="size-4" />
@@ -324,8 +324,8 @@ export default function MemberPortal() {
 
             {activeTab === 'meetings' && (
               <motion.div key="meetings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white overflow-hidden">
-                  <div className="grid grid-cols-12 gap-4 border-b border-[hsl(30,12%,90%)] bg-[hsl(30,15%,94%)] px-5 py-3">
+                <div className="rounded-xl border border-border bg-card overflow-hidden">
+                  <div className="grid grid-cols-12 gap-4 border-b border-border bg-muted px-5 py-3">
                     <span className="col-span-3 text-xs font-semibold text-mid">{t('portal.meetingDate')}</span>
                     <span className="col-span-2 text-xs font-semibold text-mid">{t('portal.meetingStatus')}</span>
                     <span className="col-span-2 text-xs font-semibold text-mid">{t('portal.meetingRole')}</span>
@@ -335,7 +335,7 @@ export default function MemberPortal() {
                     <div className="px-5 py-6 text-sm text-light">No meetings yet.</div>
                   ) : (
                     meetings.map((meeting) => (
-                      <div key={meeting.id} className="grid grid-cols-12 gap-4 border-b border-[hsl(30,12%,94%)] px-5 py-3.5 last:border-b-0">
+                      <div key={meeting.id} className="grid grid-cols-12 gap-4 border-b border-border px-5 py-3.5 last:border-b-0">
                         <span className="col-span-3 text-sm text-charcoal tabular-nums">{meeting.date || '—'}</span>
                         <span className="col-span-2 flex items-center gap-1.5 text-sm">
                           {meeting.status === 'present' ? (
@@ -355,7 +355,7 @@ export default function MemberPortal() {
 
             {activeTab === 'stats' && (
               <motion.div key="stats" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid gap-6 lg:grid-cols-2">
-                <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+                <div className="rounded-xl border border-border bg-card p-6">
                   <h3 className="text-lg font-semibold text-charcoal">{t('portal.attendance')}</h3>
                   <div className="mt-5">
                     <AnimatedProgress value={attendanceCount} max={Math.max(totalMeetings, 1)} label={`${attendanceCount} of ${totalMeetings} meetings`} color="bg-emerald-500" />
@@ -364,7 +364,7 @@ export default function MemberPortal() {
                     {totalMeetings ? Math.round((attendanceCount / totalMeetings) * 100) : 0}%
                   </p>
                 </div>
-                <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+                <div className="rounded-xl border border-border bg-card p-6">
                   <h3 className="text-lg font-semibold text-charcoal">{t('portal.contributions')}</h3>
                   <div className="mt-5">
                     <p className="text-4xl font-bold text-[hsl(24,80%,50%)] tabular-nums">{contributionTotal}</p>
@@ -377,7 +377,7 @@ export default function MemberPortal() {
                       <p className="text-sm text-light">{t('portal.noContributions')}</p>
                     ) : (
                       contributions.slice(0, 6).map((entry) => (
-                        <div key={entry.id} className="flex items-center justify-between rounded-lg border border-[hsl(30,12%,92%)] px-3 py-2">
+                        <div key={entry.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
                           <div>
                             <p className="text-xs font-semibold text-charcoal">{entry.title}</p>
                             <p className="text-[11px] text-light">{entry.contribution_date}</p>

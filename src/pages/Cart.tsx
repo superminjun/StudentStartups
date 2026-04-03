@@ -113,7 +113,7 @@ export default function Cart() {
             {/* Items */}
             <div className="lg:col-span-3 space-y-3">
               {cartProducts.map((product) => (
-                <div key={product.id} className="flex gap-4 rounded-xl border border-[hsl(30,12%,90%)] bg-white p-4">
+                <div key={product.id} className="flex gap-4 rounded-xl border border-border bg-card p-4">
                   <img
                     src={product.image}
                     alt={product.name}
@@ -125,14 +125,14 @@ export default function Cart() {
                     <h3 className="text-sm font-semibold text-charcoal">{product.name}</h3>
                     <p className="mt-1 text-sm font-medium text-mid tabular-nums">${product.price.toFixed(2)}</p>
                     <div className="mt-2 flex items-center gap-2">
-                      <button onClick={() => decreaseQty(product.id)} className="flex size-7 items-center justify-center rounded-full border border-[hsl(30,12%,90%)] text-mid hover:bg-[hsl(30,15%,92%)]">
+                      <button onClick={() => decreaseQty(product.id)} className="flex size-7 items-center justify-center rounded-full border border-border text-mid hover:bg-muted">
                         <Minus className="size-3" />
                       </button>
                       <span className="w-6 text-center text-sm font-medium tabular-nums">{product.qty}</span>
                       <button
                         onClick={() => addItem(product.id)}
                         disabled={product.qty >= product.inventory}
-                        className="flex size-7 items-center justify-center rounded-full border border-[hsl(30,12%,90%)] text-mid hover:bg-[hsl(30,15%,92%)] disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="flex size-7 items-center justify-center rounded-full border border-border text-mid hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <Plus className="size-3" />
                       </button>
@@ -147,7 +147,7 @@ export default function Cart() {
 
             {/* Checkout */}
             <div className="lg:col-span-2">
-              <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6 sticky top-24">
+              <div className="rounded-xl border border-border bg-card p-6 sticky top-24">
                 <div className="flex justify-between text-base font-semibold text-charcoal mb-6">
                   <span>{t('shop.total')}</span>
                   <span className="tabular-nums">${total.toFixed(2)}</span>
@@ -160,7 +160,7 @@ export default function Cart() {
                       type="text"
                       value={buyerName}
                       onChange={(e) => setBuyerName(e.target.value)}
-                      className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-3 py-2.5 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                      className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
                     />
                   </div>
                   <div>
@@ -169,7 +169,7 @@ export default function Cart() {
                       type="email"
                       value={buyerEmail}
                       onChange={(e) => setBuyerEmail(e.target.value)}
-                      className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-3 py-2.5 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                      className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
                     />
                   </div>
                   <div>
@@ -178,7 +178,7 @@ export default function Cart() {
                       rows={2}
                       value={deliveryNote}
                       onChange={(e) => setDeliveryNote(e.target.value)}
-                      className="w-full rounded-lg border border-[hsl(30,12%,87%)] bg-white px-3 py-2.5 text-sm outline-none resize-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                      className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none resize-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
                     />
                   </div>
                 </div>

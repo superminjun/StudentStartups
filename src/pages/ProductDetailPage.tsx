@@ -67,7 +67,7 @@ export default function ProductDetailPage() {
           <div className="grid gap-10 lg:grid-cols-2">
             {/* Images */}
             <div>
-              <div className="overflow-hidden rounded-xl bg-white border border-[hsl(30,12%,90%)]">
+              <div className="overflow-hidden rounded-xl bg-card border border-border">
                 <img
                   src={allImages[activeImg]}
                   alt={product.name}
@@ -102,7 +102,7 @@ export default function ProductDetailPage() {
               <div className="mt-6 flex flex-wrap items-baseline gap-4">
                 <span className="text-3xl font-bold text-charcoal tabular-nums">${product.price.toFixed(2)}</span>
                 <span className={`text-sm font-medium ${statusColor}`}>{statusLabel}</span>
-                <div className="rounded-full bg-[hsl(30,15%,94%)] px-3 py-1 text-xs font-semibold text-charcoal">
+                <div className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-charcoal">
                   {t('shop.stocks')}:{' '}
                   <AnimatePresence mode="popLayout">
                     <motion.span
@@ -155,7 +155,7 @@ export default function ProductDetailPage() {
 
       {/* Related */}
       {related.length > 0 && (
-        <section className="bg-white py-14">
+        <section className="bg-card py-14">
           <div className="mx-auto max-w-6xl px-6">
             <ScrollReveal>
               <h2 className="text-xl font-bold text-charcoal">{t('shop.relatedProducts')}</h2>

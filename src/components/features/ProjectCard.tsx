@@ -14,7 +14,7 @@ export default function ProjectCard({ project }: { project: Project }) {
       <motion.article
         whileHover={{ y: -4 }}
         transition={{ duration: 0.25 }}
-        className="group overflow-hidden rounded-xl bg-white border border-[hsl(30,12%,90%)] transition-shadow hover:shadow-lg"
+        className="group overflow-hidden rounded-xl bg-card border border-border transition-shadow hover:shadow-lg"
       >
         <div className="relative aspect-[4/3] overflow-hidden">
           <img
@@ -35,7 +35,7 @@ export default function ProjectCard({ project }: { project: Project }) {
           </h3>
           <p className="mt-1.5 text-sm leading-relaxed text-mid line-clamp-2">{project.description}</p>
 
-          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-[hsl(30,12%,92%)] pt-4">
+          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-border pt-4">
             <div>
               <p className="text-[10px] font-medium uppercase tracking-wider text-light">{t('projects.revenue')}</p>
               <p className="mt-0.5 text-sm font-semibold text-charcoal tabular-nums">{formatCurrency(project.revenue)}</p>

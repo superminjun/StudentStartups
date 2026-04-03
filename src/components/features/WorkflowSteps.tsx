@@ -17,7 +17,7 @@ export default function WorkflowSteps() {
   const { t } = useLanguage();
 
   return (
-    <section className="bg-white py-20 lg:py-28">
+    <section className="bg-card py-20 lg:py-28">
       <div className="mx-auto max-w-6xl px-6">
         <ScrollReveal className="max-w-xl">
           <h2 className="text-2xl font-bold tracking-tight text-charcoal sm:text-3xl">
@@ -38,7 +38,7 @@ export default function WorkflowSteps() {
                     transition={{ duration: 0.2 }}
                   >
                     <div
-                      className="flex size-14 items-center justify-center rounded-2xl bg-[hsl(30,15%,92%)] transition-colors duration-200 group-hover:bg-[hsl(24,80%,50%)]"
+                      className="flex size-14 items-center justify-center rounded-2xl bg-muted transition-colors duration-200 group-hover:bg-[hsl(24,80%,50%)]"
                     >
                       <Icon
                         className="size-6 text-[hsl(20,5%,45%)] transition-colors duration-200 group-hover:text-white"

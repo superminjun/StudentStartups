@@ -75,7 +75,7 @@ export default function Shop() {
                 <button
                   onClick={() => setActiveTerm('All')}
                   className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                    activeTerm === 'All' ? 'bg-charcoal text-white' : 'bg-white text-mid hover:text-charcoal border border-[hsl(30,12%,90%)]'
+                    activeTerm === 'All' ? 'bg-charcoal text-white' : 'bg-card text-mid hover:text-charcoal border border-border'
                   }`}
                 >
                   {t('shop.allTerms')}
@@ -85,7 +85,7 @@ export default function Shop() {
                     key={term}
                     onClick={() => setActiveTerm(term)}
                     className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                      activeTerm === term ? 'bg-charcoal text-white' : 'bg-white text-mid hover:text-charcoal border border-[hsl(30,12%,90%)]'
+                      activeTerm === term ? 'bg-charcoal text-white' : 'bg-card text-mid hover:text-charcoal border border-border'
                     }`}
                   >
                     {term}
@@ -103,7 +103,7 @@ export default function Shop() {
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
                   className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                    activeCategory === cat ? 'bg-charcoal text-white' : 'bg-white text-mid hover:text-charcoal border border-[hsl(30,12%,90%)]'
+                    activeCategory === cat ? 'bg-charcoal text-white' : 'bg-card text-mid hover:text-charcoal border border-border'
                   }`}
                 >
                   {cat === 'All' ? t('shop.allCategories') : cat}

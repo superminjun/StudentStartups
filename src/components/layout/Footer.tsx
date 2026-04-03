@@ -17,7 +17,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="border-t border-[hsl(30,12%,90%)] bg-white">
+    <footer className="border-t border-border bg-card">
       <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 lg:grid-cols-12">
         <div className="lg:col-span-5">
           <Link to="/" className="text-lg font-semibold text-charcoal">
@@ -52,7 +52,7 @@ export default function Footer() {
                 href={href}
                 target={label !== 'Email' ? '_blank' : undefined}
                 rel="noopener noreferrer"
-                className="flex size-10 items-center justify-center rounded-full bg-[hsl(30,15%,92%)] text-mid transition-all hover:bg-charcoal hover:text-white"
+                className="flex size-10 items-center justify-center rounded-full bg-muted text-mid transition-all hover:bg-charcoal hover:text-white"
                 aria-label={label}
               >
                 <Icon className="size-4" />
@@ -62,7 +62,7 @@ export default function Footer() {
           <p className="mt-5 text-sm text-mid">{SITE_CONFIG.email}</p>
         </div>
       </div>
-      <div className="border-t border-[hsl(30,12%,92%)] py-6 text-center">
+      <div className="border-t border-border py-6 text-center">
         <p className="text-xs text-light">{t('footer.rights')}</p>
       </div>
     </footer>

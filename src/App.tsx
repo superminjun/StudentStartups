@@ -26,7 +26,7 @@ function LoadingFallback() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-beige">
       <div className="text-center">
-        <div className="mx-auto size-8 animate-spin rounded-full border-2 border-[hsl(30,12%,87%)] border-t-[hsl(24,80%,50%)]" />
+        <div className="mx-auto size-8 animate-spin rounded-full border-2 border-border border-t-[hsl(24,80%,50%)]" />
         <p className="mt-4 text-sm text-light">Loading...</p>
       </div>
     </div>

@@ -72,7 +72,7 @@ export default function Home() {
                   <ScrollReveal key={stat.key} delay={i * 0.08} direction="scale">
                     <motion.div
                       whileHover={{ y: -2 }}
-                      className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5"
+                      className="rounded-xl border border-border bg-card p-5"
                     >
                       <stat.icon className="size-5 text-[hsl(24,80%,50%)]" />
                       <p className="mt-3 text-xl font-bold text-charcoal tabular-nums">{stat.value}</p>
@@ -132,7 +132,7 @@ export default function Home() {
           <ScrollReveal delay={0.2}>
             <Link
               to="/contact"
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-charcoal transition-all hover:shadow-lg active:scale-[0.98]"
+              className="mt-8 inline-flex items-center gap-2 rounded-full bg-card px-6 py-3 text-sm font-semibold text-charcoal transition-all hover:shadow-lg active:scale-[0.98]"
             >
               {t('cta.button')}
             </Link>

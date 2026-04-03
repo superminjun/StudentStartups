@@ -1276,7 +1276,7 @@ export default function Admin() {
               key={key}
               onClick={() => { setTab(key); setSelectedMember(null); }}
               className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all whitespace-nowrap ${
-                tab === key ? 'bg-charcoal text-white' : 'bg-white text-mid hover:text-charcoal border border-[hsl(30,12%,90%)]'
+                tab === key ? 'bg-charcoal text-white' : 'bg-card text-mid hover:text-charcoal border border-border'
               }`}
             >
               <Icon className="size-4" />
@@ -1288,14 +1288,14 @@ export default function Admin() {
         {/* Members */}
         {tab === 'members' && !selectedMember && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-4">
+            <div className="rounded-xl border border-border bg-card p-4">
               <p className="text-sm font-semibold text-charcoal">Add Meeting</p>
               <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <input
                   type="date"
                   value={newMeetingDate}
                   onChange={(e) => setNewMeetingDate(e.target.value)}
-                  className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                  className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                 />
                 <button
                   onClick={handleCreateMeeting}
@@ -1308,7 +1308,7 @@ export default function Admin() {
               <p className="mt-2 text-xs text-light">New meetings automatically add attendance rows for all members.</p>
             </div>
 
-            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-4">
+            <div className="rounded-xl border border-border bg-card p-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-charcoal">Meetings</p>
                 <span className="text-xs text-light">{meetings.length} total</span>
@@ -1320,7 +1320,7 @@ export default function Admin() {
               ) : (
                 <div className="mt-3 space-y-2">
                   {meetings.map((meeting) => (
-                    <div key={meeting.id} className="flex items-center justify-between rounded-lg border border-[hsl(30,12%,92%)] px-3 py-2">
+                    <div key={meeting.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
                       <span className="text-sm text-charcoal">
                         {meeting.meeting_date ? new Date(meeting.meeting_date).toLocaleDateString() : '—'}
                       </span>
@@ -1337,11 +1337,11 @@ export default function Admin() {
             </div>
 
             {membersLoading ? (
-              <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6 text-center text-sm text-light">
+              <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-light">
                 Loading members...
               </div>
             ) : members.length === 0 ? (
-              <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6 text-center text-sm text-light">
+              <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-light">
                 No members yet.
               </div>
             ) : (
@@ -1349,7 +1349,7 @@ export default function Admin() {
                 <button
                   key={member.id}
                   onClick={() => setSelectedMember(member.id)}
-                  className="w-full text-left rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5 hover:shadow-md transition-shadow flex items-center justify-between"
+                  className="w-full text-left rounded-xl border border-border bg-card p-5 hover:shadow-md transition-shadow flex items-center justify-between"
                 >
                   <div>
                     <p className="text-base font-semibold text-charcoal">{member.name}</p>
@@ -1370,7 +1370,7 @@ export default function Admin() {
         {tab === 'members' && activeMember && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <button onClick={() => setSelectedMember(null)} className="mb-4 text-sm text-mid hover:text-charcoal">← Back to Members</button>
-            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6 mb-6">
+            <div className="rounded-xl border border-border bg-card p-6 mb-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 className="text-lg font-bold text-charcoal">{activeMember.name}</h3>
@@ -1384,7 +1384,7 @@ export default function Admin() {
                       setMemberTeamInput(e.target.value);
                       updateMember({ team: e.target.value });
                     }}
-                    className="rounded-lg border border-[hsl(30,12%,87%)] bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-charcoal"
+                    className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-charcoal outline-none focus:border-charcoal"
                   >
                     {['Unassigned', ...TEAM_OPTIONS].map((team) => (
                       <option key={team} value={team}>{team}</option>
@@ -1396,9 +1396,9 @@ export default function Admin() {
                     onChange={(e) => setMemberRoleInput(e.target.value)}
                     onBlur={() => updateMember({ role: memberRoleInput || 'Member' })}
                     placeholder="Role (ex: Team Lead)"
-                    className="w-44 rounded-lg border border-[hsl(30,12%,87%)] bg-white px-3 py-2 text-sm text-charcoal outline-none focus:border-charcoal"
+                    className="w-44 rounded-lg border border-border bg-card px-3 py-2 text-sm text-charcoal outline-none focus:border-charcoal"
                   />
-                  <div className="flex items-center rounded-lg border border-[hsl(30,12%,87%)] bg-[hsl(30,15%,94%)] px-3 py-2 text-sm text-mid">
+                  <div className="flex items-center rounded-lg border border-border bg-muted px-3 py-2 text-sm text-mid">
                     Contributions: <span className="ml-2 font-semibold text-charcoal">{contributionTotal}</span>
                   </div>
                 </div>
@@ -1420,8 +1420,8 @@ export default function Admin() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white overflow-hidden">
-              <div className="grid grid-cols-12 gap-3 bg-[hsl(30,15%,94%)] px-5 py-3 border-b border-[hsl(30,12%,90%)]">
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
+              <div className="grid grid-cols-12 gap-3 bg-muted px-5 py-3 border-b border-border">
                 <span className="col-span-3 text-xs font-semibold text-mid">Date</span>
                 <span className="col-span-2 text-xs font-semibold text-mid">Status</span>
                 <span className="col-span-2 text-xs font-semibold text-mid">Role</span>
@@ -1434,7 +1434,7 @@ export default function Admin() {
               ) : (
                 memberMeetings.map((meeting) => {
                   return (
-                    <div key={meeting.attendanceId} className="grid grid-cols-12 gap-3 px-5 py-3 border-b border-[hsl(30,12%,94%)] last:border-0 items-start">
+                    <div key={meeting.attendanceId} className="grid grid-cols-12 gap-3 px-5 py-3 border-b border-border last:border-0 items-start">
                       <span className="col-span-3 text-sm text-charcoal tabular-nums pt-2">{meeting.date || '—'}</span>
                       <div className="col-span-2 pt-2">
                         <button onClick={() => toggleAttendance(meeting.attendanceId, meeting.status)} className="flex items-center gap-1 text-sm">
@@ -1454,7 +1454,7 @@ export default function Admin() {
                             [meeting.attendanceId]: { ...prev[meeting.attendanceId], role: e.target.value },
                           }))}
                           placeholder="Role"
-                          className="w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                          className="w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                         />
                       </div>
                       <div className="col-span-5 flex gap-2">
@@ -1466,7 +1466,7 @@ export default function Admin() {
                             [meeting.attendanceId]: { ...prev[meeting.attendanceId], feedback: e.target.value },
                           }))}
                           placeholder="Add feedback..."
-                          className="flex-1 rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                          className="flex-1 rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                         />
                         <button
                           onClick={() => handleSaveMeeting(meeting.attendanceId, meeting.meetingRole, meeting.feedback)}
@@ -1481,7 +1481,7 @@ export default function Admin() {
               )}
             </div>
 
-            <div className="mt-6 rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+            <div className="mt-6 rounded-xl border border-border bg-card p-6">
               <div className="flex items-center justify-between">
                 <h4 className="text-base font-semibold text-charcoal">Contributions</h4>
                 <span className="text-xs text-light">Total {contributionTotal}</span>
@@ -1492,27 +1492,27 @@ export default function Admin() {
                   value={newContribution.title}
                   onChange={(e) => setNewContribution((prev) => ({ ...prev, title: e.target.value }))}
                   placeholder="Contribution title"
-                  className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                  className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                 />
                 <input
                   type="number"
                   value={newContribution.points}
                   onChange={(e) => setNewContribution((prev) => ({ ...prev, points: e.target.value }))}
                   placeholder="Points"
-                  className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                  className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                 />
                 <input
                   type="date"
                   value={newContribution.date}
                   onChange={(e) => setNewContribution((prev) => ({ ...prev, date: e.target.value }))}
-                  className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                  className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                 />
                 <input
                   type="text"
                   value={newContribution.notes}
                   onChange={(e) => setNewContribution((prev) => ({ ...prev, notes: e.target.value }))}
                   placeholder="Notes (optional)"
-                  className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal sm:col-span-2 lg:col-span-4"
+                  className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal sm:col-span-2 lg:col-span-4"
                 />
               </div>
               <button
@@ -1529,7 +1529,7 @@ export default function Admin() {
                   <p className="text-sm text-light">No contributions yet.</p>
                 ) : (
                   contributions.map((entry) => (
-                    <div key={entry.id} className="flex flex-col gap-2 rounded-lg border border-[hsl(30,12%,92%)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div key={entry.id} className="flex flex-col gap-2 rounded-lg border border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="text-sm font-semibold text-charcoal">{entry.title}</p>
                         <p className="text-xs text-light">{entry.contribution_date}</p>
@@ -1556,7 +1556,7 @@ export default function Admin() {
         {/* Projects */}
         {tab === 'projects' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5">
+            <div className="rounded-xl border border-border bg-card p-5">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 className="text-lg font-bold text-charcoal">Projects CMS</h3>
@@ -1565,7 +1565,7 @@ export default function Admin() {
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={handleSeedProjects}
-                    className="rounded-full border border-[hsl(30,12%,85%)] px-4 py-2 text-xs font-semibold text-mid hover:text-charcoal hover:border-charcoal"
+                    className="rounded-full border border-border px-4 py-2 text-xs font-semibold text-mid hover:text-charcoal hover:border-charcoal"
                   >
                     {cmsSources.projects === 'mock' ? 'Seed Example Data' : 'Re-seed Example Data'}
                   </button>
@@ -1604,10 +1604,10 @@ export default function Admin() {
                   : uploadMessage ?? 'Upload failed';
 
               const projectCard = (
-                <div key={project.id} className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5 space-y-4">
+                <div key={project.id} className="rounded-xl border border-border bg-card p-5 space-y-4">
                   <div className="flex flex-col gap-4 lg:flex-row">
                   <div className="w-full lg:w-56">
-                    <div className="aspect-[4/3] overflow-hidden rounded-lg border border-[hsl(30,12%,90%)] bg-[hsl(30,15%,94%)]">
+                    <div className="aspect-[4/3] overflow-hidden rounded-lg border border-border bg-muted">
                       {imageSrc ? (
                         <img src={imageSrc} alt={project.name} className="size-full object-cover" />
                       ) : (
@@ -1624,7 +1624,7 @@ export default function Admin() {
                         updateProjectDraft(project.id, { image: toPublicStorageUrl(nextUrl) });
                         setProjectImagePreview((prev) => ({ ...prev, [project.id]: nextUrl }));
                       }}
-                      className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                      className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-xs outline-none focus:border-charcoal"
                     />
                     <label className="mt-3 block text-xs font-semibold text-mid">Upload Image</label>
                     <input
@@ -1634,7 +1634,7 @@ export default function Admin() {
                       className="mt-1 w-full text-xs text-mid"
                     />
                     <label className="mt-4 block text-xs font-semibold text-mid">Banner Preview</label>
-                    <div className="mt-2 aspect-[3/1] overflow-hidden rounded-lg border border-[hsl(30,12%,90%)] bg-[hsl(30,15%,94%)]">
+                    <div className="mt-2 aspect-[3/1] overflow-hidden rounded-lg border border-border bg-muted">
                       {bannerSrc ? (
                         <img src={bannerSrc} alt={`${project.name} banner`} className="size-full object-cover" />
                       ) : (
@@ -1651,7 +1651,7 @@ export default function Admin() {
                         updateProjectDraft(project.id, { bannerImage: toPublicStorageUrl(nextUrl) });
                         setProjectBannerPreview((prev) => ({ ...prev, [project.id]: nextUrl }));
                       }}
-                      className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                      className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-xs outline-none focus:border-charcoal"
                     />
                     <label className="mt-3 block text-xs font-semibold text-mid">Upload Banner Image</label>
                     <input
@@ -1672,7 +1672,7 @@ export default function Admin() {
                         type="text"
                         value={project.name}
                         onChange={(e) => updateProjectDraft(project.id, { name: e.target.value })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                       />
                     </div>
                     <div>
@@ -1681,7 +1681,7 @@ export default function Admin() {
                         type="text"
                         value={project.status ?? ''}
                         onChange={(e) => updateProjectDraft(project.id, { status: e.target.value })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                       />
                     </div>
                     <div className="sm:col-span-2">
@@ -1695,7 +1695,7 @@ export default function Admin() {
                             className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
                               project.stage === option.value
                                 ? 'bg-charcoal text-white'
-                                : 'bg-white text-mid border border-[hsl(30,12%,90%)] hover:text-charcoal'
+                                : 'bg-card text-mid border border-border hover:text-charcoal'
                             }`}
                           >
                             {option.label}
@@ -1710,7 +1710,7 @@ export default function Admin() {
                         type="text"
                         value={project.category}
                         onChange={(e) => updateProjectDraft(project.id, { category: e.target.value })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                       />
                     </div>
                     <div className="sm:col-span-2">
@@ -1724,7 +1724,7 @@ export default function Admin() {
                             className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
                               project.term === term
                                 ? 'bg-charcoal text-white'
-                                : 'bg-white text-mid border border-[hsl(30,12%,90%)] hover:text-charcoal'
+                                : 'bg-card text-mid border border-border hover:text-charcoal'
                             }`}
                           >
                             {term}
@@ -1738,7 +1738,7 @@ export default function Admin() {
                         type="date"
                         value={project.startDate}
                         onChange={(e) => updateProjectDraft(project.id, { startDate: e.target.value })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                       />
                     </div>
                     <div>
@@ -1747,7 +1747,7 @@ export default function Admin() {
                         type="text"
                         value={`${Number(project.donationPercent || 0).toFixed(1)}%`}
                         readOnly
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] bg-[hsl(30,15%,96%)] px-3 py-2 text-sm text-mid outline-none"
+                        className="mt-1 w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-mid outline-none"
                       />
                     </div>
                     <div>
@@ -1756,7 +1756,7 @@ export default function Admin() {
                         type="number"
                         value={project.revenue}
                         onChange={(e) => updateProjectDraft(project.id, { revenue: Number(e.target.value) })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                       />
                     </div>
                     <div>
@@ -1765,7 +1765,7 @@ export default function Admin() {
                         type="number"
                         value={project.expenses}
                         onChange={(e) => updateProjectDraft(project.id, { expenses: Number(e.target.value) })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                       />
                     </div>
                     <div>
@@ -1774,7 +1774,7 @@ export default function Admin() {
                         type="number"
                         value={Number(project.profit || 0)}
                         readOnly
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] bg-[hsl(30,15%,96%)] px-3 py-2 text-sm text-mid outline-none"
+                        className="mt-1 w-full rounded-lg border border-border bg-muted px-3 py-2 text-sm text-mid outline-none"
                       />
                     </div>
                     <div>
@@ -1783,7 +1783,7 @@ export default function Admin() {
                         type="number"
                         value={project.donation}
                         onChange={(e) => updateProjectDraft(project.id, { donation: Number(e.target.value) })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                       />
                     </div>
                     <div className="sm:col-span-2">
@@ -1791,7 +1791,7 @@ export default function Admin() {
                       <textarea
                         value={project.description}
                         onChange={(e) => updateProjectDraft(project.id, { description: e.target.value })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                         rows={3}
                       />
                     </div>
@@ -1823,7 +1823,7 @@ export default function Admin() {
                             updateProjectDraft(project.id, { team: nextTeam });
                           }}
                           placeholder="Role (Marketing)"
-                          className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                          className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                         />
                         <input
                           type="text"
@@ -1834,7 +1834,7 @@ export default function Admin() {
                             updateProjectDraft(project.id, { team: nextTeam });
                           }}
                           placeholder="Members (comma separated)"
-                          className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                          className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                         />
                         <button
                           onClick={() => {
@@ -1884,7 +1884,7 @@ export default function Admin() {
         {/* Shop */}
         {tab === 'shop' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5">
+            <div className="rounded-xl border border-border bg-card p-5">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 className="text-lg font-bold text-charcoal">Shop CMS</h3>
@@ -1893,7 +1893,7 @@ export default function Admin() {
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={handleSeedProducts}
-                    className="rounded-full border border-[hsl(30,12%,85%)] px-4 py-2 text-xs font-semibold text-mid hover:text-charcoal hover:border-charcoal"
+                    className="rounded-full border border-border px-4 py-2 text-xs font-semibold text-mid hover:text-charcoal hover:border-charcoal"
                   >
                     {cmsSources.products === 'mock' ? 'Seed Example Data' : 'Re-seed Example Data'}
                   </button>
@@ -1912,7 +1912,7 @@ export default function Admin() {
               )}
             </div>
 
-            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5">
+            <div className="rounded-xl border border-border bg-card p-5">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h4 className="text-sm font-semibold text-charcoal">Term Options</h4>
@@ -1924,7 +1924,7 @@ export default function Admin() {
                     value={newTermInput}
                     onChange={(e) => setNewTermInput(e.target.value)}
                     placeholder="Add term (ex: Term 1 2026)"
-                    className="w-48 rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                    className="w-48 rounded-lg border border-border px-3 py-2 text-xs outline-none focus:border-charcoal"
                   />
                   <button
                     onClick={handleAddTerm}
@@ -1939,7 +1939,7 @@ export default function Admin() {
                   <span className="text-xs text-light">No terms yet.</span>
                 ) : (
                   termOptions.map((term) => (
-                    <div key={term} className="flex items-center gap-2 rounded-full border border-[hsl(30,12%,90%)] bg-[hsl(30,15%,96%)] px-3 py-1.5 text-xs text-charcoal">
+                    <div key={term} className="flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1.5 text-xs text-charcoal">
                       {term}
                       <button
                         onClick={() => handleRemoveTerm(term)}
@@ -1973,10 +1973,10 @@ export default function Admin() {
                   : uploadMessage ?? 'Upload failed';
 
               const productCard = (
-                <div key={product.id} className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5 space-y-4">
+                <div key={product.id} className="rounded-xl border border-border bg-card p-5 space-y-4">
                   <div className="flex flex-col gap-4 lg:flex-row">
                   <div className="w-full lg:w-56">
-                    <div className="aspect-square overflow-hidden rounded-lg border border-[hsl(30,12%,90%)] bg-[hsl(30,15%,94%)]">
+                    <div className="aspect-square overflow-hidden rounded-lg border border-border bg-muted">
                       {imageSrc ? (
                         <img src={imageSrc} alt={product.name} className="size-full object-cover" />
                       ) : (
@@ -1993,7 +1993,7 @@ export default function Admin() {
                         updateProductDraft(product.id, { image: toPublicStorageUrl(nextUrl), images: normalizeProductImages(nextUrl, product.images) });
                         setProductImagePreview((prev) => ({ ...prev, [product.id]: nextUrl }));
                       }}
-                      className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                      className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-xs outline-none focus:border-charcoal"
                     />
                     <label className="mt-3 block text-xs font-semibold text-mid">Upload Main Image</label>
                     <input
@@ -2022,7 +2022,7 @@ export default function Admin() {
                         type="text"
                         value={product.name}
                         onChange={(e) => updateProductDraft(product.id, { name: e.target.value })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                       />
                     </div>
                     <div>
@@ -2030,7 +2030,7 @@ export default function Admin() {
                       <select
                         value={product.status}
                         onChange={(e) => updateProductDraft(product.id, { status: e.target.value as Product['status'] })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                       >
                         <option value="available">available</option>
                         <option value="in-production">in-production</option>
@@ -2043,7 +2043,7 @@ export default function Admin() {
                         type="text"
                         value={product.category}
                         onChange={(e) => updateProductDraft(product.id, { category: e.target.value })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                       />
                     </div>
                     <div className="sm:col-span-2">
@@ -2057,7 +2057,7 @@ export default function Admin() {
                             className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
                               product.term === term
                                 ? 'bg-charcoal text-white'
-                                : 'bg-white text-mid border border-[hsl(30,12%,90%)] hover:text-charcoal'
+                                : 'bg-card text-mid border border-border hover:text-charcoal'
                             }`}
                           >
                             {term}
@@ -2071,7 +2071,7 @@ export default function Admin() {
                         type="number"
                         value={product.price}
                         onChange={(e) => updateProductDraft(product.id, { price: Number(e.target.value) })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                       />
                     </div>
                     <div>
@@ -2080,7 +2080,7 @@ export default function Admin() {
                         type="number"
                         value={product.inventory}
                         onChange={(e) => updateProductDraft(product.id, { inventory: Number(e.target.value) })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                       />
                     </div>
                     <div>
@@ -2089,7 +2089,7 @@ export default function Admin() {
                         type="text"
                         value={product.projectId ?? ''}
                         onChange={(e) => updateProductDraft(product.id, { projectId: e.target.value || undefined })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                       />
                     </div>
                     <div className="flex items-center gap-2">
@@ -2105,7 +2105,7 @@ export default function Admin() {
                       <textarea
                         value={product.description}
                         onChange={(e) => updateProductDraft(product.id, { description: e.target.value })}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                         rows={3}
                       />
                     </div>
@@ -2119,7 +2119,7 @@ export default function Admin() {
                           const nextMain = product.image || normalized[0] || '';
                           updateProductDraft(product.id, { image: nextMain, images: normalizeProductImages(nextMain, normalized) });
                         }}
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                         rows={2}
                       />
                     </div>
@@ -2140,7 +2140,7 @@ export default function Admin() {
                                 setProductImagePreview((prev) => ({ ...prev, [product.id]: nextMain }));
                               }}
                               className={`group relative aspect-square overflow-hidden rounded-lg border-2 ${
-                                product.image === img ? 'border-charcoal' : 'border-transparent hover:border-[hsl(30,12%,70%)]'
+                                product.image === img ? 'border-charcoal' : 'border-transparent hover:border-border'
                               }`}
                             >
                               <img src={img} alt="" className="size-full object-cover" />
@@ -2192,7 +2192,7 @@ export default function Admin() {
         {/* Impact */}
         {tab === 'impact' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5">
+            <div className="rounded-xl border border-border bg-card p-5">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 className="text-lg font-bold text-charcoal">Impact CMS</h3>
@@ -2214,35 +2214,35 @@ export default function Admin() {
                       value={metric.labelEn}
                       onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, labelEn: e.target.value } : m))}
                       placeholder="Label (EN) ex: Total Revenue"
-                      className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <input
                       type="text"
                       value={metric.labelKo}
                       onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, labelKo: e.target.value } : m))}
                       placeholder="Label (KO) ex: 총 매출"
-                      className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <input
                       type="text"
                       value={metric.prefix ?? ''}
                       onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, prefix: e.target.value } : m))}
                       placeholder="Prefix ex: $"
-                      className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <input
                       type="number"
                       value={metric.value}
                       onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, value: Number(e.target.value) } : m))}
                       placeholder="Value ex: 12000"
-                      className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <input
                       type="text"
                       value={metric.suffix ?? ''}
                       onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, suffix: e.target.value } : m))}
                       placeholder="Suffix ex: +"
-                      className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <button
                       onClick={() => {
@@ -2264,7 +2264,7 @@ export default function Admin() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5">
+            <div className="rounded-xl border border-border bg-card p-5">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-charcoal">Revenue vs Expenses</h4>
                 <button onClick={handleSaveRevenue} className="rounded-full bg-charcoal px-3 py-1.5 text-xs font-semibold text-white">Save</button>
@@ -2277,21 +2277,21 @@ export default function Admin() {
                       value={row.month}
                       onChange={(e) => setRevenueDrafts((prev) => prev.map((r, i) => i === index ? { ...r, month: e.target.value } : r))}
                       placeholder="Month ex: Jan"
-                      className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <input
                       type="number"
                       value={row.revenue}
                       onChange={(e) => setRevenueDrafts((prev) => prev.map((r, i) => i === index ? { ...r, revenue: Number(e.target.value) } : r))}
                       placeholder="Revenue ex: 2400"
-                      className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <input
                       type="number"
                       value={row.expenses}
                       onChange={(e) => setRevenueDrafts((prev) => prev.map((r, i) => i === index ? { ...r, expenses: Number(e.target.value) } : r))}
                       placeholder="Expenses ex: 1200"
-                      className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <button
                       onClick={() => {
@@ -2313,7 +2313,7 @@ export default function Admin() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5">
+            <div className="rounded-xl border border-border bg-card p-5">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-charcoal">Donations by Project</h4>
                 <button onClick={handleSaveDonations} className="rounded-full bg-charcoal px-3 py-1.5 text-xs font-semibold text-white">Save</button>
@@ -2326,14 +2326,14 @@ export default function Admin() {
                       value={row.name}
                       onChange={(e) => setDonationDrafts((prev) => prev.map((r, i) => i === index ? { ...r, name: e.target.value } : r))}
                       placeholder="Project ex: EcoBag"
-                      className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <input
                       type="number"
                       value={row.value}
                       onChange={(e) => setDonationDrafts((prev) => prev.map((r, i) => i === index ? { ...r, value: Number(e.target.value) } : r))}
                       placeholder="Donation ex: 320"
-                      className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <button
                       onClick={() => {
@@ -2355,7 +2355,7 @@ export default function Admin() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5">
+            <div className="rounded-xl border border-border bg-card p-5">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-charcoal">Member Growth</h4>
                 <button onClick={handleSaveGrowth} className="rounded-full bg-charcoal px-3 py-1.5 text-xs font-semibold text-white">Save</button>
@@ -2368,14 +2368,14 @@ export default function Admin() {
                       value={row.month}
                       onChange={(e) => setGrowthDrafts((prev) => prev.map((r, i) => i === index ? { ...r, month: e.target.value } : r))}
                       placeholder="Month ex: Sep '24"
-                      className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <input
                       type="number"
                       value={row.members}
                       onChange={(e) => setGrowthDrafts((prev) => prev.map((r, i) => i === index ? { ...r, members: Number(e.target.value) } : r))}
                       placeholder="Members ex: 120"
-                      className="rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                     />
                     <button
                       onClick={() => {
@@ -2402,11 +2402,11 @@ export default function Admin() {
         {/* Design */}
         {tab === 'design' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+            <div className="rounded-xl border border-border bg-card p-6">
               <h3 className="text-lg font-bold text-charcoal">Design Controls</h3>
               <p className="text-sm text-light mt-1">Update fonts and colors without redeploying.</p>
               <div className="mt-6 grid gap-6 lg:grid-cols-2">
-                <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-[hsl(30,25%,98%)] p-5">
+                <div className="rounded-xl border border-border bg-[hsl(30,25%,98%)] p-5">
                   <p className="text-sm font-semibold text-charcoal">Typography</p>
                   <label className="mt-4 block text-xs font-semibold text-mid">Font URL (Google Fonts)</label>
                   <input
@@ -2414,21 +2414,21 @@ export default function Admin() {
                     value={theme.fontUrl}
                     onChange={(e) => updateTheme({ fontUrl: e.target.value })}
                     placeholder="https://fonts.googleapis.com/css2?family=Inter..."
-                    className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                    className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-xs outline-none focus:border-charcoal"
                   />
                   <label className="mt-4 block text-xs font-semibold text-mid">Body Font Family</label>
                   <input
                     type="text"
                     value={theme.fontBody}
                     onChange={(e) => updateTheme({ fontBody: e.target.value })}
-                    className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                    className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-xs outline-none focus:border-charcoal"
                   />
                   <label className="mt-4 block text-xs font-semibold text-mid">Heading Font Family</label>
                   <input
                     type="text"
                     value={theme.fontHeading}
                     onChange={(e) => updateTheme({ fontHeading: e.target.value })}
-                    className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                    className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-xs outline-none focus:border-charcoal"
                   />
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <div>
@@ -2438,7 +2438,7 @@ export default function Admin() {
                         value={theme.baseFontSize}
                         onChange={(e) => updateTheme({ baseFontSize: e.target.value })}
                         placeholder="16px"
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-xs outline-none focus:border-charcoal"
                       />
                     </div>
                     <div>
@@ -2448,13 +2448,13 @@ export default function Admin() {
                         value={theme.radius}
                         onChange={(e) => updateTheme({ radius: e.target.value })}
                         placeholder="0.5rem"
-                        className="mt-1 w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-xs outline-none focus:border-charcoal"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-[hsl(30,25%,98%)] p-5">
+                <div className="rounded-xl border border-border bg-[hsl(30,25%,98%)] p-5">
                   <p className="text-sm font-semibold text-charcoal">Colors</p>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     {themeColorFields.map(({ key, label }) => (
@@ -2465,7 +2465,7 @@ export default function Admin() {
                             type="color"
                             value={getThemeColor(key)}
                             onChange={(e) => updateTheme({ [key]: e.target.value } as Partial<SiteTheme>)}
-                            className="h-9 w-12 rounded-md border border-[hsl(30,12%,87%)] bg-white"
+                            className="h-9 w-12 rounded-md border border-border bg-card"
                           />
                           <input
                             type="text"
@@ -2474,7 +2474,7 @@ export default function Admin() {
                               const normalized = normalizeHex(e.target.value);
                               if (normalized) updateTheme({ [key]: normalized } as Partial<SiteTheme>);
                             }}
-                            className="w-full rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                            className="w-full rounded-lg border border-border px-3 py-2 text-xs outline-none focus:border-charcoal"
                           />
                         </div>
                       </div>
@@ -2506,7 +2506,7 @@ export default function Admin() {
         {/* Copy */}
         {tab === 'copy' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-            <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+            <div className="rounded-xl border border-border bg-card p-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <h3 className="text-lg font-bold text-charcoal">Edit All Text</h3>
@@ -2515,7 +2515,7 @@ export default function Admin() {
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={handleResetCopy}
-                    className="rounded-full border border-[hsl(30,12%,85%)] px-4 py-2 text-xs text-mid hover:text-charcoal hover:border-charcoal"
+                    className="rounded-full border border-border px-4 py-2 text-xs text-mid hover:text-charcoal hover:border-charcoal"
                   >
                     Reset to Defaults
                   </button>
@@ -2534,7 +2534,7 @@ export default function Admin() {
                   value={copySearch}
                   onChange={(e) => setCopySearch(e.target.value)}
                   placeholder="Search by key or text..."
-                  className="w-full rounded-lg border border-[hsl(30,12%,87%)] px-4 py-2 text-sm outline-none focus:border-charcoal"
+                  className="w-full rounded-lg border border-border px-4 py-2 text-sm outline-none focus:border-charcoal"
                 />
                 <span className="text-xs text-light">{filteredCopyDrafts.length} items</span>
               </div>
@@ -2548,14 +2548,14 @@ export default function Admin() {
                       value={row.en}
                       onChange={(e) => setCopyDrafts((prev) => prev.map((item) => item.key === row.key ? { ...item, en: e.target.value } : item))}
                       placeholder="English"
-                      className="w-full min-w-0 rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                      className="w-full min-w-0 rounded-lg border border-border px-3 py-2 text-xs outline-none focus:border-charcoal"
                     />
                     <input
                       type="text"
                       value={row.ko}
                       onChange={(e) => setCopyDrafts((prev) => prev.map((item) => item.key === row.key ? { ...item, ko: e.target.value } : item))}
                       placeholder="Korean"
-                      className="w-full min-w-0 rounded-lg border border-[hsl(30,12%,87%)] px-3 py-2 text-xs outline-none focus:border-charcoal"
+                      className="w-full min-w-0 rounded-lg border border-border px-3 py-2 text-xs outline-none focus:border-charcoal"
                     />
                   </div>
                 ))}
@@ -2578,12 +2578,12 @@ export default function Admin() {
 
         {/* Site Content */}
         {tab === 'content' && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-xl border border-border bg-card p-6">
             <h3 className="text-lg font-bold text-charcoal mb-5">Edit Site Content</h3>
             <div className="space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-charcoal">Hero Background Image</label>
-                <div className="aspect-[16/9] w-full overflow-hidden rounded-lg border border-[hsl(30,12%,90%)] bg-[hsl(30,15%,94%)]">
+                <div className="aspect-[16/9] w-full overflow-hidden rounded-lg border border-border bg-muted">
                   {siteContent.heroBackgroundUrl ? (
                     <img src={siteContent.heroBackgroundUrl} alt="Hero Background" className="size-full object-cover" />
                   ) : (
@@ -2596,7 +2596,7 @@ export default function Admin() {
                   value={siteContent.heroBackgroundUrl}
                   onChange={(e) => updateContent({ heroBackgroundUrl: e.target.value })}
                   placeholder="Paste image URL"
-                  className="mt-2 w-full rounded-lg border border-[hsl(30,12%,87%)] px-4 py-2.5 text-sm outline-none focus:border-charcoal"
+                  className="mt-2 w-full rounded-lg border border-border px-4 py-2.5 text-sm outline-none focus:border-charcoal"
                 />
                 <button
                   type="button"
@@ -2620,7 +2620,7 @@ export default function Admin() {
                     type="text"
                     value={val}
                     onChange={(e) => updateContent({ [key]: e.target.value } as Partial<SiteContent>)}
-                    className="w-full rounded-lg border border-[hsl(30,12%,87%)] px-4 py-2.5 text-sm outline-none focus:border-charcoal"
+                    className="w-full rounded-lg border border-border px-4 py-2.5 text-sm outline-none focus:border-charcoal"
                   />
                 </div>
               ))}
@@ -2646,12 +2646,12 @@ export default function Admin() {
         {tab === 'orders' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
             {normalizedOrders.length === 0 ? (
-              <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-8 text-center">
+              <div className="rounded-xl border border-border bg-card p-8 text-center">
                 <p className="text-base text-light">No orders yet.</p>
               </div>
             ) : (
               normalizedOrders.map((order, i) => (
-                <div key={i} className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5">
+                <div key={i} className="rounded-xl border border-border bg-card p-5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-3">
                     <div>
                       <p className="text-base font-semibold text-charcoal">{order.buyerName}</p>
@@ -2670,7 +2670,7 @@ export default function Admin() {
                       <div className="mt-3 flex justify-end gap-2">
                         <button
                           onClick={() => updateOrderStatus(order.id, order.status === 'completed' ? 'pending' : 'completed')}
-                          className="rounded-full border border-[hsl(30,12%,85%)] px-3 py-1.5 text-xs text-mid hover:text-charcoal hover:border-charcoal transition-colors"
+                          className="rounded-full border border-border px-3 py-1.5 text-xs text-mid hover:text-charcoal hover:border-charcoal transition-colors"
                         >
                           {order.status === 'completed' ? 'Reopen' : 'Mark Completed'}
                         </button>
@@ -2683,7 +2683,7 @@ export default function Admin() {
                       </div>
                     </div>
                   </div>
-                  <div className="border-t border-[hsl(30,12%,92%)] pt-2 space-y-1">
+                  <div className="border-t border-border pt-2 space-y-1">
                     {order.items.map((item: { name: string; qty: number; price: number }, j: number) => (
                       <p key={j} className="text-sm text-mid">{item.name} × {item.qty} — ${(item.price * item.qty).toFixed(2)}</p>
                     ))}
@@ -2698,12 +2698,12 @@ export default function Admin() {
         {tab === 'messages' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
             {messages.length === 0 ? (
-              <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-8 text-center">
+              <div className="rounded-xl border border-border bg-card p-8 text-center">
                 <p className="text-base text-light">No messages yet.</p>
               </div>
             ) : (
               messages.map((message) => (
-                <div key={message.id} className={`rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5 ${message.is_read ? '' : 'shadow-sm'}`}>
+                <div key={message.id} className={`rounded-xl border border-border bg-card p-5 ${message.is_read ? '' : 'shadow-sm'}`}>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <p className="text-base font-semibold text-charcoal">{message.subject}</p>
@@ -2723,13 +2723,13 @@ export default function Admin() {
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => updateMessageFlags(message.id, { is_read: !message.is_read })}
-                          className="rounded-full border border-[hsl(30,12%,85%)] px-3 py-1.5 text-xs text-mid hover:text-charcoal hover:border-charcoal transition-colors"
+                          className="rounded-full border border-border px-3 py-1.5 text-xs text-mid hover:text-charcoal hover:border-charcoal transition-colors"
                         >
                           {message.is_read ? 'Mark Unread' : 'Mark Read'}
                         </button>
                         <button
                           onClick={() => updateMessageFlags(message.id, { is_resolved: !message.is_resolved })}
-                          className="rounded-full border border-[hsl(30,12%,85%)] px-3 py-1.5 text-xs text-mid hover:text-charcoal hover:border-charcoal transition-colors"
+                          className="rounded-full border border-border px-3 py-1.5 text-xs text-mid hover:text-charcoal hover:border-charcoal transition-colors"
                         >
                           {message.is_resolved ? 'Reopen' : 'Mark Completed'}
                         </button>
@@ -2757,7 +2757,7 @@ export default function Admin() {
               { label: 'Messages', value: messages.length, icon: MessageSquare },
               { label: 'Orders', value: orders.length, icon: BarChart3 },
             ].map((item) => (
-              <div key={item.label} className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-5">
+              <div key={item.label} className="rounded-xl border border-border bg-card p-5">
                 <item.icon className="size-5 text-[hsl(24,80%,50%)]" />
                 <p className="mt-3 text-2xl font-bold text-charcoal">{item.value}</p>
                 <p className="mt-1 text-xs text-light">{item.label}</p>

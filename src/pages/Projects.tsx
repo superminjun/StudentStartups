@@ -46,7 +46,7 @@ export default function Projects() {
               <button
                 onClick={() => setActiveStage(0)}
                 className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                  activeStage === 0 ? 'bg-charcoal text-white' : 'bg-white text-mid hover:text-charcoal border border-[hsl(30,12%,90%)]'
+                  activeStage === 0 ? 'bg-charcoal text-white' : 'bg-card text-mid hover:text-charcoal border border-border'
                 }`}
               >
                 {t('projects.allStages')} ({projects.length})
@@ -58,7 +58,7 @@ export default function Projects() {
                     key={stage}
                     onClick={() => setActiveStage(stage)}
                     className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                      activeStage === stage ? 'bg-charcoal text-white' : 'bg-white text-mid hover:text-charcoal border border-[hsl(30,12%,90%)]'
+                      activeStage === stage ? 'bg-charcoal text-white' : 'bg-card text-mid hover:text-charcoal border border-border'
                     }`}
                   >
                     {stageLabels[stage]} ({count})
