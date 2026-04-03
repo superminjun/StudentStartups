@@ -22,7 +22,12 @@ export const parseStorageUrl = (url: string): StorageLocation | null => {
 
 export const resolveStorageUrl = async (url: string, expiresInSeconds = 60 * 60 * 24): Promise<string> => {
   if (!url) return url;
-  if (url.includes('/storage/v1/object/sign/')) return url;
+  if (url.includes('/storage/v1/object/sign/')) {
+    const base = url.split('?')[0];
+    const publicUrl = base.replace('/storage/v1/object/sign/', '/storage/v1/object/public/');
+    cache.set(url, publicUrl);
+    return publicUrl;
+  }
   if (cache.has(url)) return cache.get(url) as string;
   if (!supabase) return url;
 

@@ -44,10 +44,12 @@ function BigCounter({ metric, index }: { metric: ImpactMetricView; index: number
 function Bar3D({ data, emptyLabel }: { data: { name: string; value: number }[]; emptyLabel: string }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
+  const hasData = data.length > 0;
   const hasValues = data.some((d) => d.value > 0);
   const max = Math.max(...data.map((d) => d.value), 1);
+  const minHeight = hasValues ? 0 : 8;
 
-  if (!hasValues) {
+  if (!hasData) {
     return (
       <div ref={ref} className="flex h-48 items-center justify-center text-sm text-light">
         {emptyLabel}
@@ -58,7 +60,7 @@ function Bar3D({ data, emptyLabel }: { data: { name: string; value: number }[]; 
   return (
     <div ref={ref} className="flex items-end justify-between gap-2 h-48">
       {data.map((item, i) => {
-        const height = (item.value / max) * 100;
+        const height = Math.max((item.value / max) * 100, minHeight);
         return (
           <div key={item.name} className="flex flex-1 flex-col items-center gap-2">
             <motion.div
@@ -89,7 +91,7 @@ export default function Impact() {
 
   const fallbackDonations = projects
     .map((project) => ({ name: project.name, value: project.donation }))
-    .filter((row) => row.value > 0);
+    .filter((row) => row.name);
 
   const donationChartData = donationByProject.some((row) => row.value > 0)
     ? donationByProject
