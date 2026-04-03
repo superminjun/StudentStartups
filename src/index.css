@@ -35,6 +35,14 @@
     --hero-grad-to: 28 18% 86%;
     --hero-blob-1: 24 70% 86%;
     --hero-blob-2: 30 16% 84%;
+    --chart-axis: 20 6% 40%;
+    --chart-grid: 30 12% 92%;
+    --chart-line: 20 10% 15%;
+    --chart-area: 20 10% 15%;
+    --chart-expenses: 24 80% 50%;
+    --chart-bar: 20 10% 15%;
+    --chart-bar-alt: 24 80% 50%;
+    --chart-accent: 24 80% 50%;
 
     /* shadcn tokens */
     --background: 30 25% 95%;
@@ -76,9 +84,9 @@
     --color-warm-white: 24 12% 14%;
     --color-charcoal: 30 22% 94%;
     --color-charcoal-bg: 24 10% 20%;
-    --color-dark: 30 18% 88%;
-    --color-mid: 30 14% 78%;
-    --color-light: 30 12% 68%;
+    --color-dark: 30 22% 92%;
+    --color-mid: 30 22% 86%;
+    --color-light: 30 20% 78%;
     --color-accent: 24 80% 62%;
     --color-accent-soft: 24 35% 22%;
     --hero-grad-from: 24 12% 16%;
@@ -86,6 +94,14 @@
     --hero-grad-to: 24 10% 9%;
     --hero-blob-1: 24 65% 32%;
     --hero-blob-2: 30 20% 22%;
+    --chart-axis: 30 16% 80%;
+    --chart-grid: 24 10% 24%;
+    --chart-line: 30 22% 92%;
+    --chart-area: 30 22% 92%;
+    --chart-expenses: 24 80% 62%;
+    --chart-bar: 30 22% 92%;
+    --chart-bar-alt: 24 80% 62%;
+    --chart-accent: 24 80% 62%;
 
     --background: 24 10% 9%;
     --foreground: 30 22% 94%;
@@ -98,7 +114,7 @@
     --secondary: 24 10% 18%;
     --secondary-foreground: 30 22% 94%;
     --muted: 24 10% 18%;
-    --muted-foreground: 30 14% 78%;
+    --muted-foreground: 30 20% 78%;
     --accent: 24 80% 62%;
     --accent-foreground: 24 10% 9%;
     --destructive: 0 72% 51%;
