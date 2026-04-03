@@ -96,15 +96,16 @@ const resolveMode = (mode?: ColorMode): ColorMode => mode ?? getSystemColorMode(
 
 const deriveDarkTheme = (theme: SiteTheme): SiteTheme => ({
   ...theme,
-  colorBeige: '#12110f',
-  colorBeigeDark: '#1c1916',
-  colorWarmWhite: '#1f1b19',
-  colorCharcoal: '#f6f1ed',
-  colorDark: '#e4ddd6',
-  colorMid: '#b9b0a9',
-  colorLight: '#8f8680',
-  colorAccent: '#f2a466',
-  colorAccentSoft: '#2a211c',
+  // Warm charcoal base with a soft, editorial feel
+  colorBeige: '#1a1715',       // page background
+  colorBeigeDark: '#25211f',   // muted background
+  colorWarmWhite: '#2a2522',   // card/surface (requested tone)
+  colorCharcoal: '#f6f1ed',    // primary text
+  colorDark: '#e1d8d1',        // strong text
+  colorMid: '#b8aea6',         // secondary text
+  colorLight: '#8d847d',       // tertiary text
+  colorAccent: '#e9a46a',      // warm highlight
+  colorAccentSoft: '#3a2f29',  // accent surface
 });
 
 const applyThemeToDocument = (theme: SiteTheme, mode?: ColorMode) => {
