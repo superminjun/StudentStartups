@@ -116,26 +116,26 @@
   .bg-beige-dark { background-color: hsl(24 10% 12%) !important; }
   .bg-warm-white { background-color: hsl(24 12% 14%) !important; }
 
-  .bg-\[hsl\(30\,15\%\,94\%\)\] { background-color: hsl(24 12% 16%) !important; }
-  .bg-\[hsl\(30\,15\%\,96\%\)\] { background-color: hsl(24 12% 18%) !important; }
-  .bg-\[hsl\(30\,25\%\,98\%\)\] { background-color: hsl(24 12% 16%) !important; }
-  .bg-\[hsl\(30\,30\%\,98\%\)\] { background-color: hsl(24 12% 16%) !important; }
-  .bg-\[hsl\(30\,15\%\,92\%\)\] { background-color: hsl(24 10% 18%) !important; }
-  .bg-\[hsl\(30\,20\%\,96\%\)\] { background-color: hsl(24 10% 16%) !important; }
-  .bg-\[hsl\(24\,80\%\,95\%\)\] { background-color: hsl(24 35% 20%) !important; }
-  .bg-\[hsl\(24\,80\%\,90\%\)\] { background-color: hsl(24 35% 25%) !important; }
-  .bg-\[hsl\(30\,18\%\,88\%\)\] { background-color: hsl(24 10% 20%) !important; }
+  .bg-\\[hsl\\(30\\,15\\%\\,94\\%\\)\\] { background-color: hsl(24 12% 16%) !important; }
+  .bg-\\[hsl\\(30\\,15\\%\\,96\\%\\)\\] { background-color: hsl(24 12% 18%) !important; }
+  .bg-\\[hsl\\(30\\,25\\%\\,98\\%\\)\\] { background-color: hsl(24 12% 16%) !important; }
+  .bg-\\[hsl\\(30\\,30\\%\\,98\\%\\)\\] { background-color: hsl(24 12% 16%) !important; }
+  .bg-\\[hsl\\(30\\,15\\%\\,92\\%\\)\\] { background-color: hsl(24 10% 18%) !important; }
+  .bg-\\[hsl\\(30\\,20\\%\\,96\\%\\)\\] { background-color: hsl(24 10% 16%) !important; }
+  .bg-\\[hsl\\(24\\,80\\%\\,95\\%\\)\\] { background-color: hsl(24 35% 20%) !important; }
+  .bg-\\[hsl\\(24\\,80\\%\\,90\\%\\)\\] { background-color: hsl(24 35% 25%) !important; }
+  .bg-\\[hsl\\(30\\,18\\%\\,88\\%\\)\\] { background-color: hsl(24 10% 20%) !important; }
 
-  .bg-white\/90 { background-color: hsl(24 12% 16% / 0.9) !important; }
-  .bg-white\/98 { background-color: hsl(24 12% 16% / 0.98) !important; }
-  .bg-white\/80 { background-color: hsl(24 12% 16% / 0.8) !important; }
-  .bg-white\/50 { background-color: hsl(24 12% 16% / 0.5) !important; }
+  .bg-white\\/90 { background-color: hsl(24 12% 16% / 0.9) !important; }
+  .bg-white\\/98 { background-color: hsl(24 12% 16% / 0.98) !important; }
+  .bg-white\\/80 { background-color: hsl(24 12% 16% / 0.8) !important; }
+  .bg-white\\/50 { background-color: hsl(24 12% 16% / 0.5) !important; }
 
-  .border-\[hsl\(30\,12\%\,90\%\)\] { border-color: hsl(24 10% 20%) !important; }
-  .border-\[hsl\(30\,12\%\,87\%\)\] { border-color: hsl(24 10% 20%) !important; }
-  .border-\[hsl\(30\,12\%\,92\%\)\] { border-color: hsl(24 10% 22%) !important; }
-  .border-\[hsl\(24\,80\%\,80\%\)\] { border-color: hsl(24 35% 35%) !important; }
-  .text-\[hsl\(24\,60\%\,30\%\)\] { color: hsl(24 60% 75%) !important; }
+  .border-\\[hsl\\(30\\,12\\%\\,90\\%\\)\\] { border-color: hsl(24 10% 20%) !important; }
+  .border-\\[hsl\\(30\\,12\\%\\,87\\%\\)\\] { border-color: hsl(24 10% 20%) !important; }
+  .border-\\[hsl\\(30\\,12\\%\\,92\\%\\)\\] { border-color: hsl(24 10% 22%) !important; }
+  .border-\\[hsl\\(24\\,80\\%\\,80\\%\\)\\] { border-color: hsl(24 35% 35%) !important; }
+  .text-\\[hsl\\(24\\,60\\%\\,30\\%\\)\\] { color: hsl(24 60% 75%) !important; }
 }
 
 @layer base {
