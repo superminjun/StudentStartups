@@ -23,12 +23,12 @@
     --color-beige: 24 60% 95%;      /* #faf1eb */
     --color-warm-white: 24 60% 95%; /* #faf1eb */
     --color-beige-dark: 24 60% 95%; /* #faf1eb */
-    --color-charcoal: 23 11% 15%;   /* #2a2522 */
-    --color-charcoal-bg: 20 10% 15%;
-    --color-dark: 23 11% 15%;
-    --color-mid: 23 11% 15%;
-    --color-light: 23 11% 15%;
-    --color-accent: 24 80% 50%;
+    --color-charcoal: 24 60% 95%;   /* #faf1eb */
+    --color-charcoal-bg: 24 60% 95%;
+    --color-dark: 24 60% 95%;
+    --color-mid: 24 60% 95%;
+    --color-light: 24 60% 95%;
+    --color-accent: 24 60% 95%;
     --color-accent-soft: 24 60% 95%;
     --hero-grad-from: 24 60% 95%;
     --hero-grad-via: 24 60% 95%;
@@ -46,19 +46,19 @@
 
     /* shadcn tokens */
     --background: 24 60% 95%;
-    --foreground: 23 11% 15%;
+    --foreground: 24 60% 95%;
     --card: 24 60% 95%;
-    --card-foreground: 23 11% 15%;
+    --card-foreground: 24 60% 95%;
     --popover: 24 60% 95%;
-    --popover-foreground: 23 11% 15%;
-    --primary: 23 11% 15%;
+    --popover-foreground: 24 60% 95%;
+    --primary: 24 60% 95%;
     --primary-foreground: 24 60% 95%;
     --secondary: 24 60% 95%;
-    --secondary-foreground: 23 11% 15%;
+    --secondary-foreground: 24 60% 95%;
     --muted: 24 60% 95%;
-    --muted-foreground: 23 11% 15%;
-    --accent: 24 80% 50%;
-    --accent-foreground: 0 0% 100%;
+    --muted-foreground: 24 60% 95%;
+    --accent: 24 60% 95%;
+    --accent-foreground: 24 60% 95%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     --border: 30 12% 87%;

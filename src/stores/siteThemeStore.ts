@@ -12,10 +12,11 @@ const BRAND_PALETTE = {
   colorBeige: '#faf1eb',
   colorWarmWhite: '#faf1eb',
   colorBeigeDark: '#faf1eb',
-  colorCharcoal: '#2a2522',
-  colorDark: '#2a2522',
-  colorMid: '#2a2522',
-  colorLight: '#2a2522',
+  colorCharcoal: '#faf1eb',
+  colorDark: '#faf1eb',
+  colorMid: '#faf1eb',
+  colorLight: '#faf1eb',
+  colorAccent: '#faf1eb',
   colorAccentSoft: '#faf1eb',
 };
 
@@ -32,7 +33,7 @@ const defaultTheme = {
   colorDark: BRAND_PALETTE.colorDark,
   colorMid: BRAND_PALETTE.colorMid,
   colorLight: BRAND_PALETTE.colorLight,
-  colorAccent: '#e66b19',
+  colorAccent: BRAND_PALETTE.colorAccent,
   colorAccentSoft: BRAND_PALETTE.colorAccentSoft,
 };
 
