@@ -6,14 +6,19 @@ import { AuthProvider } from '@/components/auth/AuthProvider';
 import App from './App';
 import './index.css';
 
+const BUILD_ID = '2026-04-03-02';
+
 const clearStaleCaches = () => {
   if (typeof window === 'undefined') return;
   try {
+    const prev = window.localStorage.getItem('bnss-build-id');
+    if (prev === BUILD_ID) return;
     Object.keys(window.localStorage).forEach((key) => {
       if (key.startsWith('bnss-')) {
         window.localStorage.removeItem(key);
       }
     });
+    window.localStorage.setItem('bnss-build-id', BUILD_ID);
   } catch {
     // ignore storage errors
   }
