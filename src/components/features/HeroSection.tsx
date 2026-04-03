@@ -12,12 +12,14 @@ export default function HeroSection() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
   const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '25%']);
   const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+  const defaultHeroUrl = 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1400&h=900&fit=crop';
   const heroBackgroundUrl = content.heroBackgroundUrl?.trim();
+  const hasHeroImage = Boolean(heroBackgroundUrl && heroBackgroundUrl !== defaultHeroUrl);
 
   return (
     <section ref={ref} className="relative h-screen min-h-[640px] overflow-hidden">
       <motion.div className="absolute inset-0" style={{ y: bgY }}>
-        {heroBackgroundUrl ? (
+        {hasHeroImage ? (
           <div className="relative size-full">
             <img src={heroBackgroundUrl} alt="" loading="eager" decoding="async" className="size-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-br from-[hsl(30,30%,98%)] via-[hsl(30,25%,95%)] to-[hsl(28,20%,90%)] opacity-80" />

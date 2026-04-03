@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ShoppingBag, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -32,12 +32,12 @@ export default function ProductCard({ product }: { product: Product }) {
       quickStartRef.current = window.setTimeout(() => {
         setActiveImage((prev) => (prev + 1) % images.length);
         quickStartRef.current = null;
-      }, 350);
+      }, 200);
     }
     intervalRef.current = window.setInterval(() => {
       if (Date.now() < pauseUntilRef.current) return;
       setActiveImage((prev) => (prev + 1) % images.length);
-    }, 2400);
+    }, 2000);
   };
 
   const stopHoverCycle = () => {
@@ -97,20 +97,21 @@ export default function ProductCard({ product }: { product: Product }) {
         onMouseLeave={stopHoverCycle}
       >
         <div className="relative aspect-square overflow-hidden bg-[hsl(30,15%,94%)]">
-          <AnimatePresence mode="wait">
-            <motion.img
-              key={images[activeImage] ?? product.image}
-              src={images[activeImage] ?? product.image}
-              alt={product.name}
-              loading="lazy"
-              decoding="async"
-              initial={{ x: 64, opacity: 1 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -64, opacity: 1 }}
-              transition={{ duration: 0.45, ease: 'easeOut' }}
-              className="size-full object-cover"
-            />
-          </AnimatePresence>
+          <div
+            className="flex h-full w-full transition-transform duration-500 ease-out"
+            style={{ transform: `translateX(-${activeImage * 100}%)` }}
+          >
+            {images.map((img) => (
+              <img
+                key={img}
+                src={img}
+                alt={product.name}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full flex-shrink-0 object-cover"
+              />
+            ))}
+          </div>
           {statusLabel && (
             <span className="absolute left-3 top-3 rounded-full bg-charcoal px-2.5 py-1 text-[10px] font-semibold text-white">
               {statusLabel}

@@ -41,10 +41,19 @@ function BigCounter({ metric, index }: { metric: ImpactMetricView; index: number
   );
 }
 
-function Bar3D({ data }: { data: { name: string; value: number }[] }) {
+function Bar3D({ data, emptyLabel }: { data: { name: string; value: number }[]; emptyLabel: string }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
-  const max = Math.max(...data.map((d) => d.value));
+  const hasValues = data.some((d) => d.value > 0);
+  const max = Math.max(...data.map((d) => d.value), 1);
+
+  if (!hasValues) {
+    return (
+      <div ref={ref} className="flex h-48 items-center justify-center text-sm text-light">
+        {emptyLabel}
+      </div>
+    );
+  }
 
   return (
     <div ref={ref} className="flex items-end justify-between gap-2 h-48">
@@ -158,7 +167,7 @@ export default function Impact() {
               <div className="rounded-xl border border-[hsl(30,12%,90%)] bg-white p-6">
                 <h3 className="text-lg font-semibold text-charcoal">{t('impact.donationTitle')}</h3>
                 <div className="mt-5">
-                  <Bar3D data={donationByProject} />
+                  <Bar3D data={donationChartData} emptyLabel={t('impact.noDonations')} />
                 </div>
               </div>
             </ScrollReveal>
@@ -208,3 +217,10 @@ export default function Impact() {
     </div>
   );
 }
+  const fallbackDonations = projects
+    .map((project) => ({ name: project.name, value: project.donation }))
+    .filter((row) => row.value > 0);
+
+  const donationChartData = donationByProject.some((row) => row.value > 0)
+    ? donationByProject
+    : fallbackDonations;
