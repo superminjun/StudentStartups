@@ -79,18 +79,18 @@
 }
 
 @layer utilities {
-  .text-charcoal { color: hsl(20 10% 15%); }
-  .text-dark { color: hsl(20 8% 22%); }
-  .text-mid { color: hsl(20 5% 45%); }
-  .text-light { color: hsl(20 5% 62%); }
-  .text-accent { color: hsl(24 80% 50%); }
-  .bg-beige { background-color: hsl(30 25% 95%); }
-  .bg-beige-dark { background-color: hsl(30 15% 90%); }
-  .bg-warm-white { background-color: hsl(30 30% 98%); }
-  .bg-charcoal { background-color: hsl(20 10% 15%); }
-  .bg-accent { background-color: hsl(24 80% 50%); }
-  .bg-accent-soft { background-color: hsl(24 60% 95%); }
-  .border-accent { border-color: hsl(24 80% 50%); }
+  .text-charcoal { color: hsl(var(--color-charcoal)); }
+  .text-dark { color: hsl(var(--color-dark)); }
+  .text-mid { color: hsl(var(--color-mid)); }
+  .text-light { color: hsl(var(--color-light)); }
+  .text-accent { color: hsl(var(--color-accent)); }
+  .bg-beige { background-color: hsl(var(--color-beige)); }
+  .bg-beige-dark { background-color: hsl(var(--color-beige-dark)); }
+  .bg-warm-white { background-color: hsl(var(--color-warm-white)); }
+  .bg-charcoal { background-color: hsl(var(--color-charcoal)); }
+  .bg-accent { background-color: hsl(var(--color-accent)); }
+  .bg-accent-soft { background-color: hsl(var(--color-accent-soft)); }
+  .border-accent { border-color: hsl(var(--color-accent)); }
 
   .scrollbar-thin::-webkit-scrollbar { width: 6px; }
   .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
