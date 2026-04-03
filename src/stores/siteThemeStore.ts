@@ -26,6 +26,7 @@ const defaultTheme = {
 };
 
 export type SiteTheme = typeof defaultTheme;
+type ColorMode = 'light' | 'dark';
 
 type SiteThemeRow = {
   id: string;
@@ -84,21 +85,47 @@ const mapThemeToRow = (theme: SiteTheme): SiteThemeRow => ({
 
 const normalizeThemeColor = (value: string, fallback: string) => normalizeHex(value) ?? fallback;
 
-const applyThemeToDocument = (theme: SiteTheme) => {
+const getSystemColorMode = (): ColorMode => {
+  if (typeof window === 'undefined' || !window.matchMedia) return 'light';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+};
+
+let preferredMode: ColorMode = getSystemColorMode();
+
+const deriveDarkTheme = (theme: SiteTheme): SiteTheme => ({
+  ...theme,
+  colorBeige: '#12110f',
+  colorBeigeDark: '#1c1916',
+  colorWarmWhite: '#1f1b19',
+  colorCharcoal: '#f6f1ed',
+  colorDark: '#e4ddd6',
+  colorMid: '#b9b0a9',
+  colorLight: '#8f8680',
+  colorAccent: '#f2a466',
+  colorAccentSoft: '#2a211c',
+});
+
+const applyThemeToDocument = (theme: SiteTheme, mode: ColorMode = preferredMode) => {
   if (typeof document === 'undefined') return;
 
   const root = document.documentElement;
+  preferredMode = mode;
+  root.classList.toggle('dark', mode === 'dark');
+  root.style.colorScheme = mode;
   const setVar = (name: string, value: string) => root.style.setProperty(name, value);
 
-  const beige = normalizeThemeColor(theme.colorBeige, defaultTheme.colorBeige);
-  const beigeDark = normalizeThemeColor(theme.colorBeigeDark, defaultTheme.colorBeigeDark);
-  const warmWhite = normalizeThemeColor(theme.colorWarmWhite, defaultTheme.colorWarmWhite);
-  const charcoal = normalizeThemeColor(theme.colorCharcoal, defaultTheme.colorCharcoal);
-  const dark = normalizeThemeColor(theme.colorDark, defaultTheme.colorDark);
-  const mid = normalizeThemeColor(theme.colorMid, defaultTheme.colorMid);
-  const light = normalizeThemeColor(theme.colorLight, defaultTheme.colorLight);
-  const accent = normalizeThemeColor(theme.colorAccent, defaultTheme.colorAccent);
-  const accentSoft = normalizeThemeColor(theme.colorAccentSoft, defaultTheme.colorAccentSoft);
+  const fallbackTheme = mode === 'dark' ? deriveDarkTheme(defaultTheme) : defaultTheme;
+  const palette = mode === 'dark' ? deriveDarkTheme(theme) : theme;
+
+  const beige = normalizeThemeColor(palette.colorBeige, fallbackTheme.colorBeige);
+  const beigeDark = normalizeThemeColor(palette.colorBeigeDark, fallbackTheme.colorBeigeDark);
+  const warmWhite = normalizeThemeColor(palette.colorWarmWhite, fallbackTheme.colorWarmWhite);
+  const charcoal = normalizeThemeColor(palette.colorCharcoal, fallbackTheme.colorCharcoal);
+  const dark = normalizeThemeColor(palette.colorDark, fallbackTheme.colorDark);
+  const mid = normalizeThemeColor(palette.colorMid, fallbackTheme.colorMid);
+  const light = normalizeThemeColor(palette.colorLight, fallbackTheme.colorLight);
+  const accent = normalizeThemeColor(palette.colorAccent, fallbackTheme.colorAccent);
+  const accentSoft = normalizeThemeColor(palette.colorAccentSoft, fallbackTheme.colorAccentSoft);
 
   setVar('--font-body', theme.fontBody || defaultTheme.fontBody);
   setVar('--font-heading', theme.fontHeading || theme.fontBody || defaultTheme.fontHeading);
@@ -135,13 +162,18 @@ const applyThemeToDocument = (theme: SiteTheme) => {
   setVar('--input', hexToHsl(beigeDark));
   setVar('--ring', hexToHsl(accent));
 
-  setVar('--sidebar-background', hexToHsl(charcoal));
-  setVar('--sidebar-foreground', hexToHsl(beige));
+  const sidebarBackground = mode === 'dark' ? beige : charcoal;
+  const sidebarForeground = mode === 'dark' ? charcoal : beige;
+  const sidebarAccent = mode === 'dark' ? beigeDark : dark;
+  const sidebarBorder = mode === 'dark' ? beigeDark : dark;
+
+  setVar('--sidebar-background', hexToHsl(sidebarBackground));
+  setVar('--sidebar-foreground', hexToHsl(sidebarForeground));
   setVar('--sidebar-primary', hexToHsl(accent));
   setVar('--sidebar-primary-foreground', '0 0% 100%');
-  setVar('--sidebar-accent', hexToHsl(dark));
-  setVar('--sidebar-accent-foreground', hexToHsl(beige));
-  setVar('--sidebar-border', hexToHsl(dark));
+  setVar('--sidebar-accent', hexToHsl(sidebarAccent));
+  setVar('--sidebar-accent-foreground', hexToHsl(sidebarForeground));
+  setVar('--sidebar-border', hexToHsl(sidebarBorder));
   setVar('--sidebar-ring', hexToHsl(accent));
 
   root.style.fontSize = theme.baseFontSize || defaultTheme.baseFontSize;
@@ -285,4 +317,25 @@ export function useSiteThemeSync() {
       if (channel) supabase.removeChannel(channel);
     };
   }, [hydrate]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return () => {};
+
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      const nextMode: ColorMode = media.matches ? 'dark' : 'light';
+      const currentTheme = useSiteThemeStore.getState().theme;
+      applyThemeToDocument(currentTheme, nextMode);
+    };
+
+    handleChange();
+
+    if (typeof media.addEventListener === 'function') {
+      media.addEventListener('change', handleChange);
+      return () => media.removeEventListener('change', handleChange);
+    }
+
+    media.addListener(handleChange);
+    return () => media.removeListener(handleChange);
+  }, []);
 }
