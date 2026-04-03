@@ -22,13 +22,31 @@ export default function HeroSection() {
         {hasHeroImage ? (
           <div className="relative size-full">
             <img src={heroBackgroundUrl} alt="" loading="eager" decoding="async" className="size-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(30,30%,98%)] via-[hsl(30,25%,95%)] to-[hsl(28,20%,90%)] opacity-80" />
+            <div
+              className="absolute inset-0 opacity-80"
+              style={{
+                background:
+                  'linear-gradient(to bottom right, hsl(var(--hero-grad-from)), hsl(var(--hero-grad-via)), hsl(var(--hero-grad-to)))',
+              }}
+            />
           </div>
         ) : (
-          <div className="size-full bg-gradient-to-br from-[hsl(30,30%,98%)] via-[hsl(30,25%,95%)] to-[hsl(28,20%,90%)]" />
+          <div
+            className="size-full"
+            style={{
+              background:
+                'linear-gradient(to bottom right, hsl(var(--hero-grad-from)), hsl(var(--hero-grad-via)), hsl(var(--hero-grad-to)))',
+            }}
+          />
         )}
-        <div className="pointer-events-none absolute -top-24 right-[-10%] h-80 w-80 rounded-full bg-[hsl(24,80%,90%)] blur-3xl opacity-45" />
-        <div className="pointer-events-none absolute bottom-[-20%] left-[-8%] h-72 w-72 rounded-full bg-[hsl(30,18%,88%)] blur-3xl opacity-60" />
+        <div
+          className="pointer-events-none absolute -top-24 right-[-10%] h-80 w-80 rounded-full blur-3xl opacity-45"
+          style={{ background: 'hsl(var(--hero-blob-1))' }}
+        />
+        <div
+          className="pointer-events-none absolute bottom-[-20%] left-[-8%] h-72 w-72 rounded-full blur-3xl opacity-60"
+          style={{ background: 'hsl(var(--hero-blob-2))' }}
+        />
       </motion.div>
 
       <motion.div className="relative z-10 flex h-full flex-col items-start justify-center px-6" style={{ opacity }}>
