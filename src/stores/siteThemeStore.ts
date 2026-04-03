@@ -92,6 +92,8 @@ const getSystemColorMode = (): ColorMode => {
 
 let preferredMode: ColorMode = getSystemColorMode();
 
+const resolveMode = (mode?: ColorMode): ColorMode => mode ?? getSystemColorMode();
+
 const deriveDarkTheme = (theme: SiteTheme): SiteTheme => ({
   ...theme,
   colorBeige: '#12110f',
@@ -105,17 +107,18 @@ const deriveDarkTheme = (theme: SiteTheme): SiteTheme => ({
   colorAccentSoft: '#2a211c',
 });
 
-const applyThemeToDocument = (theme: SiteTheme, mode: ColorMode = preferredMode) => {
+const applyThemeToDocument = (theme: SiteTheme, mode?: ColorMode) => {
   if (typeof document === 'undefined') return;
 
   const root = document.documentElement;
-  preferredMode = mode;
-  root.classList.toggle('dark', mode === 'dark');
-  root.style.colorScheme = mode;
+  const resolvedMode = resolveMode(mode);
+  preferredMode = resolvedMode;
+  root.classList.toggle('dark', resolvedMode === 'dark');
+  root.style.colorScheme = resolvedMode;
   const setVar = (name: string, value: string) => root.style.setProperty(name, value);
 
-  const fallbackTheme = mode === 'dark' ? deriveDarkTheme(defaultTheme) : defaultTheme;
-  const palette = mode === 'dark' ? deriveDarkTheme(theme) : theme;
+  const fallbackTheme = resolvedMode === 'dark' ? deriveDarkTheme(defaultTheme) : defaultTheme;
+  const palette = resolvedMode === 'dark' ? deriveDarkTheme(theme) : theme;
 
   const beige = normalizeThemeColor(palette.colorBeige, fallbackTheme.colorBeige);
   const beigeDark = normalizeThemeColor(palette.colorBeigeDark, fallbackTheme.colorBeigeDark);
@@ -162,10 +165,10 @@ const applyThemeToDocument = (theme: SiteTheme, mode: ColorMode = preferredMode)
   setVar('--input', hexToHsl(beigeDark));
   setVar('--ring', hexToHsl(accent));
 
-  const sidebarBackground = mode === 'dark' ? beige : charcoal;
-  const sidebarForeground = mode === 'dark' ? charcoal : beige;
-  const sidebarAccent = mode === 'dark' ? beigeDark : dark;
-  const sidebarBorder = mode === 'dark' ? beigeDark : dark;
+  const sidebarBackground = resolvedMode === 'dark' ? beige : charcoal;
+  const sidebarForeground = resolvedMode === 'dark' ? charcoal : beige;
+  const sidebarAccent = resolvedMode === 'dark' ? beigeDark : dark;
+  const sidebarBorder = resolvedMode === 'dark' ? beigeDark : dark;
 
   setVar('--sidebar-background', hexToHsl(sidebarBackground));
   setVar('--sidebar-foreground', hexToHsl(sidebarForeground));
