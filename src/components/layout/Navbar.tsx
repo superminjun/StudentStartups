@@ -43,24 +43,44 @@ export default function Navbar() {
 
   useEffect(() => {
     if (location.pathname !== '/') return;
-    const sections = homeSections
-      .map((section) => document.getElementById(section.id))
-      .filter(Boolean) as HTMLElement[];
-    if (!sections.length) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        });
-      },
-      { rootMargin: '-40% 0px -45% 0px', threshold: 0.2 }
-    );
+    const getSections = () =>
+      homeSections
+        .map((section) => document.getElementById(section.id))
+        .filter(Boolean) as HTMLElement[];
 
-    sections.forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
+    let sections = getSections();
+    let rafId: number | null = null;
+
+    const updateActive = () => {
+      if (!sections.length) sections = getSections();
+      if (!sections.length) return;
+
+      const offset = 120;
+      let currentId = sections[0].id;
+      for (const section of sections) {
+        const rect = section.getBoundingClientRect();
+        if (rect.top - offset <= 0) {
+          currentId = section.id;
+        }
+      }
+      setActiveSection(currentId);
+    };
+
+    const onScroll = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(updateActive);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    updateActive();
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
   }, [location.pathname]);
 
   const authTarget = isAdmin ? '/admin' : user ? '/portal' : '/login';
