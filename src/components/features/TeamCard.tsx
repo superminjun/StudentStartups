@@ -27,15 +27,15 @@ export default function TeamCard({ team, index }: { team: TeamCardInfo; index: n
       viewport={{ once: true, margin: '-40px' }}
       transition={{ delay: index * 0.08, duration: 0.5 }}
       whileHover={{ y: -4 }}
-      className="group rounded-xl border border-border bg-card p-6 transition-shadow hover:shadow-lg"
+      className="group card card-hover p-6"
     >
       <div className={`inline-flex size-12 items-center justify-center rounded-xl bg-gradient-to-br ${team.color} text-white`}>
         <Icon className="size-6" />
       </div>
-      <h3 className="mt-4 text-base font-semibold text-charcoal">
+      <h3 className="mt-4 text-base font-semibold text-foreground">
         {t(team.nameKey)}
       </h3>
-      <p className="mt-2 text-sm leading-relaxed text-mid">
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
         {t(team.descKey)}
       </p>
     </motion.div>

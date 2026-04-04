@@ -206,12 +206,12 @@ export default function Login() {
 
   return (
     <div>
-      <section className="bg-charcoal pb-16 pt-28 lg:pb-20">
+      <section className="section bg-charcoal pt-28 lg:pt-32">
         <div className="mx-auto max-w-6xl px-6">
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold tracking-tight text-white sm:text-4xl"
+            className="text-3xl font-semibold tracking-tight text-white sm:text-4xl"
           >
             {t('login.title')}
           </motion.h1>
@@ -241,12 +241,12 @@ export default function Login() {
                 className="rounded-2xl border border-border bg-card p-6"
               >
                 <div className="flex items-start gap-4">
-                  <div className="flex size-11 items-center justify-center rounded-xl bg-muted text-charcoal">
+                  <div className="flex size-11 items-center justify-center rounded-xl bg-muted text-foreground">
                     <item.icon className="size-5" />
                   </div>
                   <div>
-                    <p className="text-base font-semibold text-charcoal">{item.title}</p>
-                    <p className="mt-1 text-sm text-mid leading-relaxed">{item.description}</p>
+                    <p className="text-base font-semibold text-foreground">{item.title}</p>
+                    <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{item.description}</p>
                   </div>
                 </div>
               </motion.div>
@@ -266,12 +266,12 @@ export default function Login() {
             )}
             <div className="mb-6">
               <div className="flex items-center gap-2">
-                <div className="flex size-10 items-center justify-center rounded-full bg-muted text-charcoal">
+                <div className="flex size-10 items-center justify-center rounded-full bg-muted text-foreground">
                   <LogIn className="size-4" />
                 </div>
                 <div>
-                  <p className="text-sm text-light">{t('login.signInAs')}</p>
-                  <p className="text-lg font-semibold text-charcoal">{modeLabel}</p>
+                  <p className="text-sm text-muted-foreground">{t('login.signInAs')}</p>
+                  <p className="text-lg font-semibold text-foreground">{modeLabel}</p>
                 </div>
               </div>
               <div className="mt-5 flex rounded-full border border-border bg-card p-1">
@@ -288,7 +288,7 @@ export default function Login() {
                     }}
                     className={cn(
                       'flex-1 rounded-full px-4 py-2 text-xs font-semibold transition-all',
-                      mode === value ? 'bg-charcoal text-white' : 'text-mid hover:text-charcoal'
+                      mode === value ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'
                     )}
                   >
                     {value === 'member' ? t('login.memberTab') : t('login.adminTab')}
@@ -300,18 +300,18 @@ export default function Login() {
             <div className="space-y-4">
               {mode === 'member' && memberMode === 'signup' && !showSignupVerify && (
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-charcoal">{t('login.name')}</label>
+                  <label className="mb-1 block text-sm font-medium text-foreground">{t('login.name')}</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                    className="input-base"
                     placeholder="Your name"
                   />
                 </div>
               )}
               <div>
-                <label className="mb-1 block text-sm font-medium text-charcoal">{t('login.email')}</label>
+                <label className="mb-1 block text-sm font-medium text-foreground">{t('login.email')}</label>
                 <input
                   type="email"
                   value={email}
@@ -320,25 +320,25 @@ export default function Login() {
                     if (signupPending) resetSignupVerification();
                   }}
                   disabled={showSignupVerify}
-                  className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10 disabled:bg-muted disabled:text-mid"
+                  className="input-base disabled:bg-muted disabled:text-muted-foreground"
                   placeholder="you@school.edu"
                 />
               </div>
               {!showSignupVerify && (
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-charcoal">{t('login.password')}</label>
+                  <label className="mb-1 block text-sm font-medium text-foreground">{t('login.password')}</label>
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                    className="input-base"
                     placeholder="••••••••"
                   />
                 </div>
               )}
               {showSignupVerify && (
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-charcoal">{t('login.oneTimeCode')}</label>
+                  <label className="mb-2 block text-sm font-medium text-foreground">{t('login.oneTimeCode')}</label>
                   <InputOTP
                     value={signupCode}
                     onChange={setSignupCode}
@@ -350,18 +350,18 @@ export default function Login() {
                         <InputOTPSlot
                           key={index}
                           index={index}
-                          className="h-11 w-11 rounded-lg border border-border bg-card text-sm text-charcoal"
+                          className="h-11 w-11 rounded-lg border border-border bg-card text-sm text-foreground"
                         />
                       ))}
                     </InputOTPGroup>
                   </InputOTP>
-                  <p className="mt-2 text-xs text-light">{t('login.codeHint')}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">{t('login.codeHint')}</p>
                 </div>
               )}
             </div>
 
             {mode === 'member' && (
-              <div className="mt-4 space-y-2 text-xs text-light">
+              <div className="mt-4 space-y-2 text-xs text-muted-foreground">
                 <div className="flex items-center justify-between">
                   <button
                     type="button"
@@ -371,7 +371,7 @@ export default function Login() {
                       setNotice('');
                       resetSignupVerification();
                     }}
-                    className="text-xs font-semibold text-charcoal hover:text-[hsl(24,80%,50%)]"
+                    className="text-xs font-semibold text-foreground hover:text-[hsl(24,80%,50%)]"
                   >
                     {memberMode === 'signin' ? t('login.signUpTab') : t('login.signInTab')}
                   </button>
@@ -381,7 +381,7 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => navigate('/forgot-password')}
-                    className="w-fit text-xs font-semibold text-charcoal hover:text-[hsl(24,80%,50%)]"
+                    className="w-fit text-xs font-semibold text-foreground hover:text-[hsl(24,80%,50%)]"
                   >
                     {t('login.forgotPassword')}
                   </button>
@@ -392,14 +392,14 @@ export default function Login() {
                       type="button"
                       onClick={handleResendCode}
                       disabled={resendingCode}
-                      className="text-xs font-semibold text-charcoal hover:text-[hsl(24,80%,50%)] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="text-xs font-semibold text-foreground hover:text-[hsl(24,80%,50%)] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {resendingCode ? t('login.sendingCode') : t('login.resendCode')}
                     </button>
                     <button
                       type="button"
                       onClick={resetSignupVerification}
-                      className="text-xs font-semibold text-charcoal hover:text-[hsl(24,80%,50%)]"
+                      className="text-xs font-semibold text-foreground hover:text-[hsl(24,80%,50%)]"
                     >
                       {t('login.changeEmail')}
                     </button>
@@ -409,7 +409,7 @@ export default function Login() {
             )}
 
             {mode === 'admin' && (
-              <p className="mt-4 text-xs text-light">{t('login.adminHint')}</p>
+              <p className="mt-4 text-xs text-muted-foreground">{t('login.adminHint')}</p>
             )}
 
             {notice && <p className="mt-4 text-xs text-[hsl(140,35%,35%)]">{notice}</p>}
@@ -418,7 +418,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-6 w-full rounded-full bg-charcoal py-3 text-sm font-semibold text-white transition-all hover:bg-[hsl(20,8%,28%)] disabled:cursor-not-allowed disabled:opacity-70 active:scale-[0.98]"
+              className="btn btn-primary mt-6 w-full disabled:cursor-not-allowed disabled:opacity-70"
             >
               {submitLabel()}
             </button>

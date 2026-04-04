@@ -17,18 +17,19 @@ export default function HeroSection() {
   const hasHeroImage = Boolean(heroBackgroundUrl && heroBackgroundUrl !== defaultHeroUrl);
 
   return (
-    <section ref={ref} className="relative h-screen min-h-[640px] overflow-hidden">
+    <section ref={ref} id="intro" className="relative h-[92vh] min-h-[640px] overflow-hidden scroll-mt-24">
       <motion.div className="absolute inset-0" style={{ y: bgY }}>
         {hasHeroImage ? (
           <div className="relative size-full">
             <img src={heroBackgroundUrl} alt="" loading="eager" decoding="async" className="size-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--color-warm-white))] via-[hsl(var(--color-beige))] to-[hsl(var(--color-beige-dark))] opacity-80" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--color-warm-white))] via-[hsl(var(--color-beige))] to-[hsl(var(--color-beige-dark))] opacity-85" />
           </div>
         ) : (
           <div className="size-full bg-gradient-to-br from-[hsl(var(--color-warm-white))] via-[hsl(var(--color-beige))] to-[hsl(var(--color-beige-dark))]" />
         )}
-        <div className="pointer-events-none absolute -top-24 right-[-10%] h-80 w-80 rounded-full bg-accent-soft blur-3xl opacity-45" />
-        <div className="pointer-events-none absolute bottom-[-20%] left-[-8%] h-72 w-72 rounded-full bg-beige-dark blur-3xl opacity-60" />
+        <div className="pointer-events-none absolute -top-24 right-[-10%] h-80 w-80 rounded-full bg-accent-soft blur-3xl opacity-45 animate-drift" />
+        <div className="pointer-events-none absolute bottom-[-20%] left-[-8%] h-72 w-72 rounded-full bg-beige-dark blur-3xl opacity-60 animate-drift-slow" />
+        <div className="pointer-events-none absolute left-[20%] top-[30%] h-56 w-56 rounded-full bg-accent/15 blur-3xl opacity-60 animate-drift-slow" />
       </motion.div>
 
       <motion.div className="relative z-10 flex h-full flex-col items-start justify-center px-6" style={{ opacity }}>
@@ -37,7 +38,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="text-sm font-medium tracking-widest text-mid uppercase"
+            className="text-xs font-semibold tracking-[0.3em] text-mid uppercase"
           >
             {content.heroTagline || t('hero.tagline')}
           </motion.p>
@@ -46,7 +47,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-4 max-w-3xl text-4xl font-bold leading-[1.1] tracking-tight text-charcoal sm:text-5xl lg:text-6xl whitespace-pre-line"
+            className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-6xl whitespace-pre-line"
           >
             {content.heroTitle || t('hero.title')}
           </motion.h1>
@@ -55,7 +56,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.6 }}
-            className="mt-6 max-w-xl text-base leading-relaxed text-mid sm:text-lg"
+            className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
           >
             {content.heroSubtitle || t('hero.subtitle')}
           </motion.p>
@@ -64,14 +65,17 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1, duration: 0.5 }}
-            className="mt-10"
+            className="mt-10 flex flex-wrap items-center gap-4"
           >
             <Link
               to="/projects"
-              className="group inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-3 text-sm font-semibold text-white transition-all hover:shadow-lg hover:-translate-y-0.5 hover:bg-[hsl(20,8%,28%)] active:scale-[0.98]"
+              className="btn btn-primary group"
             >
               {content.heroCta || t('hero.cta')}
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link to="/about" className="btn btn-secondary">
+              {t('hero.secondaryCta')}
             </Link>
           </motion.div>
         </div>

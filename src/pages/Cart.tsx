@@ -82,8 +82,8 @@ export default function Cart() {
       <div className="flex min-h-screen items-center justify-center bg-beige pt-16">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
           <CheckCircle className="mx-auto size-12 text-emerald-500" />
-          <h2 className="mt-4 text-2xl font-bold text-charcoal">{t('shop.orderPlaced')}</h2>
-          <Link to="/shop" className="mt-6 inline-flex items-center gap-2 rounded-full bg-charcoal px-6 py-2.5 text-sm font-medium text-white">
+          <h2 className="mt-4 text-2xl font-semibold text-foreground">{t('shop.orderPlaced')}</h2>
+          <Link to="/shop" className="btn btn-primary mt-6">
             {t('shop.continueShopping')}
           </Link>
         </motion.div>
@@ -94,17 +94,17 @@ export default function Cart() {
   return (
     <div className="min-h-screen bg-beige pt-24 pb-16">
       <div className="mx-auto max-w-4xl px-6">
-        <Link to="/shop" className="mb-6 inline-flex items-center gap-1.5 text-sm text-mid hover:text-charcoal transition-colors">
+        <Link to="/shop" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="size-4" />
           Back to Shop
         </Link>
 
-        <h1 className="text-2xl font-bold text-charcoal">{t('shop.cart')}</h1>
+        <h1 className="text-2xl font-semibold text-foreground">{t('shop.cart')}</h1>
 
         {cartProducts.length === 0 ? (
           <div className="mt-12 text-center">
-            <p className="text-base text-light">{t('shop.emptyCart')}</p>
-            <Link to="/shop" className="mt-4 inline-block text-sm font-medium text-charcoal underline">
+            <p className="text-base text-muted-foreground">{t('shop.emptyCart')}</p>
+            <Link to="/shop" className="mt-4 inline-block text-sm font-medium text-foreground underline">
               {t('shop.continueShopping')}
             </Link>
           </div>
@@ -122,21 +122,21 @@ export default function Cart() {
                     className="size-20 rounded-lg object-cover"
                   />
                   <div className="flex-1">
-                    <h3 className="text-sm font-semibold text-charcoal">{product.name}</h3>
-                    <p className="mt-1 text-sm font-medium text-mid tabular-nums">${product.price.toFixed(2)}</p>
+                    <h3 className="text-sm font-semibold text-foreground">{product.name}</h3>
+                    <p className="mt-1 text-sm font-medium text-muted-foreground tabular-nums">${product.price.toFixed(2)}</p>
                     <div className="mt-2 flex items-center gap-2">
-                      <button onClick={() => decreaseQty(product.id)} className="flex size-7 items-center justify-center rounded-full border border-border text-mid hover:bg-muted">
+                      <button onClick={() => decreaseQty(product.id)} className="flex size-7 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted">
                         <Minus className="size-3" />
                       </button>
-                      <span className="w-6 text-center text-sm font-medium tabular-nums">{product.qty}</span>
+                      <span className="w-6 text-center text-sm font-medium tabular-nums text-foreground">{product.qty}</span>
                       <button
                         onClick={() => addItem(product.id)}
                         disabled={product.qty >= product.inventory}
-                        className="flex size-7 items-center justify-center rounded-full border border-border text-mid hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="flex size-7 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <Plus className="size-3" />
                       </button>
-                      <button onClick={() => removeItem(product.id)} className="ml-auto text-light hover:text-red-500 transition-colors">
+                      <button onClick={() => removeItem(product.id)} className="ml-auto text-muted-foreground hover:text-red-500 transition-colors">
                         <Trash2 className="size-4" />
                       </button>
                     </div>
@@ -147,38 +147,38 @@ export default function Cart() {
 
             {/* Checkout */}
             <div className="lg:col-span-2">
-              <div className="rounded-xl border border-border bg-card p-6 sticky top-24">
-                <div className="flex justify-between text-base font-semibold text-charcoal mb-6">
+              <div className="card p-6 sticky top-24">
+                <div className="flex justify-between text-base font-semibold text-foreground mb-6">
                   <span>{t('shop.total')}</span>
                   <span className="tabular-nums">${total.toFixed(2)}</span>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-charcoal">{t('shop.buyerName')}</label>
+                    <label className="mb-1 block text-sm font-medium text-foreground">{t('shop.buyerName')}</label>
                     <input
                       type="text"
                       value={buyerName}
                       onChange={(e) => setBuyerName(e.target.value)}
-                      className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                      className="input-base"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-charcoal">{t('shop.buyerEmail')}</label>
+                    <label className="mb-1 block text-sm font-medium text-foreground">{t('shop.buyerEmail')}</label>
                     <input
                       type="email"
                       value={buyerEmail}
                       onChange={(e) => setBuyerEmail(e.target.value)}
-                      className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                      className="input-base"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-charcoal">{t('shop.deliveryNote')}</label>
+                    <label className="mb-1 block text-sm font-medium text-foreground">{t('shop.deliveryNote')}</label>
                     <textarea
                       rows={2}
                       value={deliveryNote}
                       onChange={(e) => setDeliveryNote(e.target.value)}
-                      className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none resize-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10"
+                      className="input-base resize-none"
                     />
                   </div>
                 </div>
@@ -186,7 +186,7 @@ export default function Cart() {
                 <button
                   onClick={handlePlaceOrder}
                   disabled={!buyerName.trim() || !buyerEmail.trim()}
-                  className="mt-6 w-full rounded-full bg-charcoal py-3 text-sm font-semibold text-white transition-all hover:bg-[hsl(20,8%,28%)] disabled:opacity-40 active:scale-[0.98]"
+                  className="btn btn-primary mt-6 w-full disabled:opacity-40"
                 >
                   {t('shop.placeOrder')}
                 </button>

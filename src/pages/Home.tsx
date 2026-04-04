@@ -8,7 +8,7 @@ import ImpactCounters from '@/components/features/ImpactCounters';
 import ProjectCard from '@/components/features/ProjectCard';
 import ScrollReveal from '@/components/features/ScrollReveal';
 import { useSiteContentStore } from '@/stores/siteContentStore';
-import { FolderOpen, DollarSign, Users, Heart, ArrowRight } from 'lucide-react';
+import { FolderOpen, DollarSign, Users, Heart, ArrowRight, Sparkles, Rocket, ShieldCheck } from 'lucide-react';
 
 export default function Home() {
   const { t } = useLanguage();
@@ -36,47 +36,61 @@ export default function Home() {
     { icon: Heart, key: 'stat4Label', value: formatCurrencyValue(content.totalDonated) },
   ];
 
+  const valueProps = [
+    { icon: Rocket, titleKey: 'valueProp.oneTitle', descKey: 'valueProp.oneDesc' },
+    { icon: ShieldCheck, titleKey: 'valueProp.twoTitle', descKey: 'valueProp.twoDesc' },
+    { icon: Sparkles, titleKey: 'valueProp.threeTitle', descKey: 'valueProp.threeDesc' },
+  ];
+
   return (
     <div>
       <HeroSection />
 
-      {/* Mission */}
-      <section className="bg-beige py-20 lg:py-28">
+      {/* Value */}
+      <section id="value" className="section bg-beige scroll-mt-24">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="grid gap-16 lg:grid-cols-12 lg:gap-12">
-            <div className="lg:col-span-7">
+          <div className="grid gap-14 lg:grid-cols-12 lg:gap-12">
+            <div className="lg:col-span-5">
               <ScrollReveal>
-                <h2 className="text-2xl font-bold tracking-tight text-charcoal sm:text-3xl">
-                  {t('mission.title')}
+                <p className="section-kicker">{t('valueProp.kicker')}</p>
+                <h2 className="section-title mt-3">
+                  {t('valueProp.title')}
                 </h2>
+                <p className="section-lead">{t('valueProp.subtitle')}</p>
               </ScrollReveal>
               <ScrollReveal delay={0.1}>
-                <p className="mt-5 text-base leading-relaxed text-mid">{t('mission.p1')}</p>
-              </ScrollReveal>
-              <ScrollReveal delay={0.2}>
-                <p className="mt-3 text-base leading-relaxed text-mid">{t('mission.p2')}</p>
-              </ScrollReveal>
-              <ScrollReveal delay={0.3}>
-                <Link
-                  to="/about"
-                  className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-charcoal hover:text-[hsl(24,80%,50%)] transition-colors"
-                >
+                <Link to="/about" className="btn btn-secondary mt-6">
                   {t('common.learnMore')} <ArrowRight className="size-4" />
                 </Link>
               </ScrollReveal>
             </div>
 
-            <div className="lg:col-span-5">
-              <div className="grid grid-cols-2 gap-3">
+            <div className="lg:col-span-7">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {valueProps.map((item, i) => (
+                  <ScrollReveal key={item.titleKey} delay={i * 0.08} direction="scale">
+                    <motion.div whileHover={{ y: -4 }} className="card card-hover p-5">
+                      <div className="flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent">
+                        <item.icon className="size-5" />
+                      </div>
+                      <h3 className="mt-4 text-base font-semibold text-foreground">
+                        {t(item.titleKey)}
+                      </h3>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        {t(item.descKey)}
+                      </p>
+                    </motion.div>
+                  </ScrollReveal>
+                ))}
+              </div>
+
+              <div className="mt-6 grid grid-cols-2 gap-3">
                 {stats.map((stat, i) => (
-                  <ScrollReveal key={stat.key} delay={i * 0.08} direction="scale">
-                    <motion.div
-                      whileHover={{ y: -2 }}
-                      className="rounded-xl border border-border bg-card p-5"
-                    >
-                      <stat.icon className="size-5 text-[hsl(24,80%,50%)]" />
-                      <p className="mt-3 text-xl font-bold text-charcoal tabular-nums">{stat.value}</p>
-                      <p className="mt-1 text-xs text-light">{t(`mission.${stat.key}`)}</p>
+                  <ScrollReveal key={stat.key} delay={i * 0.06} direction="scale">
+                    <motion.div whileHover={{ y: -2 }} className="card card-hover p-4">
+                      <stat.icon className="size-4 text-accent" />
+                      <p className="mt-2 text-lg font-semibold text-foreground tabular-nums">{stat.value}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{t(`mission.${stat.key}`)}</p>
                     </motion.div>
                   </ScrollReveal>
                 ))}
@@ -87,19 +101,26 @@ export default function Home() {
       </section>
 
       <WorkflowSteps />
-      <ImpactCounters />
 
-      {/* Featured Projects */}
-      <section className="bg-beige py-20 lg:py-28">
+      {/* Proof */}
+      <section id="proof" className="section bg-beige scroll-mt-24">
         <div className="mx-auto max-w-6xl px-6">
           <ScrollReveal>
-            <h2 className="text-2xl font-bold tracking-tight text-charcoal sm:text-3xl">
-              {t('featured.title')}
-            </h2>
-            <p className="mt-3 text-base text-mid">{t('featured.subtitle')}</p>
+            <p className="section-kicker">{t('proof.kicker')}</p>
+            <h2 className="section-title mt-3">{t('impactPreview.title')}</h2>
+            <p className="section-lead">{t('impactPreview.subtitle')}</p>
           </ScrollReveal>
 
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10">
+            <ImpactCounters />
+          </div>
+
+          <ScrollReveal className="mt-14">
+            <h3 className="text-xl font-semibold text-foreground">{t('featured.title')}</h3>
+            <p className="mt-2 text-sm text-muted-foreground">{t('featured.subtitle')}</p>
+          </ScrollReveal>
+
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {featuredProjects.map((project, i) => (
               <ScrollReveal key={project.id} delay={i * 0.08}>
                 <ProjectCard project={project} />
@@ -108,10 +129,7 @@ export default function Home() {
           </div>
 
           <ScrollReveal className="mt-10">
-            <Link
-              to="/projects"
-              className="inline-flex items-center gap-2 rounded-full border border-charcoal px-6 py-2.5 text-sm font-semibold text-charcoal transition-all hover:bg-charcoal hover:text-white"
-            >
+            <Link to="/projects" className="btn btn-secondary">
               {t('featured.viewAll')} <ArrowRight className="size-4" />
             </Link>
           </ScrollReveal>
@@ -119,10 +137,10 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section className="bg-charcoal py-20 lg:py-28">
+      <section id="cta" className="section bg-charcoal scroll-mt-24">
         <div className="mx-auto max-w-3xl px-6 text-center">
           <ScrollReveal>
-            <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl lg:text-4xl">
+            <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
               {t('cta.title')}
             </h2>
           </ScrollReveal>
@@ -132,7 +150,7 @@ export default function Home() {
           <ScrollReveal delay={0.2}>
             <Link
               to="/contact"
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-card px-6 py-3 text-sm font-semibold text-charcoal transition-all hover:shadow-lg active:scale-[0.98]"
+              className="btn btn-primary mt-8"
             >
               {t('cta.button')}
             </Link>

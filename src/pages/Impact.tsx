@@ -31,12 +31,12 @@ function BigCounter({ metric, index }: { metric: ImpactMetricView; index: number
       viewport={{ once: true }}
       transition={{ delay: index * 0.08, duration: 0.5 }}
       whileHover={{ y: -3 }}
-      className="rounded-xl border border-border bg-card p-6 text-center transition-shadow hover:shadow-md"
+      className="card card-hover p-6 text-center"
     >
-      <p className="text-3xl font-bold text-charcoal tabular-nums sm:text-4xl">
+      <p className="text-3xl font-semibold text-foreground tabular-nums sm:text-4xl">
         {metric.prefix}{count.toLocaleString()}{metric.suffix}
       </p>
-      <p className="mt-2 text-sm text-light">{lang === 'en' ? metric.labelEn : metric.labelKo}</p>
+      <p className="mt-2 text-sm text-muted-foreground">{lang === 'en' ? metric.labelEn : metric.labelKo}</p>
     </motion.div>
   );
 }
@@ -51,7 +51,7 @@ function Bar3D({ data, emptyLabel }: { data: { name: string; value: number }[]; 
 
   if (!hasData) {
     return (
-      <div ref={ref} className="flex h-48 items-center justify-center text-sm text-light">
+      <div ref={ref} className="flex h-48 items-center justify-center text-sm text-muted-foreground">
         {emptyLabel}
       </div>
     );
@@ -69,11 +69,11 @@ function Bar3D({ data, emptyLabel }: { data: { name: string; value: number }[]; 
               transition={{ delay: i * 0.08, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               className="w-full rounded-t-md relative overflow-hidden"
               style={{
-                background: `linear-gradient(to top, hsl(20,10%,15%), hsl(20,8%,30%))`,
-                boxShadow: '4px 0 0 hsl(20,8%,25%), 4px 4px 0 hsl(20,8%,20%)',
+                background: `linear-gradient(to top, hsl(var(--foreground)), hsl(var(--muted-foreground)))`,
+                boxShadow: '4px 0 0 hsl(var(--border)), 4px 4px 0 hsl(var(--border))',
               }}
             />
-            <p className="text-[10px] text-light text-center leading-tight truncate w-full">{item.name}</p>
+            <p className="text-[10px] text-muted-foreground text-center leading-tight truncate w-full">{item.name}</p>
           </div>
         );
       })}
@@ -112,12 +112,12 @@ export default function Impact() {
 
   return (
     <div>
-      <section className="bg-charcoal pb-20 pt-32 lg:pb-28 lg:pt-40">
+      <section className="section bg-charcoal pt-32 lg:pt-40">
         <div className="mx-auto max-w-6xl px-6">
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold tracking-tight text-white sm:text-4xl"
+            className="text-3xl font-semibold tracking-tight text-white sm:text-4xl"
           >
             {t('impact.title')}
           </motion.h1>
@@ -125,7 +125,7 @@ export default function Impact() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="mt-4 max-w-2xl text-base text-white/50"
+            className="mt-4 max-w-2xl text-base text-white/55"
           >
             {t('impact.subtitle')}
           </motion.p>
@@ -133,7 +133,7 @@ export default function Impact() {
       </section>
 
       {/* Counters */}
-      <section className="bg-beige py-14 lg:py-18">
+      <section className="section-tight bg-beige">
         <div className="mx-auto max-w-6xl px-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {impactMetrics.map((m, i) => (

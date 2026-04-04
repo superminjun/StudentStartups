@@ -7,8 +7,7 @@ import { useCartStore } from '@/stores/cartStore';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/auth/AuthProvider';
 
-const navLinks = [
-  { path: '/', key: 'nav.home' },
+const siteLinks = [
   { path: '/about', key: 'nav.about' },
   { path: '/projects', key: 'nav.projects' },
   { path: '/impact', key: 'nav.impact' },
@@ -16,9 +15,18 @@ const navLinks = [
   { path: '/contact', key: 'nav.contact' },
 ];
 
+const homeSections = [
+  { id: 'intro', key: 'nav.intro' },
+  { id: 'value', key: 'nav.value' },
+  { id: 'process', key: 'nav.process' },
+  { id: 'proof', key: 'nav.proof' },
+  { id: 'cta', key: 'nav.cta' },
+];
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('intro');
   const { lang, setLang, t } = useLanguage();
   const location = useLocation();
   const cartItems = useCartStore((s) => s.items);
@@ -33,11 +41,41 @@ export default function Navbar() {
 
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
+  useEffect(() => {
+    if (location.pathname !== '/') return;
+    const sections = homeSections
+      .map((section) => document.getElementById(section.id))
+      .filter(Boolean) as HTMLElement[];
+    if (!sections.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: '-40% 0px -45% 0px', threshold: 0.2 }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [location.pathname]);
+
   const authTarget = isAdmin ? '/admin' : user ? '/portal' : '/login';
   const authLabel = isAdmin ? t('nav.admin') : user ? t('nav.portal') : t('nav.login');
 
   const solid = true;
   const elevated = scrolled;
+  const isHome = location.pathname === '/';
+  const navLinks = isHome ? homeSections : siteLinks;
+
+  const handleSectionClick = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <>
@@ -47,32 +85,54 @@ export default function Navbar() {
         elevated ? 'shadow-sm' : 'shadow-none'
       )}>
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Link to="/" className={cn('text-lg font-semibold tracking-tight transition-colors', solid ? 'text-charcoal' : 'text-white')}>
+          <Link to="/" className={cn('text-lg font-semibold tracking-tight transition-colors', solid ? 'text-foreground' : 'text-white')}>
             Student Startups
           </Link>
 
           <div className="hidden items-center gap-1 lg:flex">
             {navLinks.map((link) => {
-              const active = location.pathname === link.path;
+              const active = isHome
+                ? activeSection === (link as { id: string }).id
+                : location.pathname === (link as { path: string }).path;
               return (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={cn(
-                    'relative px-3 py-2 text-sm font-medium transition-colors duration-200',
-                    solid
-                      ? active ? 'text-charcoal' : 'text-mid hover:text-charcoal'
-                      : active ? 'text-white' : 'text-white/70 hover:text-white'
-                  )}
-                >
-                  {t(link.key)}
-                  {active && (
-                    <motion.span
-                      layoutId="nav-underline"
-                      className={cn('absolute bottom-0 left-3 right-3 h-[1.5px]', solid ? 'bg-charcoal' : 'bg-card')}
-                    />
-                  )}
-                </Link>
+                isHome ? (
+                  <button
+                    key={link.id}
+                    type="button"
+                    onClick={() => handleSectionClick(link.id)}
+                    className={cn(
+                      'relative px-3 py-2 text-sm font-medium transition-colors duration-200',
+                      active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    {t(link.key)}
+                    {active && (
+                      <motion.span
+                        layoutId="nav-underline"
+                        className="absolute bottom-0 left-3 right-3 h-[1.5px] bg-foreground"
+                      />
+                    )}
+                  </button>
+                ) : (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={cn(
+                      'relative px-3 py-2 text-sm font-medium transition-colors duration-200',
+                      solid
+                        ? active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                        : active ? 'text-white' : 'text-white/70 hover:text-white'
+                    )}
+                  >
+                    {t(link.key)}
+                    {active && (
+                      <motion.span
+                        layoutId="nav-underline"
+                        className={cn('absolute bottom-0 left-3 right-3 h-[1.5px]', solid ? 'bg-foreground' : 'bg-card')}
+                      />
+                    )}
+                  </Link>
+                )
               );
             })}
           </div>
@@ -82,7 +142,7 @@ export default function Navbar() {
               onClick={() => setLang(lang === 'en' ? 'ko' : 'en')}
               className={cn(
                 'flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium transition-all',
-                solid ? 'text-mid hover:text-charcoal hover:bg-muted' : 'text-white/70 hover:text-white hover:bg-card/10'
+                solid ? 'text-muted-foreground hover:text-foreground hover:bg-muted' : 'text-white/70 hover:text-white hover:bg-card/10'
               )}
               aria-label="Toggle language"
             >
@@ -92,7 +152,7 @@ export default function Navbar() {
 
             <Link
               to="/cart"
-              className={cn('relative p-2 transition-colors', solid ? 'text-charcoal' : 'text-white')}
+              className={cn('relative p-2 transition-colors', solid ? 'text-foreground' : 'text-white')}
               aria-label="Shopping cart"
             >
               <ShoppingBag className="size-5" />
@@ -100,7 +160,7 @@ export default function Navbar() {
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-[hsl(24,80%,50%)] text-[10px] font-bold text-white"
+                  className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-background"
                 >
                   {cartCount}
                 </motion.span>
@@ -112,7 +172,7 @@ export default function Navbar() {
               className={cn(
                 'hidden rounded-full px-4 py-1.5 text-sm font-medium transition-all lg:inline-flex',
                 solid
-                  ? 'bg-charcoal text-white hover:bg-[hsl(20,8%,28%)]'
+                  ? 'bg-foreground text-background hover:bg-foreground/90'
                   : 'bg-card/15 text-white hover:bg-card/25 backdrop-blur-sm'
               )}
             >
@@ -121,7 +181,7 @@ export default function Navbar() {
 
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className={cn('p-2 lg:hidden', solid ? 'text-charcoal' : 'text-white')}
+              className={cn('p-2 lg:hidden', solid ? 'text-foreground' : 'text-white')}
               aria-label="Toggle menu"
             >
               {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -141,21 +201,42 @@ export default function Navbar() {
           >
             <div className="flex flex-col p-6 gap-1">
               {navLinks.map((link, i) => (
-                <motion.div key={link.path} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}>
-                  <Link
-                    to={link.path}
-                    className={cn(
-                      'block py-3 text-base font-medium border-b border-border',
-                      location.pathname === link.path ? 'text-charcoal' : 'text-mid'
-                    )}
-                  >
-                    {t(link.key)}
-                  </Link>
+                <motion.div
+                  key={isHome ? (link as { id: string }).id : (link as { path: string }).path}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                >
+                  {isHome ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleSectionClick((link as { id: string }).id);
+                        setMobileOpen(false);
+                      }}
+                      className={cn(
+                        'block w-full py-3 text-left text-base font-medium border-b border-border',
+                        activeSection === (link as { id: string }).id ? 'text-foreground' : 'text-muted-foreground'
+                      )}
+                    >
+                      {t(link.key)}
+                    </button>
+                  ) : (
+                    <Link
+                      to={(link as { path: string }).path}
+                      className={cn(
+                        'block py-3 text-base font-medium border-b border-border',
+                        location.pathname === (link as { path: string }).path ? 'text-foreground' : 'text-muted-foreground'
+                      )}
+                    >
+                      {t(link.key)}
+                    </Link>
+                  )}
                 </motion.div>
               ))}
               <Link
                 to={authTarget}
-                className="mt-4 inline-block rounded-full bg-charcoal px-6 py-2.5 text-center text-sm font-medium text-white"
+                className="mt-4 inline-block rounded-full bg-foreground px-6 py-2.5 text-center text-sm font-medium text-background"
               >
                 {authLabel}
               </Link>

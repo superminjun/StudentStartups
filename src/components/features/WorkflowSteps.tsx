@@ -17,45 +17,40 @@ export default function WorkflowSteps() {
   const { t } = useLanguage();
 
   return (
-    <section className="bg-card py-20 lg:py-28">
+    <section id="process" className="section bg-card scroll-mt-24">
       <div className="mx-auto max-w-6xl px-6">
-        <ScrollReveal className="max-w-xl">
-          <h2 className="text-2xl font-bold tracking-tight text-charcoal sm:text-3xl">
-            {t('workflow.title')}
-          </h2>
-          <p className="mt-3 text-base text-mid">{t('workflow.subtitle')}</p>
+        <ScrollReveal className="max-w-2xl">
+          <p className="section-kicker">{t('workflow.kicker')}</p>
+          <h2 className="section-title mt-3">{t('workflow.title')}</h2>
+          <p className="section-lead">{t('workflow.subtitle')}</p>
         </ScrollReveal>
 
-        <div className="mt-14">
-          <div className="flex flex-wrap justify-center gap-6">
-            {steps.map((step, i) => {
-              const Icon = step.icon;
-              return (
-                <ScrollReveal key={step.id} delay={i * 0.06} direction="up">
-                  <motion.div
-                    className="group flex w-[140px] flex-col items-center text-center sm:w-[160px]"
-                    whileHover={{ y: -1 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div
-                      className="flex size-14 items-center justify-center rounded-2xl bg-muted transition-colors duration-200 group-hover:bg-[hsl(24,80%,50%)]"
-                    >
-                      <Icon
-                        className="size-6 text-[hsl(20,5%,45%)] transition-colors duration-200 group-hover:text-white"
-                      />
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {steps.map((step, i) => {
+            const Icon = step.icon;
+            return (
+              <ScrollReveal key={step.id} delay={i * 0.05} direction="up">
+                <motion.div
+                  className="card card-hover p-5"
+                  whileHover={{ y: -4 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent">
+                      <Icon className="size-5" />
                     </div>
-                    <span className="mt-3 text-xs font-semibold text-light">{step.id}</span>
-                    <h3 className="mt-1 text-sm font-semibold leading-tight text-charcoal">
-                      {t(step.titleKey)}
-                    </h3>
-                    <p className="mt-1.5 text-xs leading-relaxed text-mid/80">
-                      {t(step.descKey)}
-                    </p>
-                  </motion.div>
-                </ScrollReveal>
-              );
-            })}
-          </div>
+                    <span className="text-xs font-semibold text-muted-foreground">{step.id}</span>
+                  </div>
+                  <h3 className="mt-4 text-base font-semibold text-foreground">
+                    {t(step.titleKey)}
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {t(step.descKey)}
+                  </p>
+                </motion.div>
+              </ScrollReveal>
+            );
+          })}
         </div>
       </div>
     </section>

@@ -62,18 +62,16 @@ export default function Contact() {
   };
 
   const inputClass = (field: string) =>
-    `w-full rounded-lg border bg-card px-4 py-3 text-sm text-charcoal outline-none transition-all focus:border-charcoal focus:ring-1 focus:ring-charcoal/10 ${
-      errors[field] ? 'border-red-400 bg-red-50/30' : 'border-border'
-    }`;
+    `input-base ${errors[field] ? 'border-red-400 bg-red-50/30' : 'border-border'}`;
 
   return (
     <div>
-      <section className="bg-charcoal pb-16 pt-32 lg:pb-24 lg:pt-40">
+      <section className="section bg-charcoal pt-32 lg:pt-40">
         <div className="mx-auto max-w-6xl px-6">
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold tracking-tight text-white sm:text-4xl"
+            className="text-3xl font-semibold tracking-tight text-white sm:text-4xl"
           >
             {t('contact.title')}
           </motion.h1>
@@ -81,22 +79,22 @@ export default function Contact() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="mt-3 max-w-xl text-base text-white/50"
+            className="mt-3 max-w-xl text-base text-white/55"
           >
             {t('contact.subtitle')}
           </motion.p>
         </div>
       </section>
 
-      <section className="bg-beige py-14 lg:py-20">
+      <section className="section-tight bg-beige">
         <div className="mx-auto max-w-6xl px-6">
           <div className="grid gap-10 lg:grid-cols-12">
             <div className="lg:col-span-7">
               <ScrollReveal>
-                <form onSubmit={handleSubmit} className="rounded-xl border border-border bg-card p-6 lg:p-8">
+                <form onSubmit={handleSubmit} className="card p-6 lg:p-8">
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div>
-                      <label className="mb-1.5 block text-sm font-medium text-charcoal">{t('contact.name')}</label>
+                      <label className="mb-1.5 block text-sm font-medium text-foreground">{t('contact.name')}</label>
                       <input
                         type="text"
                         value={form.name}
@@ -107,7 +105,7 @@ export default function Contact() {
                       {errors.name && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="size-3" /> Required</p>}
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-sm font-medium text-charcoal">{t('contact.email')}</label>
+                      <label className="mb-1.5 block text-sm font-medium text-foreground">{t('contact.email')}</label>
                       <input
                         type="email"
                         value={form.email}
@@ -119,7 +117,7 @@ export default function Contact() {
                     </div>
                   </div>
                   <div className="mt-5">
-                    <label className="mb-1.5 block text-sm font-medium text-charcoal">{t('contact.subject')}</label>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">{t('contact.subject')}</label>
                     <input
                       type="text"
                       value={form.subject}
@@ -130,7 +128,7 @@ export default function Contact() {
                     {errors.subject && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="size-3" /> Required</p>}
                   </div>
                   <div className="mt-5">
-                    <label className="mb-1.5 block text-sm font-medium text-charcoal">{t('contact.message')}</label>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">{t('contact.message')}</label>
                     <textarea
                       rows={5}
                       value={form.message}
@@ -150,7 +148,7 @@ export default function Contact() {
                   <button
                     type="submit"
                     disabled={status === 'sending'}
-                    className="mt-6 flex items-center gap-2 rounded-full bg-charcoal px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[hsl(20,8%,28%)] active:scale-[0.98] disabled:opacity-50"
+                    className="btn btn-primary mt-6 disabled:opacity-50"
                   >
                     <Send className="size-4" />
                     {status === 'sending' ? t('contact.sending') : t('contact.send')}
@@ -161,39 +159,39 @@ export default function Contact() {
 
             <div className="lg:col-span-5">
               <ScrollReveal direction="right">
-                <div className="rounded-xl border border-border bg-card p-6">
-                  <h3 className="text-base font-semibold text-charcoal">Contact</h3>
-                  <div className="mt-4 space-y-3 text-sm text-mid">
+                <div className="card p-6">
+                  <h3 className="text-base font-semibold text-foreground">{t('contact.infoTitle')}</h3>
+                  <div className="mt-4 space-y-3 text-sm text-muted-foreground">
                     <a
                       href={`mailto:${SITE_CONFIG.email}`}
-                      className="flex items-center gap-2 transition-colors hover:text-charcoal"
+                      className="flex items-center gap-2 transition-colors hover:text-foreground"
                     >
-                      <Mail className="size-4 text-[hsl(24,80%,50%)]" />
+                      <Mail className="size-4 text-accent" />
                       {SITE_CONFIG.email}
                     </a>
                     <a
                       href={SITE_CONFIG.social.instagram}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 transition-colors hover:text-charcoal"
+                      className="flex items-center gap-2 transition-colors hover:text-foreground"
                     >
-                      <Instagram className="size-4 text-[hsl(24,80%,50%)]" />
+                      <Instagram className="size-4 text-accent" />
                       Instagram
                     </a>
                     <a
                       href={SITE_CONFIG.maps.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-start gap-2 transition-colors hover:text-charcoal"
+                      className="flex items-start gap-2 transition-colors hover:text-foreground"
                     >
-                      <MapPin className="mt-0.5 size-4 text-[hsl(24,80%,50%)]" />
+                      <MapPin className="mt-0.5 size-4 text-accent" />
                       <span>{SITE_CONFIG.address}</span>
                     </a>
                   </div>
                 </div>
               </ScrollReveal>
               <ScrollReveal direction="right" delay={0.1}>
-                <div className="mt-4 rounded-xl border border-border bg-card p-4">
+                <div className="mt-4 card p-4">
                   <div className="overflow-hidden rounded-lg border border-border">
                     <iframe
                       title="Student Startups location"
@@ -223,13 +221,13 @@ export default function Contact() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-              className="mx-6 w-full max-w-sm rounded-2xl border border-emerald-100 bg-card p-6 text-center shadow-lg"
+              className="mx-6 w-full max-w-sm rounded-2xl border border-emerald-500/20 bg-card p-6 text-center shadow-lg"
             >
-              <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500">
                 <Send className="size-5" />
               </div>
-              <p className="mt-4 text-sm font-semibold text-charcoal">{t('contact.sent')}</p>
-              <p className="mt-1 text-xs text-light">{t('contact.success')}</p>
+              <p className="mt-4 text-sm font-semibold text-foreground">{t('contact.sent')}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t('contact.success')}</p>
             </motion.div>
           </motion.div>
         )}

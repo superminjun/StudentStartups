@@ -122,7 +122,7 @@ export default function ProductDetailPage() {
               <button
                 onClick={handleAdd}
                 disabled={!canAddToCart}
-                className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-charcoal px-8 py-3.5 text-sm font-semibold text-white transition-all hover:bg-[hsl(20,8%,28%)] disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.98]"
+                className="btn btn-primary btn-lg mt-8 w-full disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 {added ? (
                   <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex items-center gap-2">
@@ -144,7 +144,7 @@ export default function ProductDetailPage() {
 
               <Link
                 to="/cart"
-                className="mt-3 block text-center text-sm text-mid hover:text-charcoal transition-colors"
+                className="mt-3 block text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 {t('shop.checkout')} →
               </Link>

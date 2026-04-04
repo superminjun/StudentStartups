@@ -19,12 +19,12 @@ export default function Projects() {
 
   return (
     <div>
-      <section className="bg-charcoal pb-16 pt-32 lg:pb-24 lg:pt-40">
+      <section className="section bg-charcoal pt-32 lg:pt-40">
         <div className="mx-auto max-w-6xl px-6">
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold tracking-tight text-white sm:text-4xl"
+            className="text-3xl font-semibold tracking-tight text-white sm:text-4xl"
           >
             {t('projects.title')}
           </motion.h1>
@@ -32,22 +32,20 @@ export default function Projects() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="mt-3 max-w-xl text-base text-white/50"
+            className="mt-3 max-w-xl text-base text-white/55"
           >
             {t('projects.subtitle')}
           </motion.p>
         </div>
       </section>
 
-      <section className="bg-beige py-10 lg:py-14">
+      <section className="section-tight bg-beige">
         <div className="mx-auto max-w-6xl px-6">
           <ScrollReveal>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setActiveStage(0)}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                  activeStage === 0 ? 'bg-charcoal text-white' : 'bg-card text-mid hover:text-charcoal border border-border'
-                }`}
+                className={`btn btn-sm ${activeStage === 0 ? 'btn-primary' : 'btn-secondary'}`}
               >
                 {t('projects.allStages')} ({projects.length})
               </button>
@@ -57,9 +55,7 @@ export default function Projects() {
                   <button
                     key={stage}
                     onClick={() => setActiveStage(stage)}
-                    className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                      activeStage === stage ? 'bg-charcoal text-white' : 'bg-card text-mid hover:text-charcoal border border-border'
-                    }`}
+                    className={`btn btn-sm ${activeStage === stage ? 'btn-primary' : 'btn-secondary'}`}
                   >
                     {stageLabels[stage]} ({count})
                   </button>
@@ -70,7 +66,7 @@ export default function Projects() {
 
           {filtered.length === 0 ? (
             <div className="py-20 text-center">
-              <p className="text-base text-light">{t('projects.noProjects')}</p>
+              <p className="text-base text-muted-foreground">{t('projects.noProjects')}</p>
             </div>
           ) : (
             <motion.div

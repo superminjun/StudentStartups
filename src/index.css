@@ -78,6 +78,30 @@
   }
 }
 
+@layer components {
+  .section { @apply py-20 lg:py-28; }
+  .section-tight { @apply py-16 lg:py-20; }
+  .section-title { @apply text-3xl font-semibold tracking-tight text-foreground sm:text-4xl; }
+  .section-kicker { @apply text-xs uppercase tracking-[0.24em] text-muted-foreground; }
+  .section-lead { @apply mt-3 text-base text-muted-foreground; }
+
+  .card { @apply rounded-2xl border border-border bg-card/90 shadow-sm backdrop-blur; }
+  .card-hover { @apply transition-all hover:-translate-y-1 hover:shadow-lg; }
+
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-all duration-200; }
+  .btn-primary { @apply bg-foreground text-background shadow-sm hover:-translate-y-0.5 hover:shadow-md hover:bg-foreground/90 active:scale-[0.98]; }
+  .btn-secondary { @apply border border-border text-foreground hover:bg-muted active:scale-[0.98]; }
+  .btn-ghost { @apply text-foreground/80 hover:text-foreground hover:bg-muted active:scale-[0.98]; }
+  .btn-pill { @apply rounded-full; }
+  .btn-sm { @apply px-3 py-1.5 text-xs; }
+  .btn-lg { @apply px-8 py-3.5 text-base; }
+
+  .input-base {
+    @apply w-full rounded-lg border border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition-all;
+    @apply focus:border-foreground/60 focus:ring-2 focus:ring-foreground/10;
+  }
+}
+
 @layer utilities {
   .text-charcoal { color: hsl(var(--color-charcoal)); }
   .text-dark { color: hsl(var(--color-dark)); }
@@ -119,4 +143,19 @@ html {
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(24px, -18px, 0); }
+}
+
+@keyframes drift-slow {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(-18px, 22px, 0); }
+}
+
+@layer utilities {
+  .animate-drift { animation: drift 14s ease-in-out infinite; }
+  .animate-drift-slow { animation: drift-slow 22s ease-in-out infinite; }
 }

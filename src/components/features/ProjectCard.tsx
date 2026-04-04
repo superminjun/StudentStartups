@@ -14,7 +14,7 @@ export default function ProjectCard({ project }: { project: Project }) {
       <motion.article
         whileHover={{ y: -4 }}
         transition={{ duration: 0.25 }}
-        className="group overflow-hidden rounded-xl bg-card border border-border transition-shadow hover:shadow-lg"
+        className="group card card-hover overflow-hidden"
       >
         <div className="relative aspect-[4/3] overflow-hidden">
           <img
@@ -30,23 +30,23 @@ export default function ProjectCard({ project }: { project: Project }) {
         </div>
 
         <div className="p-5">
-          <h3 className="text-base font-semibold text-charcoal group-hover:text-[hsl(24,80%,50%)] transition-colors">
+          <h3 className="text-base font-semibold text-foreground group-hover:text-accent transition-colors">
             {project.name}
           </h3>
-          <p className="mt-1.5 text-sm leading-relaxed text-mid line-clamp-2">{project.description}</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground line-clamp-2">{project.description}</p>
 
           <div className="mt-4 grid grid-cols-3 gap-2 border-t border-border pt-4">
             <div>
-              <p className="text-[10px] font-medium uppercase tracking-wider text-light">{t('projects.revenue')}</p>
-              <p className="mt-0.5 text-sm font-semibold text-charcoal tabular-nums">{formatCurrency(project.revenue)}</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t('projects.revenue')}</p>
+              <p className="mt-0.5 text-sm font-semibold text-foreground tabular-nums">{formatCurrency(project.revenue)}</p>
             </div>
             <div>
-              <p className="text-[10px] font-medium uppercase tracking-wider text-light">{t('projects.profit')}</p>
-              <p className="mt-0.5 text-sm font-semibold text-emerald-600 tabular-nums">{formatCurrency(project.profit)}</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t('projects.profit')}</p>
+              <p className="mt-0.5 text-sm font-semibold text-emerald-500 tabular-nums">{formatCurrency(project.profit)}</p>
             </div>
             <div>
-              <p className="text-[10px] font-medium uppercase tracking-wider text-light">{t('projects.donation')}</p>
-              <p className="mt-0.5 text-sm font-semibold text-[hsl(24,80%,50%)] tabular-nums">{formatCurrency(project.donation)}</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t('projects.donation')}</p>
+              <p className="mt-0.5 text-sm font-semibold text-accent tabular-nums">{formatCurrency(project.donation)}</p>
             </div>
           </div>
         </div>

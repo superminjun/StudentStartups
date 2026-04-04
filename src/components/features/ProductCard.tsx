@@ -92,7 +92,7 @@ export default function ProductCard({ product }: { product: Product }) {
       <motion.div
         whileHover={{ y: -3 }}
         transition={{ duration: 0.2 }}
-        className="group overflow-hidden rounded-xl border border-border bg-card"
+        className="group card card-hover overflow-hidden"
         onMouseEnter={startHoverCycle}
         onMouseLeave={stopHoverCycle}
       >
@@ -113,11 +113,11 @@ export default function ProductCard({ product }: { product: Product }) {
             ))}
           </div>
           {statusLabel && (
-            <span className="absolute left-3 top-3 rounded-full bg-charcoal px-2.5 py-1 text-[10px] font-semibold text-white">
+            <span className="absolute left-3 top-3 rounded-full bg-foreground px-2.5 py-1 text-[10px] font-semibold text-background">
               {statusLabel}
             </span>
           )}
-          <div className="absolute right-3 top-3 rounded-full bg-card/90 px-2.5 py-1 text-[10px] font-semibold text-charcoal shadow-sm">
+          <div className="absolute right-3 top-3 rounded-full bg-card/90 px-2.5 py-1 text-[10px] font-semibold text-foreground shadow-sm">
             {t('shop.stocks')}:{' '}
             <AnimatePresence mode="popLayout">
               <motion.span
@@ -148,7 +148,7 @@ export default function ProductCard({ product }: { product: Product }) {
                     pauseAuto(8000);
                   }}
                   className={`h-1.5 w-1.5 rounded-full transition-all ${
-                    activeImage === index ? 'bg-card' : 'bg-card/50 hover:bg-card/80'
+                    activeImage === index ? 'bg-foreground' : 'bg-foreground/40 hover:bg-foreground/70'
                   }`}
                   aria-label={`Show image ${index + 1}`}
                 />
@@ -158,15 +158,15 @@ export default function ProductCard({ product }: { product: Product }) {
         </div>
 
         <div className="p-4">
-          <h3 className="text-sm font-semibold text-charcoal line-clamp-1">{product.name}</h3>
-          <p className="mt-1 text-xs text-mid line-clamp-2 leading-relaxed">{product.description}</p>
+          <h3 className="text-sm font-semibold text-foreground line-clamp-1">{product.name}</h3>
+          <p className="mt-1 text-xs text-muted-foreground line-clamp-2 leading-relaxed">{product.description}</p>
 
           <div className="mt-3 flex items-center justify-between">
-            <span className="text-base font-bold text-charcoal tabular-nums">${product.price.toFixed(2)}</span>
+            <span className="text-base font-semibold text-foreground tabular-nums">${product.price.toFixed(2)}</span>
             <button
               onClick={handleAdd}
               disabled={!canAddToCart}
-              className="flex items-center gap-1.5 rounded-full bg-charcoal px-3 py-1.5 text-xs font-medium text-white transition-all hover:bg-[hsl(20,8%,28%)] disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
+              className="btn btn-primary btn-sm disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {added ? (
                 <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex items-center gap-1">

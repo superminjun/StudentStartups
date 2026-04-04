@@ -31,7 +31,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="fixed bottom-8 right-8 z-dropdown flex size-10 items-center justify-center rounded-full bg-charcoal text-white shadow-lg hover:shadow-xl transition-shadow"
+            className="fixed bottom-8 right-8 z-dropdown flex size-10 items-center justify-center rounded-full bg-foreground text-background shadow-lg hover:shadow-xl transition-shadow"
             aria-label="Back to top"
           >
             <ArrowUp className="size-4" />

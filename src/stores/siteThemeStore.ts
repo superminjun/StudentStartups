@@ -9,9 +9,9 @@ const TABLE_NAME = 'site_theme';
 const SINGLETON_ID = 'global';
 
 const defaultTheme = {
-  fontUrl: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
+  fontUrl: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@500;600;700&display=swap',
   fontBody: "'Inter', system-ui, -apple-system, sans-serif",
-  fontHeading: "'Inter', system-ui, -apple-system, sans-serif",
+  fontHeading: "'Sora', 'Inter', system-ui, -apple-system, sans-serif",
   baseFontSize: '16px',
   radius: '0.5rem',
   colorBeige: '#f5f2ef',

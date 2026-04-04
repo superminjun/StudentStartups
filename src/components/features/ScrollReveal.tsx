@@ -10,11 +10,11 @@ interface Props {
 }
 
 const offsets = {
-  up: { y: 32 },
-  down: { y: -32 },
-  left: { x: -32 },
-  right: { x: 32 },
-  scale: { scale: 0.95 },
+  up: { y: 24 },
+  down: { y: -24 },
+  left: { x: -24 },
+  right: { x: 24 },
+  scale: { scale: 0.96 },
   fade: {},
 };
 
@@ -23,7 +23,7 @@ export default function ScrollReveal({
   direction = 'up',
   delay = 0,
   className,
-  duration = 0.6,
+  duration = 0.5,
 }: Props) {
   const ref = useRef(null);
   const reduceMotion = useReducedMotion();
