@@ -41,42 +41,44 @@ function BigCounter({ metric, index }: { metric: ImpactMetricView; index: number
   );
 }
 
-function Bar3D({ data, emptyLabel }: { data: { name: string; value: number }[]; emptyLabel: string }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
+function DonationBarChart({ data, emptyLabel }: { data: { name: string; value: number }[]; emptyLabel: string }) {
   const hasData = data.length > 0;
   const hasValues = data.some((d) => d.value > 0);
-  const max = Math.max(...data.map((d) => d.value), 1);
-  const minHeight = hasValues ? 0 : 8;
 
-  if (!hasData) {
+  if (!hasData || !hasValues) {
     return (
-      <div ref={ref} className="flex h-48 items-center justify-center text-sm text-muted-foreground">
+      <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
         {emptyLabel}
       </div>
     );
   }
 
   return (
-    <div ref={ref} className="flex items-end justify-between gap-2 h-48">
-      {data.map((item, i) => {
-        const height = Math.max((item.value / max) * 100, minHeight);
-        return (
-          <div key={item.name} className="flex flex-1 flex-col items-center gap-2">
-            <motion.div
-              initial={{ height: 0 }}
-              animate={isInView ? { height: `${height}%` } : {}}
-              transition={{ delay: i * 0.08, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="w-full rounded-t-md relative overflow-hidden"
-              style={{
-                background: `linear-gradient(to top, hsl(var(--foreground)), hsl(var(--muted-foreground)))`,
-                boxShadow: '4px 0 0 hsl(var(--border)), 4px 4px 0 hsl(var(--border))',
-              }}
-            />
-            <p className="text-[10px] text-muted-foreground text-center leading-tight truncate w-full">{item.name}</p>
-          </div>
-        );
-      })}
+    <div className="h-56 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 8, right: 6, left: -12, bottom: 8 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+          <XAxis
+            dataKey="name"
+            tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+            tickLine={false}
+            axisLine={false}
+            interval={0}
+            tickFormatter={(value) => (value.length > 10 ? `${value.slice(0, 10)}…` : value)}
+          />
+          <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+          <Tooltip
+            contentStyle={{
+              borderRadius: '8px',
+              border: '1px solid hsl(var(--border))',
+              fontSize: '13px',
+              backgroundColor: 'hsl(var(--card))',
+              color: 'hsl(var(--foreground))',
+            }}
+          />
+          <Bar dataKey="value" fill="hsl(var(--accent))" radius={[6, 6, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }
@@ -177,7 +179,7 @@ export default function Impact() {
               <div className="rounded-xl border border-border bg-card p-6">
                 <h3 className="text-lg font-semibold text-charcoal">{t('impact.donationTitle')}</h3>
                 <div className="mt-5">
-                  <Bar3D data={donationChartData} emptyLabel={t('impact.noDonations')} />
+                  <DonationBarChart data={donationChartData} emptyLabel={t('impact.noDonations')} />
                 </div>
               </div>
             </ScrollReveal>

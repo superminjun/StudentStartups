@@ -56,13 +56,15 @@ export default function Navbar() {
       if (!sections.length) sections = getSections();
       if (!sections.length) return;
 
-      const offset = 120;
+      const focusLine = window.innerHeight * 0.35;
       let currentId = sections[0].id;
       for (const section of sections) {
         const rect = section.getBoundingClientRect();
-        if (rect.top - offset <= 0) {
+        if (rect.top <= focusLine && rect.bottom > focusLine) {
           currentId = section.id;
+          break;
         }
+        if (rect.top <= focusLine) currentId = section.id;
       }
       setActiveSection(currentId);
     };
@@ -130,6 +132,7 @@ export default function Navbar() {
                       <motion.span
                         layoutId="nav-underline"
                         className="absolute bottom-0 left-3 right-3 h-[1.5px] bg-foreground"
+                        transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.6 }}
                       />
                     )}
                   </button>
@@ -149,6 +152,7 @@ export default function Navbar() {
                       <motion.span
                         layoutId="nav-underline"
                         className={cn('absolute bottom-0 left-3 right-3 h-[1.5px]', solid ? 'bg-foreground' : 'bg-card')}
+                        transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.6 }}
                       />
                     )}
                   </Link>

@@ -32,12 +32,12 @@ export default function ProductCard({ product }: { product: Product }) {
       quickStartRef.current = window.setTimeout(() => {
         setActiveImage((prev) => (prev + 1) % images.length);
         quickStartRef.current = null;
-      }, 200);
+      }, 160);
     }
     intervalRef.current = window.setInterval(() => {
       if (Date.now() < pauseUntilRef.current) return;
       setActiveImage((prev) => (prev + 1) % images.length);
-    }, 2000);
+    }, 1800);
   };
 
   const stopHoverCycle = () => {
@@ -98,8 +98,8 @@ export default function ProductCard({ product }: { product: Product }) {
       >
         <div className="relative aspect-square overflow-hidden bg-muted">
           <div
-            className="flex h-full w-full transition-transform duration-500 ease-out"
-            style={{ transform: `translateX(-${activeImage * 100}%)` }}
+            className="flex h-full w-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
+            style={{ transform: `translate3d(-${activeImage * 100}%, 0, 0)` }}
           >
             {images.map((img) => (
               <img
