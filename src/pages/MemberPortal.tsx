@@ -227,7 +227,7 @@ export default function MemberPortal() {
       <div className="flex min-h-[60vh] items-center justify-center bg-beige">
         <div className="text-center">
           <div className="mx-auto size-8 animate-spin rounded-full border-2 border-border border-t-[hsl(24,80%,50%)]" />
-          <p className="mt-4 text-sm text-light">Loading...</p>
+          <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -282,7 +282,7 @@ export default function MemberPortal() {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${
-                  activeTab === tab ? 'bg-beige text-charcoal' : 'text-white/40 hover:text-white/70'
+                  activeTab === tab ? 'bg-beige text-foreground' : 'text-white/40 hover:text-white/70'
                 }`}
               >
                 {t(`portal.${tab}`)}
@@ -309,13 +309,13 @@ export default function MemberPortal() {
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.06 }}
-                      className="rounded-xl border border-border bg-card p-5"
+                      className="card p-5"
                     >
                       <div className={`inline-flex size-9 items-center justify-center rounded-lg ${item.color}`}>
                         <item.icon className="size-4" />
                       </div>
-                      <p className="mt-3 text-xs text-light">{item.label}</p>
-                      <p className="mt-1 text-lg font-semibold text-charcoal">{item.value}</p>
+                      <p className="mt-3 text-xs text-muted-foreground">{item.label}</p>
+                      <p className="mt-1 text-lg font-semibold text-foreground">{item.value}</p>
                     </motion.div>
                   ))}
                 </div>
@@ -324,19 +324,19 @@ export default function MemberPortal() {
 
             {activeTab === 'meetings' && (
               <motion.div key="meetings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <div className="rounded-xl border border-border bg-card overflow-hidden">
+                <div className="card overflow-hidden">
                   <div className="grid grid-cols-12 gap-4 border-b border-border bg-muted px-5 py-3">
-                    <span className="col-span-3 text-xs font-semibold text-mid">{t('portal.meetingDate')}</span>
-                    <span className="col-span-2 text-xs font-semibold text-mid">{t('portal.meetingStatus')}</span>
-                    <span className="col-span-2 text-xs font-semibold text-mid">{t('portal.meetingRole')}</span>
-                    <span className="col-span-5 text-xs font-semibold text-mid">{t('portal.meetingFeedback')}</span>
+                    <span className="col-span-3 text-xs font-semibold text-muted-foreground">{t('portal.meetingDate')}</span>
+                    <span className="col-span-2 text-xs font-semibold text-muted-foreground">{t('portal.meetingStatus')}</span>
+                    <span className="col-span-2 text-xs font-semibold text-muted-foreground">{t('portal.meetingRole')}</span>
+                    <span className="col-span-5 text-xs font-semibold text-muted-foreground">{t('portal.meetingFeedback')}</span>
                   </div>
                   {meetings.length === 0 ? (
-                    <div className="px-5 py-6 text-sm text-light">No meetings yet.</div>
+                    <div className="px-5 py-6 text-sm text-muted-foreground">No meetings yet.</div>
                   ) : (
                     meetings.map((meeting) => (
                       <div key={meeting.id} className="grid grid-cols-12 gap-4 border-b border-border px-5 py-3.5 last:border-b-0">
-                        <span className="col-span-3 text-sm text-charcoal tabular-nums">{meeting.date || '—'}</span>
+                        <span className="col-span-3 text-sm text-foreground tabular-nums">{meeting.date || '—'}</span>
                         <span className="col-span-2 flex items-center gap-1.5 text-sm">
                           {meeting.status === 'present' ? (
                           <><CheckCircle className="size-3.5 text-emerald-500" /> <span className="text-emerald-600">{t('portal.present')}</span></>
@@ -344,8 +344,8 @@ export default function MemberPortal() {
                           <><XCircle className="size-3.5 text-red-400" /> <span className="text-red-500">{t('portal.absent')}</span></>
                         )}
                         </span>
-                        <span className="col-span-2 text-sm text-mid">{meeting.meetingRole || '—'}</span>
-                        <span className="col-span-5 text-sm text-mid leading-relaxed">{meeting.feedback || '—'}</span>
+                        <span className="col-span-2 text-sm text-muted-foreground">{meeting.meetingRole || '—'}</span>
+                        <span className="col-span-5 text-sm text-muted-foreground leading-relaxed">{meeting.feedback || '—'}</span>
                       </div>
                     ))
                   )}
@@ -355,32 +355,32 @@ export default function MemberPortal() {
 
             {activeTab === 'stats' && (
               <motion.div key="stats" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid gap-6 lg:grid-cols-2">
-                <div className="rounded-xl border border-border bg-card p-6">
-                  <h3 className="text-lg font-semibold text-charcoal">{t('portal.attendance')}</h3>
+                <div className="card p-6">
+                  <h3 className="text-lg font-semibold text-foreground">{t('portal.attendance')}</h3>
                   <div className="mt-5">
                     <AnimatedProgress value={attendanceCount} max={Math.max(totalMeetings, 1)} label={`${attendanceCount} of ${totalMeetings} meetings`} color="bg-emerald-500" />
                   </div>
-                  <p className="mt-4 text-4xl font-bold text-charcoal tabular-nums">
+                  <p className="mt-4 text-4xl font-bold text-foreground tabular-nums">
                     {totalMeetings ? Math.round((attendanceCount / totalMeetings) * 100) : 0}%
                   </p>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-6">
-                  <h3 className="text-lg font-semibold text-charcoal">{t('portal.contributions')}</h3>
+                <div className="card p-6">
+                  <h3 className="text-lg font-semibold text-foreground">{t('portal.contributions')}</h3>
                   <div className="mt-5">
                     <p className="text-4xl font-bold text-[hsl(24,80%,50%)] tabular-nums">{contributionTotal}</p>
-                    <p className="mt-2 text-sm text-mid">{t('portal.contributionSummary')}</p>
+                    <p className="mt-2 text-sm text-muted-foreground">{t('portal.contributionSummary')}</p>
                   </div>
                   <div className="mt-4 space-y-2">
                     {contributionsLoading ? (
-                      <p className="text-sm text-light">{t('common.loading')}</p>
+                      <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
                     ) : contributions.length === 0 ? (
-                      <p className="text-sm text-light">{t('portal.noContributions')}</p>
+                      <p className="text-sm text-muted-foreground">{t('portal.noContributions')}</p>
                     ) : (
                       contributions.slice(0, 6).map((entry) => (
                         <div key={entry.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
                           <div>
-                            <p className="text-xs font-semibold text-charcoal">{entry.title}</p>
-                            <p className="text-[11px] text-light">{entry.contribution_date}</p>
+                            <p className="text-xs font-semibold text-foreground">{entry.title}</p>
+                            <p className="text-[11px] text-muted-foreground">{entry.contribution_date}</p>
                           </div>
                           <span className="text-xs font-semibold text-[hsl(24,80%,50%)]">{entry.points}</span>
                         </div>
