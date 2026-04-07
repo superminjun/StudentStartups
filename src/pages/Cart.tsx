@@ -42,6 +42,16 @@ export default function Cart() {
       status: 'pending' as const,
     };
     if (isSupabaseConfigured && supabase) {
+      const orderItems = cartProducts.map((p) => ({ id: p.id, qty: p.qty }));
+      const { data: inventoryOk, error: inventoryError } = await supabase.rpc('decrement_order_inventory', {
+        p_items: orderItems,
+      });
+
+      if (inventoryError || inventoryOk !== true) {
+        setOrderError('Some items are no longer available. Please refresh and try again.');
+        return;
+      }
+
       const { error } = await supabase.from('orders').insert({
         id: order.id,
         buyer_name: buyerName,
@@ -52,6 +62,7 @@ export default function Cart() {
         status: order.status,
       });
       if (error) {
+        await supabase.rpc('restore_order_inventory', { p_items: orderItems });
         setOrderError(error.message);
         return;
       }
@@ -60,7 +71,7 @@ export default function Cart() {
       orders.push(order);
       localStorage.setItem('bnss-orders', JSON.stringify(orders));
     }
-    await clearCart({ release: false });
+    await clearCart();
     setOrderPlaced(true);
   };
 
@@ -102,7 +113,7 @@ export default function Cart() {
               {cartProducts.map((product) => {
                 const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
                 const isSoldOut = product.status === 'sold-out' || (product.status === 'available' && product.inventory <= 0);
-                const canIncrease = (product.status === 'available' && product.inventory > 0) || isPreOrderOpen;
+                const canIncrease = (product.status === 'available' && product.inventory > product.qty) || isPreOrderOpen;
 
                 return (
                   <div key={product.id} className="flex gap-4 rounded-xl border border-border bg-card p-4">

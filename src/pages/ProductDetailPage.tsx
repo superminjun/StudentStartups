@@ -5,7 +5,6 @@ import { ShoppingBag, Check, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCartStore } from '@/stores/cartStore';
 import { useCMSStore } from '@/stores/cmsStore';
-import { isSupabaseConfigured } from '@/lib/supabaseClient';
 import ProductCard from '@/components/features/ProductCard';
 import ScrollReveal from '@/components/features/ScrollReveal';
 
@@ -31,7 +30,7 @@ export default function ProductDetailPage() {
   }
 
   const cartQty = cartItems.find((i) => i.productId === product.id)?.quantity ?? 0;
-  const availableStock = Math.max(product.inventory - (isSupabaseConfigured ? 0 : cartQty), 0);
+  const availableStock = Math.max(product.inventory - cartQty, 0);
   const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
   const isSoldOut = product.status === 'sold-out' || (product.status === 'available' && availableStock <= 0);
   const canAddToCart = (product.status === 'available' && availableStock > 0) || isPreOrderOpen;
