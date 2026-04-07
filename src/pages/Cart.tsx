@@ -55,7 +55,7 @@ export default function Cart() {
         });
 
         const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
+        if (!response.ok || !data?.orderId) {
           setOrderError(data?.error || 'Checkout failed. Please try again.');
           return;
         }

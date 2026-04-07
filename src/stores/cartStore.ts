@@ -19,10 +19,12 @@ const reserveInventory = async (productId: string, qty: number) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ productId, qty }),
   });
-  if (!response.ok) {
+  const contentType = response.headers.get('content-type') || '';
+  if (!response.ok || !contentType.includes('application/json')) {
     return false;
   }
-  return true;
+  const data = await response.json().catch(() => ({}));
+  return data?.ok === true;
 };
 
 export const useCartStore = create<CartStore>()(

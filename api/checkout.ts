@@ -14,7 +14,7 @@ export default async function handler(req: any, res: any) {
   }
 
   if (!supabase) {
-    return res.status(500).json({ error: 'Server not configured' });
+    return res.status(500).json({ error: 'Server not configured: missing SUPABASE_SERVICE_ROLE_KEY' });
   }
 
   try {
