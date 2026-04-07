@@ -25,9 +25,9 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const { buyerName, buyerEmail, deliveryNote, items } = req.body ?? {};
+    const { buyerName, buyerEmail, deliveryNote, items, sessionId } = req.body ?? {};
 
-    if (!buyerName || !buyerEmail || !Array.isArray(items) || items.length === 0) {
+    if (!buyerName || !buyerEmail || !Array.isArray(items) || items.length === 0 || !sessionId) {
       return res.status(400).json({ error: 'Invalid payload' });
     }
 
@@ -45,6 +45,7 @@ export default async function handler(req: any, res: any) {
       p_buyer_email: buyerEmail,
       p_delivery_note: deliveryNote ?? null,
       p_items: normalizedItems,
+      p_session_id: String(sessionId),
     });
 
     if (error) {

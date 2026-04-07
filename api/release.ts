@@ -2,10 +2,6 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const missing = {
-  supabaseUrl: !supabaseUrl,
-  serviceRoleKey: !supabaseServiceKey,
-};
 
 const supabase = supabaseUrl && supabaseServiceKey
   ? createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false } })
@@ -18,10 +14,7 @@ export default async function handler(req: any, res: any) {
   }
 
   if (!supabase) {
-    return res.status(500).json({
-      error: 'Server not configured',
-      missing,
-    });
+    return res.status(500).json({ error: 'Server not configured' });
   }
 
   try {
@@ -34,14 +27,14 @@ export default async function handler(req: any, res: any) {
       return res.status(400).json({ error: 'Invalid payload' });
     }
 
-    const { data, error } = await supabase.rpc('reserve_product_inventory', {
+    const { error } = await supabase.rpc('release_product_inventory', {
       p_product_id: pId,
       p_qty: pQty,
       p_session_id: sId,
     });
 
-    if (error || data !== true) {
-      return res.status(400).json({ error: error?.message || 'Out of stock' });
+    if (error) {
+      return res.status(400).json({ error: error.message });
     }
 
     return res.status(200).json({ ok: true });

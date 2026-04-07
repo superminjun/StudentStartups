@@ -43,6 +43,18 @@ export default function Cart() {
     };
     if (isSupabaseConfigured) {
       try {
+        const ensureSessionId = () => {
+          if (typeof window === 'undefined') return null;
+          const key = 'bnss-reservation-session';
+          const existing = window.localStorage.getItem(key);
+          if (existing) return existing;
+          const next = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+            ? crypto.randomUUID()
+            : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+          window.localStorage.setItem(key, next);
+          return next;
+        };
+
         const response = await fetch('/api/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -51,6 +63,7 @@ export default function Cart() {
             buyerEmail,
             deliveryNote,
             items: cartProducts.map((p) => ({ id: p.id, qty: p.qty })),
+            sessionId: ensureSessionId(),
           }),
         });
 
