@@ -14,7 +14,7 @@ export default function Projects() {
 
   const filtered = useMemo(
     () => (activeStage === 0 ? projects : projects.filter((p) => p.stage === activeStage)),
-    [activeStage]
+    [activeStage, projects]
   );
 
   return (

@@ -4,6 +4,7 @@ import { ShoppingBag, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCartStore } from '@/stores/cartStore';
+import { isSupabaseConfigured } from '@/lib/supabaseClient';
 import type { Product } from '@/types';
 
 export default function ProductCard({ product }: { product: Product }) {
@@ -16,7 +17,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const intervalRef = useRef<number | null>(null);
   const quickStartRef = useRef<number | null>(null);
   const cartQty = cartItems.find((i) => i.productId === product.id)?.quantity ?? 0;
-  const availableStock = Math.max(product.inventory - cartQty, 0);
+  const availableStock = Math.max(product.inventory - (isSupabaseConfigured ? 0 : cartQty), 0);
   const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
   const isSoldOut = product.status === 'sold-out' || (product.status === 'available' && availableStock <= 0);
   const canAddToCart = (product.status === 'available' && availableStock > 0) || isPreOrderOpen;
@@ -62,11 +63,12 @@ export default function ProductCard({ product }: { product: Product }) {
     pauseUntilRef.current = Date.now() + ms;
   };
 
-  const handleAdd = (e: React.MouseEvent) => {
+  const handleAdd = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!canAddToCart) return;
-    addItem(product.id);
+    const ok = await addItem(product);
+    if (!ok) return;
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };

@@ -9,7 +9,7 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 
 export default function Cart() {
   const { t } = useLanguage();
-  const { items, removeItem, addItem, clearCart } = useCartStore();
+  const { items, removeItem, addItem, decreaseItem, clearCart } = useCartStore();
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [buyerName, setBuyerName] = useState('');
   const [buyerEmail, setBuyerEmail] = useState('');
@@ -24,19 +24,6 @@ export default function Cart() {
   }).filter(Boolean) as (typeof products[0] & { qty: number })[];
 
   const total = cartProducts.reduce((sum, p) => sum + p.price * p.qty, 0);
-
-  const decreaseQty = (productId: string) => {
-    const item = items.find((i) => i.productId === productId);
-    if (item && item.quantity <= 1) {
-      removeItem(productId);
-    } else {
-      useCartStore.setState((state) => ({
-        items: state.items.map((i) =>
-          i.productId === productId ? { ...i, quantity: i.quantity - 1 } : i
-        ),
-      }));
-    }
-  };
 
   const handlePlaceOrder = async () => {
     if (!buyerName.trim() || !buyerEmail.trim()) return;
@@ -73,7 +60,7 @@ export default function Cart() {
       orders.push(order);
       localStorage.setItem('bnss-orders', JSON.stringify(orders));
     }
-    clearCart();
+    await clearCart({ release: false });
     setOrderPlaced(true);
   };
 
@@ -112,37 +99,49 @@ export default function Cart() {
           <div className="mt-8 grid gap-8 lg:grid-cols-5">
             {/* Items */}
             <div className="lg:col-span-3 space-y-3">
-              {cartProducts.map((product) => (
-                <div key={product.id} className="flex gap-4 rounded-xl border border-border bg-card p-4">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    loading="lazy"
-                    decoding="async"
-                    className="size-20 rounded-lg object-cover"
-                  />
-                  <div className="flex-1">
-                    <h3 className="text-sm font-semibold text-foreground">{product.name}</h3>
-                    <p className="mt-1 text-sm font-medium text-muted-foreground tabular-nums">${product.price.toFixed(2)}</p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <button onClick={() => decreaseQty(product.id)} className="flex size-7 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted">
-                        <Minus className="size-3" />
-                      </button>
-                      <span className="w-6 text-center text-sm font-medium tabular-nums text-foreground">{product.qty}</span>
-                      <button
-                        onClick={() => addItem(product.id)}
-                        disabled={product.qty >= product.inventory}
-                        className="flex size-7 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        <Plus className="size-3" />
-                      </button>
-                      <button onClick={() => removeItem(product.id)} className="ml-auto text-muted-foreground hover:text-red-500 transition-colors">
-                        <Trash2 className="size-4" />
-                      </button>
+              {cartProducts.map((product) => {
+                const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
+                const isSoldOut = product.status === 'sold-out' || (product.status === 'available' && product.inventory <= 0);
+                const canIncrease = (product.status === 'available' && product.inventory > 0) || isPreOrderOpen;
+
+                return (
+                  <div key={product.id} className="flex gap-4 rounded-xl border border-border bg-card p-4">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      loading="lazy"
+                      decoding="async"
+                      className="size-20 rounded-lg object-cover"
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-foreground">{product.name}</h3>
+                      <p className="mt-1 text-sm font-medium text-muted-foreground tabular-nums">${product.price.toFixed(2)}</p>
+                      <div className="mt-2 flex items-center gap-2">
+                        <button
+                          onClick={() => decreaseItem(product)}
+                          className="flex size-7 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                        >
+                          <Minus className="size-3" />
+                        </button>
+                        <span className="w-6 text-center text-sm font-medium tabular-nums text-foreground">{product.qty}</span>
+                        <button
+                          onClick={() => addItem(product)}
+                          disabled={!canIncrease || isSoldOut}
+                          className="flex size-7 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          <Plus className="size-3" />
+                        </button>
+                        <button
+                          onClick={() => removeItem(product)}
+                          className="ml-auto text-muted-foreground hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Checkout */}

@@ -74,6 +74,7 @@ export interface ContactFormData {
 export interface CartItem {
   productId: string;
   quantity: number;
+  reserved?: boolean;
 }
 
 export interface MemberProfile {
