@@ -42,16 +42,6 @@ export default function Cart() {
       status: 'pending' as const,
     };
     if (isSupabaseConfigured && supabase) {
-      const orderItems = cartProducts.map((p) => ({ id: p.id, qty: p.qty }));
-      const { data: inventoryOk, error: inventoryError } = await supabase.rpc('decrement_order_inventory', {
-        p_items: orderItems,
-      });
-
-      if (inventoryError || inventoryOk !== true) {
-        setOrderError('Some items are no longer available. Please refresh and try again.');
-        return;
-      }
-
       const { error } = await supabase.from('orders').insert({
         id: order.id,
         buyer_name: buyerName,
@@ -62,7 +52,6 @@ export default function Cart() {
         status: order.status,
       });
       if (error) {
-        await supabase.rpc('restore_order_inventory', { p_items: orderItems });
         setOrderError(error.message);
         return;
       }
@@ -73,7 +62,7 @@ export default function Cart() {
       localStorage.setItem('bnss-orders', JSON.stringify(orders));
       await useCMSStore.getState().hydrate();
     }
-    await clearCart();
+    await clearCart({ release: false });
     setOrderPlaced(true);
   };
 
@@ -115,7 +104,7 @@ export default function Cart() {
               {cartProducts.map((product) => {
                 const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
                 const isSoldOut = product.status === 'sold-out' || product.inventory <= 0;
-                const canIncrease = !isSoldOut && product.inventory > product.qty && (
+                const canIncrease = !isSoldOut && product.inventory > 0 && (
                   product.status === 'available' || isPreOrderOpen
                 );
 
