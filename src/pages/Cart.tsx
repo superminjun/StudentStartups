@@ -5,7 +5,7 @@ import { Trash2, Minus, Plus, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCartStore } from '@/stores/cartStore';
 import { useCMSStore } from '@/stores/cmsStore';
-import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
+import { isSupabaseConfigured } from '@/lib/supabaseClient';
 
 export default function Cart() {
   const { t } = useLanguage();
@@ -41,20 +41,29 @@ export default function Cart() {
       date: new Date().toISOString(),
       status: 'pending' as const,
     };
-    if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase.from('orders').insert({
-        id: order.id,
-        buyer_name: buyerName,
-        buyer_email: buyerEmail,
-        total,
-        delivery_note: deliveryNote,
-        items: order.items,
-        status: order.status,
-      });
-      if (error) {
-        setOrderError(error.message);
+    if (isSupabaseConfigured) {
+      try {
+        const response = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            buyerName,
+            buyerEmail,
+            deliveryNote,
+            items: cartProducts.map((p) => ({ id: p.id, qty: p.qty })),
+          }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setOrderError(data?.error || 'Checkout failed. Please try again.');
+          return;
+        }
+      } catch (error: any) {
+        setOrderError(error?.message || 'Checkout failed. Please try again.');
         return;
       }
+
       await useCMSStore.getState().hydrate();
     } else {
       const orders = JSON.parse(localStorage.getItem('bnss-orders') || '[]');
