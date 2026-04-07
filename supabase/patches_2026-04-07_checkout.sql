@@ -41,6 +41,26 @@ begin
     raise exception 'Invalid items';
   end if;
 
+  -- Create order first so FK on order_items is satisfied
+  insert into public.orders(
+    id,
+    buyer_name,
+    buyer_email,
+    total,
+    delivery_note,
+    items,
+    status
+  )
+  values (
+    v_order_id,
+    p_buyer_name,
+    p_buyer_email,
+    0,
+    p_delivery_note,
+    '[]'::jsonb,
+    'pending'
+  );
+
   for v_item in select * from jsonb_array_elements(p_items)
   loop
     v_id := v_item->>'id';
@@ -73,24 +93,10 @@ begin
     );
   end loop;
 
-  insert into public.orders(
-    id,
-    buyer_name,
-    buyer_email,
-    total,
-    delivery_note,
-    items,
-    status
-  )
-  values (
-    v_order_id,
-    p_buyer_name,
-    p_buyer_email,
-    v_total,
-    p_delivery_note,
-    v_items,
-    'pending'
-  );
+  update public.orders
+  set total = v_total,
+      items = v_items
+  where id = v_order_id;
 
   return v_order_id;
 end;

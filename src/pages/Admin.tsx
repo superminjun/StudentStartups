@@ -529,6 +529,12 @@ export default function Admin() {
 
   const mapProductToRow = (product: Product) => {
     const images = normalizeProductImages(product.image, product.images);
+    const inventory = Number(product.inventory) || 0;
+    const resolvedStatus = inventory <= 0
+      ? 'sold-out'
+      : product.status === 'sold-out'
+        ? (product.isPreOrder ? 'in-production' : 'available')
+        : (product.status ?? 'available');
     return ({
       id: product.id,
       name: product.name,
@@ -537,11 +543,11 @@ export default function Admin() {
       image_url: product.image,
       images,
       category: product.category,
-      inventory: Number(product.inventory) || 0,
+      inventory,
       is_preorder: Boolean(product.isPreOrder),
       project_id: product.projectId ?? null,
       term: product.term,
-      status: product.status ?? 'available',
+      status: resolvedStatus,
     });
   };
 
@@ -640,10 +646,17 @@ export default function Admin() {
 
   const handleSaveProduct = async (product: Product) => {
     if (!supabase) return;
+    const inventory = Number(product.inventory) || 0;
+    const resolvedStatus = inventory <= 0
+      ? 'sold-out'
+      : product.status === 'sold-out'
+        ? (product.isPreOrder ? 'in-production' : 'available')
+        : (product.status ?? 'available');
+    const normalizedProduct = { ...product, inventory, status: resolvedStatus };
     setProductSaveState((prev) => ({ ...prev, [product.id]: { status: 'saving' } }));
     const { error: saveError } = await supabase
       .from('products')
-      .upsert(mapProductToRow(product));
+      .upsert(mapProductToRow(normalizedProduct));
     if (saveError) {
       setProductSaveState((prev) => ({ ...prev, [product.id]: { status: 'error', message: saveError.message } }));
       setCmsNotice(saveError.message);
@@ -652,7 +665,8 @@ export default function Admin() {
     setProductSaveState((prev) => ({ ...prev, [product.id]: { status: 'saved' } }));
     setProductDirty((prev) => ({ ...prev, [product.id]: false }));
     setCmsNotice('Product saved');
-    void syncProductToCMS(product);
+    setProductDrafts((prev) => prev.map((item) => (item.id === product.id ? normalizedProduct : item)));
+    void syncProductToCMS(normalizedProduct);
     void useCMSStore.getState().hydrate();
     window.setTimeout(() => {
       setProductSaveState((prev) => ({ ...prev, [product.id]: { status: 'idle' } }));
