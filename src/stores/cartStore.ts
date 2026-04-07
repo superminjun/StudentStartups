@@ -18,6 +18,13 @@ export const useCartStore = create<CartStore>()(
       addItem: async (product) => {
         const items = get().items;
         const existing = items.find((i) => i.productId === product.id);
+        const nextQty = (existing?.quantity ?? 0) + 1;
+        const isSoldOut = product.status === 'sold-out' || product.inventory <= 0;
+        const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
+
+        if (isSoldOut) return false;
+        if (product.status === 'in-production' && !isPreOrderOpen) return false;
+        if (nextQty > product.inventory) return false;
 
         if (existing) {
           set({

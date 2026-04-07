@@ -66,10 +66,12 @@ export default function Cart() {
         setOrderError(error.message);
         return;
       }
+      await useCMSStore.getState().hydrate();
     } else {
       const orders = JSON.parse(localStorage.getItem('bnss-orders') || '[]');
       orders.push(order);
       localStorage.setItem('bnss-orders', JSON.stringify(orders));
+      await useCMSStore.getState().hydrate();
     }
     await clearCart();
     setOrderPlaced(true);
@@ -112,8 +114,10 @@ export default function Cart() {
             <div className="lg:col-span-3 space-y-3">
               {cartProducts.map((product) => {
                 const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
-                const isSoldOut = product.status === 'sold-out' || (product.status === 'available' && product.inventory <= 0);
-                const canIncrease = (product.status === 'available' && product.inventory > product.qty) || isPreOrderOpen;
+                const isSoldOut = product.status === 'sold-out' || product.inventory <= 0;
+                const canIncrease = !isSoldOut && product.inventory > product.qty && (
+                  product.status === 'available' || isPreOrderOpen
+                );
 
                 return (
                   <div key={product.id} className="flex gap-4 rounded-xl border border-border bg-card p-4">

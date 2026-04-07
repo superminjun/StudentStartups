@@ -32,8 +32,8 @@ export default function ProductDetailPage() {
   const cartQty = cartItems.find((i) => i.productId === product.id)?.quantity ?? 0;
   const availableStock = Math.max(product.inventory - cartQty, 0);
   const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
-  const isSoldOut = product.status === 'sold-out' || (product.status === 'available' && availableStock <= 0);
-  const canAddToCart = (product.status === 'available' && availableStock > 0) || isPreOrderOpen;
+  const isSoldOut = product.status === 'sold-out' || availableStock <= 0;
+  const canAddToCart = !isSoldOut && (product.status === 'available' || isPreOrderOpen);
 
   const handleAdd = async () => {
     if (!canAddToCart) return;
