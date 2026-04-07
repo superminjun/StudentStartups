@@ -4,7 +4,6 @@ import { ShoppingBag, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCartStore } from '@/stores/cartStore';
-import { isSupabaseConfigured } from '@/lib/supabaseClient';
 import type { Product } from '@/types';
 
 export default function ProductCard({ product }: { product: Product }) {
@@ -17,10 +16,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const intervalRef = useRef<number | null>(null);
   const quickStartRef = useRef<number | null>(null);
   const cartQty = cartItems.find((i) => i.productId === product.id)?.quantity ?? 0;
-  const availableStock = Math.max(
-    isSupabaseConfigured ? product.inventory : product.inventory - cartQty,
-    0
-  );
+  const availableStock = Math.max(product.inventory, 0);
   const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
   const isSoldOut = product.status === 'sold-out' || availableStock <= 0;
   const canAddToCart = !isSoldOut && (product.status === 'available' || isPreOrderOpen);

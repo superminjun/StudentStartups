@@ -1,4 +1,4 @@
--- Orders + inventory checkout transaction
+-- Orders checkout transaction (inventory already reserved on add-to-cart)
 create table if not exists public.order_items (
   id uuid primary key default gen_random_uuid(),
   order_id uuid not null references public.orders(id) on delete cascade,
@@ -35,9 +35,6 @@ declare
   v_qty integer;
   v_price numeric;
   v_name text;
-  v_status text;
-  v_preorder boolean;
-  v_inventory integer;
   v_items jsonb := '[]'::jsonb;
 begin
   if p_items is null or jsonb_typeof(p_items) <> 'array' then
@@ -53,8 +50,8 @@ begin
       raise exception 'Invalid item';
     end if;
 
-    select name, price, status, is_preorder, inventory
-      into v_name, v_price, v_status, v_preorder, v_inventory
+    select name, price
+      into v_name, v_price
     from public.products
     where id = v_id
     for update;
@@ -62,23 +59,6 @@ begin
     if not found then
       raise exception 'Product not found';
     end if;
-
-    if v_status = 'sold-out' then
-      raise exception 'Sold out';
-    end if;
-
-    if v_status = 'in-production' and v_preorder is not true then
-      raise exception 'Preorder closed';
-    end if;
-
-    if v_inventory < v_qty then
-      raise exception 'Insufficient stock';
-    end if;
-
-    update public.products
-    set inventory = inventory - v_qty,
-        status = case when inventory - v_qty <= 0 then 'sold-out' else status end
-    where id = v_id;
 
     v_total := v_total + (v_price * v_qty);
 
@@ -117,3 +97,54 @@ end;
 $$;
 
 grant execute on function public.create_order_with_items(text, text, text, jsonb) to anon, authenticated;
+
+-- Reserve inventory on add-to-cart (atomic)
+create or replace function public.reserve_product_inventory(p_product_id text, p_qty integer)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_status text;
+  v_preorder boolean;
+  v_inventory integer;
+  updated_count integer;
+begin
+  if p_qty is null or p_qty <= 0 then
+    return false;
+  end if;
+
+  select status, is_preorder, inventory
+    into v_status, v_preorder, v_inventory
+  from public.products
+  where id = p_product_id
+  for update;
+
+  if not found then
+    return false;
+  end if;
+
+  if v_status = 'sold-out' then
+    return false;
+  end if;
+
+  if v_status = 'in-production' and v_preorder is not true then
+    return false;
+  end if;
+
+  if v_inventory < p_qty then
+    return false;
+  end if;
+
+  update public.products
+  set inventory = inventory - p_qty,
+      status = case when inventory - p_qty <= 0 then 'sold-out' else status end
+  where id = p_product_id;
+
+  get diagnostics updated_count = row_count;
+  return updated_count = 1;
+end;
+$$;
+
+grant execute on function public.reserve_product_inventory(text, integer) to anon, authenticated;
