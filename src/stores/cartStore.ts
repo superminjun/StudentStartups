@@ -35,13 +35,14 @@ export const useCartStore = create<CartStore>()(
         const items = get().items;
         const existing = items.find((i) => i.productId === product.id);
         const nextQty = (existing?.quantity ?? 0) + 1;
-        const isSoldOut = product.status === 'sold-out' || product.inventory <= 0;
         const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
 
-        if (isSoldOut) return false;
-        if (product.status === 'in-production' && !isPreOrderOpen) return false;
-        if (nextQty > product.inventory && !isSupabaseConfigured) return false;
-        if (isSupabaseConfigured) {
+        if (!isSupabaseConfigured) {
+          const isSoldOut = product.status === 'sold-out' || product.inventory <= 0;
+          if (isSoldOut) return false;
+          if (product.status === 'in-production' && !isPreOrderOpen) return false;
+          if (nextQty > product.inventory) return false;
+        } else {
           const ok = await reserveInventory(product.id, 1);
           if (!ok) return false;
           useCMSStore.setState((state) => ({
@@ -55,6 +56,7 @@ export const useCartStore = create<CartStore>()(
               };
             }),
           }));
+          void useCMSStore.getState().hydrate();
         }
 
         if (existing) {
