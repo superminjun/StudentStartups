@@ -2,6 +2,10 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const missing = {
+  supabaseUrl: !supabaseUrl,
+  serviceRoleKey: !supabaseServiceKey,
+};
 
 const supabase = supabaseUrl && supabaseServiceKey
   ? createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false } })
@@ -14,7 +18,10 @@ export default async function handler(req: any, res: any) {
   }
 
   if (!supabase) {
-    return res.status(500).json({ error: 'Server not configured: missing SUPABASE_SERVICE_ROLE_KEY' });
+    return res.status(500).json({
+      error: 'Server not configured',
+      missing,
+    });
   }
 
   try {
