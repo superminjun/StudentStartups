@@ -27,6 +27,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('intro');
+  const [exploreOpen, setExploreOpen] = useState(false);
   const { lang, setLang, t } = useLanguage();
   const location = useLocation();
   const cartItems = useCartStore((s) => s.items);
@@ -161,24 +162,44 @@ export default function Navbar() {
             })}
 
             {isHome && (
-              <div className="relative group">
+              <div
+                className="relative"
+                onMouseEnter={() => setExploreOpen(true)}
+                onMouseLeave={() => setExploreOpen(false)}
+              >
                 <button
                   type="button"
-                  className="relative px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => setExploreOpen((prev) => !prev)}
+                  className={cn(
+                    'relative px-3 py-2 text-sm font-medium transition-colors',
+                    exploreOpen ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                  )}
+                  aria-expanded={exploreOpen}
+                  aria-haspopup="menu"
                 >
                   {t('nav.explore')}
                 </button>
-                <div className="pointer-events-none absolute left-0 top-full mt-2 min-w-[180px] rounded-xl border border-border bg-card/95 p-2 shadow-lg backdrop-blur-xl opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100">
-                  {siteLinks.map((link) => (
-                    <Link
-                      key={link.path}
-                      to={link.path}
-                      className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                <AnimatePresence>
+                  {exploreOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                      transition={{ duration: 0.18, ease: 'easeOut' }}
+                      className="absolute left-0 top-full mt-2 min-w-[180px] rounded-xl border border-border bg-card/95 p-2 shadow-lg backdrop-blur-xl"
                     >
-                      {t(link.key)}
-                    </Link>
-                  ))}
-                </div>
+                      {siteLinks.map((link) => (
+                        <Link
+                          key={link.path}
+                          to={link.path}
+                          className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                        >
+                          {t(link.key)}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )}
           </div>
