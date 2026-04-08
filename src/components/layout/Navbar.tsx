@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Globe, ShoppingBag } from 'lucide-react';
+import { Menu, X, Globe, ShoppingBag, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCartStore } from '@/stores/cartStore';
 import { cn } from '@/lib/utils';
@@ -28,6 +28,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('intro');
   const [exploreOpen, setExploreOpen] = useState(false);
+  const [mobileExploreOpen, setMobileExploreOpen] = useState(false);
   const { lang, setLang, t } = useLanguage();
   const location = useLocation();
   const cartItems = useCartStore((s) => s.items);
@@ -40,7 +41,10 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+  useEffect(() => {
+    setMobileOpen(false);
+    setMobileExploreOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (location.pathname !== '/') return;
@@ -301,6 +305,43 @@ export default function Navbar() {
                   )}
                 </motion.div>
               ))}
+
+              {isHome && (
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setMobileExploreOpen((prev) => !prev)}
+                    className="flex w-full items-center justify-between py-3 text-left text-base font-medium text-foreground border-b border-border"
+                  >
+                    {t('nav.explore')}
+                    <ChevronDown className={cn('size-4 transition-transform', mobileExploreOpen && 'rotate-180')} />
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {mobileExploreOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="flex flex-col gap-1 py-2">
+                          {siteLinks.map((link) => (
+                            <Link
+                              key={link.path}
+                              to={link.path}
+                              className="rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                            >
+                              {t(link.key)}
+                            </Link>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+
               <Link
                 to={authTarget}
                 className="mt-4 inline-block rounded-full bg-foreground px-6 py-2.5 text-center text-sm font-medium text-background"
