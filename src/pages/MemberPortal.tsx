@@ -55,6 +55,13 @@ export default function MemberPortal() {
   const [loading, setLoading] = useState(true);
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member';
 
+  const formatMeetingDate = (date: string) => {
+    if (!date) return '—';
+    const local = new Date(`${date}T00:00:00`);
+    if (Number.isNaN(local.getTime())) return date;
+    return local.toLocaleDateString();
+  };
+
   useEffect(() => {
     setEditName(displayName);
   }, [displayName]);
@@ -85,6 +92,7 @@ export default function MemberPortal() {
             role: 'Member',
             team: 'Unassigned',
             contributions: 0,
+            is_verified: true,
           })
           .select('*')
           .single();
@@ -336,7 +344,7 @@ export default function MemberPortal() {
                   ) : (
                     meetings.map((meeting) => (
                       <div key={meeting.id} className="grid grid-cols-12 gap-4 border-b border-border px-5 py-3.5 last:border-b-0">
-                        <span className="col-span-3 text-sm text-foreground tabular-nums">{meeting.date || '—'}</span>
+                        <span className="col-span-3 text-sm text-foreground tabular-nums">{formatMeetingDate(meeting.date)}</span>
                         <span className="col-span-2 flex items-center gap-1.5 text-sm">
                           {meeting.status === 'present' ? (
                           <><CheckCircle className="size-3.5 text-emerald-500" /> <span className="text-emerald-600">{t('portal.present')}</span></>

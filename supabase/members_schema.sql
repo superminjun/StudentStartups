@@ -10,6 +10,7 @@ create table if not exists public.members (
   role text not null default 'Member',
   team text not null default 'Unassigned',
   contributions integer not null default 0,
+  is_verified boolean not null default false,
   join_date date not null default current_date,
   created_at timestamptz default now()
 );

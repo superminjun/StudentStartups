@@ -159,6 +159,28 @@ export default function Navbar() {
                 )
               );
             })}
+
+            {isHome && (
+              <div className="relative group">
+                <button
+                  type="button"
+                  className="relative px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {t('nav.explore')}
+                </button>
+                <div className="pointer-events-none absolute left-0 top-full mt-2 min-w-[180px] rounded-xl border border-border bg-card/95 p-2 shadow-lg backdrop-blur-xl opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:opacity-100">
+                  {siteLinks.map((link) => (
+                    <Link
+                      key={link.path}
+                      to={link.path}
+                      className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                    >
+                      {t(link.key)}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2">

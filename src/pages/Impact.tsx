@@ -91,6 +91,8 @@ export default function Impact() {
   const memberGrowth = useCMSStore((s) => s.memberGrowthData);
   const projects = useCMSStore((s) => s.projects);
 
+  const getChartWidth = (count: number, base = 560, per = 90) => Math.max(base, count * per);
+
   const fallbackDonations = projects
     .map((project) => ({ name: project.name, value: project.donation }))
     .filter((row) => row.name);
@@ -107,10 +109,22 @@ export default function Impact() {
     suffix: metric.suffix,
   }));
 
-  const stageDistribution = [1, 2, 3, 4, 5, 6, 7].map((s) => ({
-    stage: `Stage ${s}`,
-    count: projects.filter((p) => p.stage === s).length,
-  }));
+  const categoryCounts = projects.reduce<Record<string, number>>((acc, project) => {
+    const key = project.category?.trim() || 'General';
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  const categoryEntries = Object.entries(categoryCounts)
+    .map(([category, count]) => ({ category, count }))
+    .sort((a, b) => b.count - a.count);
+
+  const categoryData = categoryEntries.length > 6
+    ? [
+        ...categoryEntries.slice(0, 5),
+        { category: 'Other', count: categoryEntries.slice(5).reduce((sum, item) => sum + item.count, 0) },
+      ]
+    : categoryEntries;
 
   return (
     <div>
@@ -153,23 +167,25 @@ export default function Impact() {
             <ScrollReveal>
               <div className="rounded-xl border border-border bg-card p-6">
                 <h3 className="text-lg font-semibold text-charcoal">{t('impact.revenueTitle')}</h3>
-                <div className="mt-5 h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={revenueChartData}>
-                      <defs>
-                        <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(var(--foreground))" stopOpacity={0.15} />
-                          <stop offset="95%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                      <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                      <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
-                      <Area type="monotone" dataKey="revenue" stroke="hsl(var(--foreground))" fill="url(#revGrad)" strokeWidth={2} />
-                      <Area type="monotone" dataKey="expenses" stroke="hsl(var(--accent))" fill="none" strokeWidth={1.5} strokeDasharray="5 5" />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                <div className="mt-5 overflow-x-auto">
+                  <div className="h-64" style={{ minWidth: getChartWidth(revenueChartData.length) }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={revenueChartData}>
+                        <defs>
+                          <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--foreground))" stopOpacity={0.15} />
+                            <stop offset="95%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} interval="preserveStartEnd" />
+                        <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                        <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
+                        <Area type="monotone" dataKey="revenue" stroke="hsl(var(--foreground))" fill="url(#revGrad)" strokeWidth={2} />
+                        <Area type="monotone" dataKey="expenses" stroke="hsl(var(--accent))" fill="none" strokeWidth={1.5} strokeDasharray="5 5" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
             </ScrollReveal>
@@ -178,8 +194,10 @@ export default function Impact() {
             <ScrollReveal delay={0.08}>
               <div className="rounded-xl border border-border bg-card p-6">
                 <h3 className="text-lg font-semibold text-charcoal">{t('impact.donationTitle')}</h3>
-                <div className="mt-5">
-                  <DonationBarChart data={donationChartData} emptyLabel={t('impact.noDonations')} />
+                <div className="mt-5 overflow-x-auto">
+                  <div style={{ minWidth: getChartWidth(donationChartData.length) }}>
+                    <DonationBarChart data={donationChartData} emptyLabel={t('impact.noDonations')} />
+                  </div>
                 </div>
               </div>
             </ScrollReveal>
@@ -188,16 +206,18 @@ export default function Impact() {
             <ScrollReveal>
               <div className="rounded-xl border border-border bg-card p-6">
                 <h3 className="text-lg font-semibold text-charcoal">{t('impact.memberTitle')}</h3>
-                <div className="mt-5 h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={memberGrowth}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                      <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                      <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
-                      <Line type="monotone" dataKey="members" stroke="hsl(var(--accent))" strokeWidth={2.5} dot={{ r: 3, fill: 'hsl(var(--accent))' }} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                <div className="mt-5 overflow-x-auto">
+                  <div className="h-64" style={{ minWidth: getChartWidth(memberGrowth.length) }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={memberGrowth}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} interval="preserveStartEnd" />
+                        <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                        <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
+                        <Line type="monotone" dataKey="members" stroke="hsl(var(--accent))" strokeWidth={2.5} dot={{ r: 3, fill: 'hsl(var(--accent))' }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
             </ScrollReveal>
@@ -206,20 +226,18 @@ export default function Impact() {
             <ScrollReveal delay={0.08}>
               <div className="rounded-xl border border-border bg-card p-6">
                 <h3 className="text-lg font-semibold text-charcoal">{t('impact.projectTitle')}</h3>
-                <div className="mt-5 h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={stageDistribution}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="stage" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                      <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} allowDecimals={false} />
-                      <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
-                      <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                        {stageDistribution.map((_, i) => (
-                          <Cell key={i} fill={i % 2 === 0 ? 'hsl(var(--foreground))' : 'hsl(var(--accent))'} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
+                <div className="mt-5 overflow-x-auto">
+                  <div style={{ minWidth: 520, height: Math.max(220, categoryData.length * 38) }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={categoryData} layout="vertical" margin={{ top: 0, right: 12, left: 8, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} allowDecimals={false} />
+                        <YAxis type="category" dataKey="category" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} width={120} />
+                        <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
+                        <Bar dataKey="count" radius={[0, 6, 6, 0]} fill="hsl(var(--foreground))" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
             </ScrollReveal>

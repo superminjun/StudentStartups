@@ -37,6 +37,10 @@ For admin member delete permissions, run:
 
 `supabase/patches_2026-04-01.sql`
 
+For verified members only (hide unconfirmed accounts in admin), run:
+
+`supabase/patches_2026-04-08_members.sql`
+
 For the new Projects/Shop/Impact CMS, run:
 
 `supabase/cms_schema.sql`
@@ -81,6 +85,29 @@ In Supabase → **Authentication → URL Configuration**:
 
 In Supabase → **Authentication → Providers → Email**:
 - Enable **Email OTP** (required for one-time access codes).
+
+### Email templates (high-end, OTP only)
+In Supabase → **Authentication → Email Templates**, update:
+
+**Confirm Signup** template:
+```html
+<div style="font-family:Inter,Helvetica,Arial,sans-serif;background:#f7f4f0;padding:24px;border-radius:16px;">
+  <h2 style="margin:0 0 8px;color:#1f1a17;">Confirm Your Student Startups Account</h2>
+  <p style="margin:0 0 16px;color:#5a514b;">Enter this 6-digit code in the app to finish creating your account:</p>
+  <div style="font-size:28px;letter-spacing:6px;font-weight:700;color:#1f1a17;">{{ .Token }}</div>
+  <p style="margin:16px 0 0;color:#7a6f67;font-size:12px;">This code expires soon. If you didn’t request it, you can ignore this email.</p>
+</div>
+```
+
+**Reset Password** template:
+```html
+<div style="font-family:Inter,Helvetica,Arial,sans-serif;background:#f7f4f0;padding:24px;border-radius:16px;">
+  <h2 style="margin:0 0 8px;color:#1f1a17;">Reset Your Password</h2>
+  <p style="margin:0 0 16px;color:#5a514b;">Use this 6-digit code to continue your password reset:</p>
+  <div style="font-size:28px;letter-spacing:6px;font-weight:700;color:#1f1a17;">{{ .Token }}</div>
+  <p style="margin:16px 0 0;color:#7a6f67;font-size:12px;">If you didn’t request this, you can ignore this email.</p>
+</div>
+```
 
 ## 4) Enable realtime updates (once)
 In Supabase → Database → Replication:

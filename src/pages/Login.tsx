@@ -138,7 +138,7 @@ export default function Login() {
           return;
         }
 
-        const { error: verifyError } = await supabase.auth.verifyOtp({
+        const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
           email: pendingEmail || email,
           token: signupCode.trim(),
           type: 'email',
@@ -147,6 +147,19 @@ export default function Login() {
         if (verifyError) {
           setError(verifyError.message);
           return;
+        }
+
+        const verifiedUser = verifyData?.user ?? (await supabase.auth.getUser()).data.user;
+        if (verifiedUser) {
+          await supabase.from('members').upsert({
+            user_id: verifiedUser.id,
+            name: name || verifiedUser.user_metadata?.full_name || verifiedUser.email?.split('@')[0] || 'Member',
+            email: verifiedUser.email ?? email,
+            role: 'Member',
+            team: 'Unassigned',
+            contributions: 0,
+            is_verified: true,
+          }, { onConflict: 'user_id' });
         }
 
         navigate(redirectTo || '/portal', { replace: true });

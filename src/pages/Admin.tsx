@@ -22,6 +22,7 @@ type MemberRow = {
   team: string;
   contributions: number;
   join_date: string;
+  is_verified?: boolean;
 };
 
 type MemberRecord = MemberRow & {
@@ -118,6 +119,13 @@ export default function Admin() {
   const [memberNotice, setMemberNotice] = useState('');
   const [memberError, setMemberError] = useState('');
   const [memberDeleting, setMemberDeleting] = useState(false);
+
+  const formatMeetingDate = (date: string) => {
+    if (!date) return '—';
+    const local = new Date(`${date}T00:00:00`);
+    if (Number.isNaN(local.getTime())) return date;
+    return local.toLocaleDateString();
+  };
   const [memberRoleInput, setMemberRoleInput] = useState('');
   const [memberTeamInput, setMemberTeamInput] = useState('');
   const [contributions, setContributions] = useState<ContributionRow[]>([]);
@@ -135,6 +143,10 @@ export default function Admin() {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const activeMember = members.find((m) => m.id === selectedMember);
+  const memberOptions = useMemo(
+    () => members.map((m) => ({ id: m.id, label: m.name || m.email })),
+    [members]
+  );
   const cmsProjects = useCMSStore((s) => s.projects);
   const cmsProducts = useCMSStore((s) => s.products);
   const cmsImpactMetrics = useCMSStore((s) => s.impactMetrics);
@@ -232,6 +244,7 @@ export default function Admin() {
     const { data: memberRows } = await supabase
       .from('members')
       .select('*')
+      .eq('is_verified', true)
       .order('created_at', { ascending: false });
 
     const { data: attendanceRows } = await supabase
@@ -1336,7 +1349,7 @@ export default function Admin() {
                   {meetings.map((meeting) => (
                     <div key={meeting.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
                       <span className="text-sm text-charcoal">
-                        {meeting.meeting_date ? new Date(meeting.meeting_date).toLocaleDateString() : '—'}
+                        {formatMeetingDate(meeting.meeting_date)}
                       </span>
                       <button
                         onClick={() => handleDeleteMeeting(meeting.id)}
@@ -1449,7 +1462,7 @@ export default function Admin() {
                 memberMeetings.map((meeting) => {
                   return (
                     <div key={meeting.attendanceId} className="grid grid-cols-12 gap-3 px-5 py-3 border-b border-border last:border-0 items-start">
-                      <span className="col-span-3 text-sm text-charcoal tabular-nums pt-2">{meeting.date || '—'}</span>
+                      <span className="col-span-3 text-sm text-charcoal tabular-nums pt-2">{formatMeetingDate(meeting.date)}</span>
                       <div className="col-span-2 pt-2">
                         <button onClick={() => toggleAttendance(meeting.attendanceId, meeting.status)} className="flex items-center gap-1 text-sm">
                           {meeting.status === 'present' ? (
@@ -1839,17 +1852,35 @@ export default function Admin() {
                           placeholder="Role (Marketing)"
                           className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                         />
-                        <input
-                          type="text"
-                          value={team.members.join(', ')}
-                          onChange={(e) => {
-                            const members = e.target.value.split(',').map((m) => m.trim()).filter(Boolean);
-                            const nextTeam = project.team.map((t, i) => i === index ? { ...t, members } : t);
-                            updateProjectDraft(project.id, { team: nextTeam });
-                          }}
-                          placeholder="Members (comma separated)"
-                          className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
-                        />
+                        <div className="rounded-lg border border-border px-3 py-2">
+                          {memberOptions.length === 0 ? (
+                            <p className="text-xs text-light">No members available yet.</p>
+                          ) : (
+                            <div className="flex flex-wrap gap-2">
+                              {memberOptions.map((member) => {
+                                const selected = team.members.includes(member.label);
+                                return (
+                                  <button
+                                    key={member.id}
+                                    type="button"
+                                    onClick={() => {
+                                      const nextMembers = selected
+                                        ? team.members.filter((m) => m !== member.label)
+                                        : [...team.members, member.label];
+                                      const nextTeam = project.team.map((t, i) => i === index ? { ...t, members: nextMembers } : t);
+                                      updateProjectDraft(project.id, { team: nextTeam });
+                                    }}
+                                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                                      selected ? 'bg-charcoal text-white' : 'bg-muted text-foreground hover:bg-muted/70'
+                                    }`}
+                                  >
+                                    {member.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
                         <button
                           onClick={() => {
                             const nextTeam = project.team.filter((_, i) => i !== index);

@@ -7,6 +7,7 @@ export const translations = {
       process: 'Process',
       proof: 'Proof',
       cta: 'Get Started',
+      explore: 'Explore',
       about: 'About',
       projects: 'Projects',
       impact: 'Impact',
@@ -136,7 +137,7 @@ export const translations = {
       donationTitle: 'Donations by Project',
       noDonations: 'No donation data yet.',
       memberTitle: 'Member Growth',
-      projectTitle: 'Projects by Stage',
+      projectTitle: 'Projects by Category',
     },
     shop: {
       title: 'Shop',
@@ -315,6 +316,7 @@ export const translations = {
       process: '프로세스',
       proof: '성과',
       cta: '시작하기',
+      explore: '둘러보기',
       about: '소개',
       projects: '프로젝트',
       impact: '임팩트',
@@ -444,7 +446,7 @@ export const translations = {
       donationTitle: '프로젝트별 기부',
       noDonations: '아직 기부 데이터가 없습니다.',
       memberTitle: '멤버 성장',
-      projectTitle: '단계별 프로젝트',
+      projectTitle: '카테고리별 프로젝트',
     },
     shop: {
       title: 'Shop',
