@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Globe, ShoppingBag, ChevronDown } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -31,6 +31,7 @@ export default function Navbar() {
   const [mobileExploreOpen, setMobileExploreOpen] = useState(false);
   const { lang, setLang, t } = useLanguage();
   const location = useLocation();
+  const navigate = useNavigate();
   const cartItems = useCartStore((s) => s.items);
   const cartCount = cartItems.reduce((sum, i) => sum + i.quantity, 0);
   const { user, isAdmin } = useAuth();
@@ -45,6 +46,12 @@ export default function Navbar() {
     setMobileOpen(false);
     setMobileExploreOpen(false);
   }, [location.pathname]);
+
+  const handleSectionClick = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   useEffect(() => {
     if (location.pathname !== '/') return;
@@ -90,6 +97,14 @@ export default function Navbar() {
     };
   }, [location.pathname]);
 
+  useEffect(() => {
+    if (location.pathname !== '/') return;
+    const shouldScrollIntro = sessionStorage.getItem('scrollToIntro');
+    if (!shouldScrollIntro) return;
+    sessionStorage.removeItem('scrollToIntro');
+    requestAnimationFrame(() => handleSectionClick('intro'));
+  }, [location.pathname]);
+
   const authTarget = isAdmin ? '/admin' : user ? '/portal' : '/login';
   const authLabel = isAdmin ? t('nav.admin') : user ? t('nav.portal') : t('nav.login');
 
@@ -98,10 +113,13 @@ export default function Navbar() {
   const isHome = location.pathname === '/';
   const navLinks = isHome ? homeSections : siteLinks;
 
-  const handleSectionClick = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const handleBrandClick = () => {
+    if (isHome) {
+      handleSectionClick('intro');
+      return;
+    }
+    sessionStorage.setItem('scrollToIntro', '1');
+    navigate('/');
   };
 
   return (
@@ -112,9 +130,14 @@ export default function Navbar() {
         elevated ? 'shadow-sm' : 'shadow-none'
       )}>
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Link to="/" className={cn('text-lg font-semibold tracking-tight transition-colors', solid ? 'text-foreground' : 'text-white')}>
+          <button
+            type="button"
+            onClick={handleBrandClick}
+            className={cn('text-lg font-semibold tracking-tight transition-colors', solid ? 'text-foreground' : 'text-white')}
+            aria-label="Go to overview"
+          >
             Student Startups
-          </Link>
+          </button>
 
           <div className="hidden items-center gap-1 lg:flex">
             {navLinks.map((link) => {
@@ -186,21 +209,23 @@ export default function Navbar() {
                 <AnimatePresence>
                   {exploreOpen && (
                     <motion.div
-                      initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                      transition={{ duration: 0.18, ease: 'easeOut' }}
-                      className="absolute left-0 top-full mt-2 min-w-[180px] rounded-xl border border-border bg-card/95 p-2 shadow-lg backdrop-blur-xl"
+                      initial={{ opacity: 0, y: -8, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: 'auto' }}
+                      exit={{ opacity: 0, y: -6, height: 0 }}
+                      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                      className="absolute left-0 top-full mt-2 min-w-[190px] overflow-hidden rounded-xl border border-border bg-card/95 shadow-lg backdrop-blur-xl"
                     >
-                      {siteLinks.map((link) => (
-                        <Link
-                          key={link.path}
-                          to={link.path}
-                          className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                        >
-                          {t(link.key)}
-                        </Link>
-                      ))}
+                      <div className="p-2">
+                        {siteLinks.map((link) => (
+                          <Link
+                            key={link.path}
+                            to={link.path}
+                            className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                          >
+                            {t(link.key)}
+                          </Link>
+                        ))}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
