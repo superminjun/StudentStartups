@@ -65,49 +65,69 @@ const releaseInventory = async (productId: string, qty: number) => {
   return response.ok;
 };
 
+const applyCartDelta = (set: (fn: (state: { items: CartItem[] }) => { items: CartItem[] }) => void, productId: string, delta: number) => {
+  set((state) => {
+    const existing = state.items.find((i) => i.productId === productId);
+    if (!existing && delta <= 0) return { items: state.items };
+    if (!existing) {
+      return { items: [...state.items, { productId, quantity: delta }] };
+    }
+    const nextQty = existing.quantity + delta;
+    if (nextQty <= 0) {
+      return { items: state.items.filter((i) => i.productId !== productId) };
+    }
+    return {
+      items: state.items.map((i) =>
+        i.productId === productId ? { ...i, quantity: nextQty } : i
+      ),
+    };
+  });
+};
+
+const applyInventoryDelta = (product: Product, delta: number) => {
+  useCMSStore.setState((state) => ({
+    products: state.products.map((p) => {
+      if (p.id !== product.id) return p;
+      const nextInventory = Math.max(p.inventory + delta, 0);
+      return {
+        ...p,
+        inventory: nextInventory,
+        status: nextInventory <= 0 ? 'sold-out' : p.status,
+      };
+    }),
+  }));
+};
+
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
       addItem: async (product) => {
+        const items = get().items;
+        const existing = items.find((i) => i.productId === product.id);
+        const nextQty = (existing?.quantity ?? 0) + 1;
+        const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
+
+        if (!isSupabaseConfigured) {
+          const isSoldOut = product.status === 'sold-out' || product.inventory <= 0;
+          if (isSoldOut) return false;
+          if (product.status === 'in-production' && !isPreOrderOpen) return false;
+          if (nextQty > product.inventory) return false;
+          applyCartDelta(set, product.id, 1);
+          return true;
+        }
+
+        // Optimistic UI update first for smoothness
+        applyCartDelta(set, product.id, 1);
+        applyInventoryDelta(product, -1);
+
         return enqueueReservation(product.id, async () => {
-          const items = get().items;
-          const existing = items.find((i) => i.productId === product.id);
-          const nextQty = (existing?.quantity ?? 0) + 1;
-          const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
-
-          if (!isSupabaseConfigured) {
-            const isSoldOut = product.status === 'sold-out' || product.inventory <= 0;
-            if (isSoldOut) return false;
-            if (product.status === 'in-production' && !isPreOrderOpen) return false;
-            if (nextQty > product.inventory) return false;
-          } else {
-            const ok = await reserveInventory(product.id, 1);
-            if (!ok) return false;
-            useCMSStore.setState((state) => ({
-              products: state.products.map((p) => {
-                if (p.id !== product.id) return p;
-                const nextInventory = Math.max(p.inventory - 1, 0);
-                return {
-                  ...p,
-                  inventory: nextInventory,
-                  status: nextInventory <= 0 ? 'sold-out' : p.status,
-                };
-              }),
-            }));
-            void useCMSStore.getState().hydrate();
-          }
-
-          if (existing) {
-            set({
-              items: items.map((i) =>
-                i.productId === product.id
-                  ? { ...i, quantity: i.quantity + 1 }
-                  : i
-              ),
-            });
-          } else {
-            set({ items: [...items, { productId: product.id, quantity: 1 }] });
+          const ok = await reserveInventory(product.id, 1);
+          if (!ok) {
+            // rollback
+            applyCartDelta(set, product.id, -1);
+            applyInventoryDelta(product, 1);
+            return false;
           }
           return true;
         });
@@ -118,28 +138,13 @@ export const useCartStore = create<CartStore>()(
         if (!existing) return;
         if (isSupabaseConfigured) {
           await releaseInventory(product.id, 1);
-          useCMSStore.setState((state) => ({
-            products: state.products.map((p) => {
-              if (p.id !== product.id) return p;
-              const nextInventory = p.inventory + 1;
-              return {
-                ...p,
-                inventory: nextInventory,
-                status: p.status === 'sold-out' && nextInventory > 0 ? 'available' : p.status,
-              };
-            }),
-          }));
-          void useCMSStore.getState().hydrate();
+          applyInventoryDelta(product, 1);
         }
         if (existing.quantity <= 1) {
-          set({ items: items.filter((i) => i.productId !== product.id) });
+          applyCartDelta(set, product.id, -1);
           return;
         }
-        set({
-          items: items.map((i) =>
-            i.productId === product.id ? { ...i, quantity: i.quantity - 1 } : i
-          ),
-        });
+        applyCartDelta(set, product.id, -1);
       },
       removeItem: async (product) => {
         const items = get().items;
@@ -147,27 +152,19 @@ export const useCartStore = create<CartStore>()(
         if (!existing) return;
         if (isSupabaseConfigured) {
           await releaseInventory(product.id, existing.quantity);
-          useCMSStore.setState((state) => ({
-            products: state.products.map((p) => {
-              if (p.id !== product.id) return p;
-              const nextInventory = p.inventory + existing.quantity;
-              return {
-                ...p,
-                inventory: nextInventory,
-                status: p.status === 'sold-out' && nextInventory > 0 ? 'available' : p.status,
-              };
-            }),
-          }));
-          void useCMSStore.getState().hydrate();
+          applyInventoryDelta(product, existing.quantity);
         }
-        set({ items: items.filter((i) => i.productId !== product.id) });
+        applyCartDelta(set, product.id, -existing.quantity);
       },
       clearCart: async (options) => {
         const { release = true } = options ?? {};
         if (release && isSupabaseConfigured) {
           const items = get().items;
           await Promise.all(items.map((item) => releaseInventory(item.productId, item.quantity)));
-          void useCMSStore.getState().hydrate();
+          items.forEach((item) => {
+            const product = useCMSStore.getState().products.find((p) => p.id === item.productId);
+            if (product) applyInventoryDelta(product, item.quantity);
+          });
         }
         set({ items: [] });
       },
