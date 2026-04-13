@@ -44,6 +44,7 @@ export default function ProductDetailPage() {
   };
 
   const allImages = Array.from(new Set([product.image, ...(product.images ?? [])].filter(Boolean)));
+  const hasImages = allImages.length > 0;
   const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
 
   const statusLabel = isSoldOut ? t('shop.soldOut')
@@ -69,15 +70,21 @@ export default function ProductDetailPage() {
             {/* Images */}
             <div>
               <div className="overflow-hidden rounded-xl bg-card border border-border">
-                <img
-                  src={allImages[activeImg]}
-                  alt={product.name}
-                  loading="lazy"
-                  decoding="async"
-                  className="aspect-square w-full object-cover"
-                />
+                {hasImages ? (
+                  <img
+                    src={allImages[activeImg]}
+                    alt={product.name}
+                    loading="lazy"
+                    decoding="async"
+                    className="aspect-square w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex aspect-square w-full items-center justify-center bg-muted/60 px-6 text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    {t('common.comingSoon')}
+                  </div>
+                )}
               </div>
-              {allImages.length > 1 && (
+              {hasImages && allImages.length > 1 && (
                 <div className="mt-3 flex gap-2">
                   {allImages.map((img, i) => (
                     <button

@@ -25,6 +25,7 @@ export default function ProductCard({ product }: { product: Product }) {
     const list = [product.image, ...(product.images ?? [])].filter(Boolean);
     return Array.from(new Set(list));
   }, [product.image, product.images]);
+  const hasImages = images.length > 0;
 
   const startHoverCycle = () => {
     if (images.length <= 1 || intervalRef.current) return;
@@ -98,21 +99,27 @@ export default function ProductCard({ product }: { product: Product }) {
         onMouseLeave={stopHoverCycle}
       >
         <div className="relative aspect-square overflow-hidden bg-muted">
-          <div
-            className="flex h-full w-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
-            style={{ transform: `translate3d(-${activeImage * 100}%, 0, 0)` }}
-          >
-            {images.map((img) => (
-              <img
-                key={img}
-                src={img}
-                alt={product.name}
-                loading="lazy"
-                decoding="async"
-                className="h-full w-full flex-shrink-0 object-cover"
-              />
-            ))}
-          </div>
+          {hasImages ? (
+            <div
+              className="flex h-full w-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
+              style={{ transform: `translate3d(-${activeImage * 100}%, 0, 0)` }}
+            >
+              {images.map((img) => (
+                <img
+                  key={img}
+                  src={img}
+                  alt={product.name}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full flex-shrink-0 object-cover"
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-muted/60 px-6 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              {t('common.comingSoon')}
+            </div>
+          )}
           {statusLabel && (
             <span className="absolute left-3 top-3 rounded-full bg-foreground px-2.5 py-1 text-[10px] font-semibold text-background">
               {statusLabel}
@@ -136,7 +143,7 @@ export default function ProductCard({ product }: { product: Product }) {
           {isSoldOut && (
             <div className="absolute inset-0 bg-black/30" />
           )}
-          {images.length > 1 && (
+          {hasImages && images.length > 1 && (
             <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center gap-1.5">
               {images.map((img, index) => (
                 <button

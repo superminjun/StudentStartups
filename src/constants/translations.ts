@@ -306,6 +306,7 @@ export const translations = {
       loading: 'Loading...',
       startedOn: 'Started',
       category: 'Category',
+      comingSoon: 'Image coming soon',
     },
   },
   ko: {
@@ -615,6 +616,7 @@ export const translations = {
       loading: '로딩 중...',
       startedOn: '시작일',
       category: '카테고리',
+      comingSoon: '이미지 준비 중',
     },
   },
 } as const;

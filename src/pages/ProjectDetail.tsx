@@ -20,6 +20,10 @@ export default function ProjectDetail() {
   const project = projects.find((p) => p.id === id);
   const stageLabels = lang === 'en' ? STAGE_LABELS_EN : STAGE_LABELS_KO;
   const bannerImage = project?.bannerImage || project?.image;
+  const hasBanner = Boolean(bannerImage);
+  const titleText = hasBanner ? 'text-white' : 'text-charcoal';
+  const metaText = hasBanner ? 'text-white/40' : 'text-mid';
+  const backText = hasBanner ? 'text-white/50 hover:text-white' : 'text-mid hover:text-charcoal';
 
   if (!project) {
     return (
@@ -42,23 +46,31 @@ export default function ProjectDetail() {
   return (
     <div>
       <section className="relative h-[40vh] min-h-[320px] overflow-hidden">
-        <img
-          src={bannerImage}
-          alt={project.name}
-          loading="lazy"
-          decoding="async"
-          className="size-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+        {hasBanner ? (
+          <>
+            <img
+              src={bannerImage}
+              alt={project.name}
+              loading="lazy"
+              decoding="async"
+              className="size-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+          </>
+        ) : (
+          <div className="flex size-full items-center justify-center bg-muted/60 px-6 text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            {t('common.comingSoon')}
+          </div>
+        )}
         <div className="absolute bottom-0 left-0 right-0 p-8 lg:p-12">
           <div className="mx-auto max-w-6xl">
-            <Link to="/projects" className="mb-3 inline-flex items-center text-sm text-white/50 hover:text-white transition-colors">
+            <Link to="/projects" className={`mb-3 inline-flex items-center text-sm transition-colors ${backText}`}>
               {t('projectDetail.back')}
             </Link>
             <motion.h1
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-2xl font-bold text-white sm:text-3xl lg:text-4xl"
+              className={`text-2xl font-bold sm:text-3xl lg:text-4xl ${titleText}`}
             >
               {project.name}
             </motion.h1>
@@ -66,10 +78,10 @@ export default function ProjectDetail() {
               <span className={`rounded-full border px-3 py-1 text-xs font-medium ${STAGE_COLORS[project.stage]}`}>
                 {stageLabels[project.stage]}
               </span>
-              <span className="flex items-center gap-1 text-sm text-white/40">
+              <span className={`flex items-center gap-1 text-sm ${metaText}`}>
                 <Calendar className="size-3.5" /> {project.startDate}
               </span>
-              <span className="flex items-center gap-1 text-sm text-white/40">
+              <span className={`flex items-center gap-1 text-sm ${metaText}`}>
                 <Tag className="size-3.5" /> {project.category}
               </span>
             </div>

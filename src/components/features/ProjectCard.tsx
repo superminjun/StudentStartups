@@ -8,6 +8,7 @@ import type { Project } from '@/types';
 export default function ProjectCard({ project }: { project: Project }) {
   const { lang, t } = useLanguage();
   const stageLabel = lang === 'en' ? (STAGE_LABELS_EN[project.stage] || project.stageName) : (STAGE_LABELS_KO[project.stage] || project.stageName);
+  const hasImage = Boolean(project.image);
 
   return (
     <Link to={`/projects/${project.id}`}>
@@ -17,13 +18,19 @@ export default function ProjectCard({ project }: { project: Project }) {
         className="group card card-hover overflow-hidden"
       >
         <div className="relative aspect-[4/3] overflow-hidden">
-          <img
-            src={project.image}
-            alt={project.name}
-            loading="lazy"
-            decoding="async"
-            className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          {hasImage ? (
+            <img
+              src={project.image}
+              alt={project.name}
+              loading="lazy"
+              decoding="async"
+              className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex size-full items-center justify-center bg-muted/60 px-6 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              {t('common.comingSoon')}
+            </div>
+          )}
           <span className={`absolute left-3 top-3 rounded-full border px-2.5 py-1 text-xs font-medium ${STAGE_COLORS[project.stage] || ''}`}>
             {stageLabel}
           </span>
