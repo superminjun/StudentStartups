@@ -1629,6 +1629,9 @@ export default function Admin() {
                 : uploadState === 'done'
                   ? 'Upload complete. Click Save.'
                   : uploadMessage ?? 'Upload failed';
+              const selectedMembers = Array.from(
+                new Set(project.team.flatMap((team) => team.members || []))
+              );
 
               const projectCard = (
                 <div key={project.id} className="rounded-xl border border-border bg-card p-5 space-y-4">
@@ -1741,23 +1744,38 @@ export default function Admin() {
                       />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="text-xs font-semibold text-mid">Term</label>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {termOptions.map((term) => (
-                          <button
-                            key={`${project.id}-${term}`}
-                            type="button"
-                            onClick={() => updateProjectDraft(project.id, { term })}
-                            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all ${
-                              project.term === term
-                                ? 'bg-charcoal text-white'
-                                : 'bg-card text-mid border border-border hover:text-charcoal'
-                            }`}
-                          >
-                            {term}
-                          </button>
-                        ))}
+                      <label className="text-xs font-semibold text-mid">Participants</label>
+                      <div className="mt-2 rounded-lg border border-border px-3 py-2">
+                        {memberOptions.length === 0 ? (
+                          <p className="text-xs text-light">No members available yet.</p>
+                        ) : (
+                          <div className="flex flex-wrap gap-2">
+                            {memberOptions.map((member) => {
+                              const selected = selectedMembers.includes(member.label);
+                              return (
+                                <button
+                                  key={member.id}
+                                  type="button"
+                                  onClick={() => {
+                                    const nextMembers = selected
+                                      ? selectedMembers.filter((m) => m !== member.label)
+                                      : [...selectedMembers, member.label];
+                                    updateProjectDraft(project.id, {
+                                      team: nextMembers.length ? [{ role: 'Members', members: nextMembers }] : [],
+                                    });
+                                  }}
+                                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                                    selected ? 'bg-charcoal text-white' : 'bg-muted text-foreground hover:bg-muted/70'
+                                  }`}
+                                >
+                                  {member.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
+                      <p className="mt-2 text-xs text-light">Select members who participated in this project.</p>
                     </div>
                     <div>
                       <label className="text-xs font-semibold text-mid">Start Date</label>
@@ -1822,76 +1840,6 @@ export default function Admin() {
                         rows={3}
                       />
                     </div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-charcoal">Team</p>
-                    <button
-                      onClick={() => {
-                        const nextTeam = [...project.team, { role: '', members: [] }];
-                        updateProjectDraft(project.id, { team: nextTeam });
-                      }}
-                      className="text-xs text-mid hover:text-charcoal"
-                    >
-                      + Add Role
-                    </button>
-                  </div>
-                  <div className="mt-3 space-y-2">
-                    {project.team.length === 0 && <p className="text-xs text-light">No team roles yet.</p>}
-                    {project.team.map((team, index) => (
-                      <div key={`${project.id}-team-${index}`} className="grid gap-2 sm:grid-cols-[1fr,2fr,auto]">
-                        <input
-                          type="text"
-                          value={team.role}
-                          onChange={(e) => {
-                            const nextTeam = project.team.map((t, i) => i === index ? { ...t, role: e.target.value } : t);
-                            updateProjectDraft(project.id, { team: nextTeam });
-                          }}
-                          placeholder="Role (Marketing)"
-                          className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
-                        />
-                        <div className="rounded-lg border border-border px-3 py-2">
-                          {memberOptions.length === 0 ? (
-                            <p className="text-xs text-light">No members available yet.</p>
-                          ) : (
-                            <div className="flex flex-wrap gap-2">
-                              {memberOptions.map((member) => {
-                                const selected = team.members.includes(member.label);
-                                return (
-                                  <button
-                                    key={member.id}
-                                    type="button"
-                                    onClick={() => {
-                                      const nextMembers = selected
-                                        ? team.members.filter((m) => m !== member.label)
-                                        : [...team.members, member.label];
-                                      const nextTeam = project.team.map((t, i) => i === index ? { ...t, members: nextMembers } : t);
-                                      updateProjectDraft(project.id, { team: nextTeam });
-                                    }}
-                                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                                      selected ? 'bg-charcoal text-white' : 'bg-muted text-foreground hover:bg-muted/70'
-                                    }`}
-                                  >
-                                    {member.label}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => {
-                            const nextTeam = project.team.filter((_, i) => i !== index);
-                            updateProjectDraft(project.id, { team: nextTeam });
-                          }}
-                          className="text-xs text-red-500 hover:text-red-600"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
                   </div>
                 </div>
 
