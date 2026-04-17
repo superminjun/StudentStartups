@@ -11,6 +11,14 @@ import {
 
 const supabase = createPrivilegedSupabase();
 
+type FallbackProductRow = {
+  id: string;
+  name: string;
+  price: number;
+  inventory: number;
+  status: string | null;
+};
+
 const createFallbackOrder = async (
   buyerName: string,
   buyerEmail: string,
@@ -24,7 +32,7 @@ const createFallbackOrder = async (
   const productIds = items.map((item) => item.id);
   const { data: products, error: productsError } = await supabase
     .from('products')
-    .select('id,name,price')
+    .select('id,name,price,inventory,status')
     .in('id', productIds);
 
   if (productsError) {
@@ -32,13 +40,40 @@ const createFallbackOrder = async (
   }
 
   const productMap = new Map(
-    ((products as { id: string; name: string; price: number }[] | null) ?? []).map((product) => [product.id, product])
+    ((products as FallbackProductRow[] | null) ?? []).map((product) => [product.id, product])
   );
+
+  const inventoryRollbacks: Array<{
+    id: string;
+    previousInventory: number;
+    previousStatus: string | null;
+    qty: number;
+  }> = [];
+
+  const rollbackInventory = async () => {
+    await Promise.all(
+      inventoryRollbacks.map((entry) =>
+        supabase
+          .from('products')
+          .update({
+            inventory: entry.previousInventory,
+            status: entry.previousStatus,
+          })
+          .eq('id', entry.id)
+          .eq('inventory', Math.max(entry.previousInventory - entry.qty, 0))
+      )
+    );
+  };
 
   const orderItems = items.map((item) => {
     const product = productMap.get(item.id);
     if (!product) {
       throw new Error('Product not found');
+    }
+
+    const currentInventory = Number(product.inventory) || 0;
+    if (currentInventory < item.qty) {
+      throw new Error(`${product.name} is out of stock.`);
     }
 
     return {
@@ -51,24 +86,67 @@ const createFallbackOrder = async (
 
   const total = orderItems.reduce((sum, item) => sum + item.price * item.qty, 0);
 
-  const { data: insertedOrder, error: insertError } = await supabase
-    .from('orders')
-    .insert({
-      buyer_name: buyerName,
-      buyer_email: buyerEmail,
-      total,
-      delivery_note: deliveryNote || null,
-      items: orderItems,
-      status: 'pending',
-    })
-    .select('id')
-    .single();
+  try {
+    for (const item of orderItems) {
+      const product = productMap.get(item.id);
+      if (!product) {
+        throw new Error('Product not found');
+      }
 
-  if (insertError || !insertedOrder?.id) {
-    throw new Error(insertError?.message || 'Could not create order');
+      const previousInventory = Number(product.inventory) || 0;
+      const nextInventory = previousInventory - item.qty;
+      const previousStatus = product.status ?? 'available';
+      const nextStatus = nextInventory <= 0
+        ? 'sold-out'
+        : previousStatus === 'sold-out'
+          ? 'available'
+          : previousStatus;
+
+      const { data: updatedProduct, error: updateError } = await supabase
+        .from('products')
+        .update({
+          inventory: nextInventory,
+          status: nextStatus,
+        })
+        .eq('id', item.id)
+        .eq('inventory', previousInventory)
+        .select('id')
+        .maybeSingle();
+
+      if (updateError || !updatedProduct) {
+        throw new Error(`Could not update stock for ${product.name}. Please try again.`);
+      }
+
+      inventoryRollbacks.push({
+        id: item.id,
+        previousInventory,
+        previousStatus,
+        qty: item.qty,
+      });
+    }
+
+    const { data: insertedOrder, error: insertError } = await supabase
+      .from('orders')
+      .insert({
+        buyer_name: buyerName,
+        buyer_email: buyerEmail,
+        total,
+        delivery_note: deliveryNote || null,
+        items: orderItems,
+        status: 'pending',
+      })
+      .select('id')
+      .single();
+
+    if (insertError || !insertedOrder?.id) {
+      throw new Error(insertError?.message || 'Could not create order');
+    }
+
+    return insertedOrder.id as string;
+  } catch (error) {
+    await rollbackInventory();
+    throw error;
   }
-
-  return insertedOrder.id as string;
 };
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {

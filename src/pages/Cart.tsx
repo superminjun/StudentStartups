@@ -24,6 +24,7 @@ export default function Cart() {
   const { t } = useLanguage();
   const { items, removeItem, addItem, clearCart } = useCartStore();
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [buyerName, setBuyerName] = useState('');
   const [buyerEmail, setBuyerEmail] = useState('');
   const [deliveryNote, setDeliveryNote] = useState('');
@@ -58,8 +59,9 @@ export default function Cart() {
   };
 
   const handlePlaceOrder = async () => {
-    if (!buyerName.trim() || !buyerEmail.trim()) return;
+    if (!buyerName.trim() || !buyerEmail.trim() || isSubmitting) return;
     setOrderError('');
+    setIsSubmitting(true);
     const localId = typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
       : `${Date.now()}`;
@@ -73,8 +75,9 @@ export default function Cart() {
       date: new Date().toISOString(),
       status: 'pending' as const,
     };
-    if (isSupabaseConfigured && !isLocalDev) {
-      try {
+
+    try {
+      if (isSupabaseConfigured && !isLocalDev) {
         const response = await fetch('/api/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -88,76 +91,27 @@ export default function Cart() {
 
         const data = await response.json().catch(() => ({}));
         if (!response.ok || !data?.orderId) {
-          if (supabase) {
-            const { error } = await supabase.from('orders').insert({
-              id: order.id,
-              buyer_name: buyerName,
-              buyer_email: buyerEmail,
-              total,
-              delivery_note: deliveryNote,
-              items: order.items,
-              status: order.status,
-            });
-
-            if (error) {
-              saveOrderLocally(order);
-            }
-          } else {
-            saveOrderLocally(order);
-          }
+          throw new Error(
+            typeof data?.error === 'string' && data.error
+              ? data.error
+              : 'Checkout failed. Please try again.'
+          );
         }
-      } catch (fallbackError) {
-        if (supabase) {
-          const { error } = await supabase.from('orders').insert({
-            id: order.id,
-            buyer_name: buyerName,
-            buyer_email: buyerEmail,
-            total,
-            delivery_note: deliveryNote,
-            items: order.items,
-            status: order.status,
-          });
-
-          if (error) {
-            try {
-              saveOrderLocally(order);
-            } catch {
-              setOrderError(fallbackError instanceof Error ? fallbackError.message : 'Checkout failed. Please try again.');
-              return;
-            }
-          }
-        } else {
-          try {
-            saveOrderLocally(order);
-          } catch {
-            setOrderError(fallbackError instanceof Error ? fallbackError.message : 'Checkout failed. Please try again.');
-            return;
-          }
-        }
+      } else {
+        // Local preview mode keeps the old lightweight fallback so the UI is still testable
+        // even when the Vercel checkout API is not running.
+        saveOrderLocally(order);
       }
-    } else if (isSupabaseConfigured && supabase && isLocalDev) {
-      const { error } = await supabase.from('orders').insert({
-        id: order.id,
-        buyer_name: buyerName,
-        buyer_email: buyerEmail,
-        total,
-        delivery_note: deliveryNote,
-        items: order.items,
-        status: order.status,
-      });
-      if (error) {
-        try {
-          saveOrderLocally(order);
-        } catch {
-          setOrderError(error.message);
-          return;
-        }
-      }
-    } else {
-      saveOrderLocally(order);
+
+      await useCMSStore.getState().hydrate();
+      clearCart();
+      setOrderPlaced(true);
+    } catch (error) {
+      setOrderError(error instanceof Error ? error.message : 'Checkout failed. Please try again.');
+      return;
+    } finally {
+      setIsSubmitting(false);
     }
-    clearCart();
-    setOrderPlaced(true);
   };
 
   if (orderPlaced) {
@@ -268,10 +222,10 @@ export default function Cart() {
 
                 <button
                   onClick={handlePlaceOrder}
-                  disabled={!buyerName.trim() || !buyerEmail.trim()}
+                  disabled={!buyerName.trim() || !buyerEmail.trim() || isSubmitting}
                   className="mt-6 w-full rounded-full bg-charcoal py-3 text-sm font-semibold text-white transition-all hover:bg-[hsl(20,8%,28%)] disabled:opacity-40 active:scale-[0.98]"
                 >
-                  {t('shop.placeOrder')}
+                  {isSubmitting ? t('shop.processing') : t('shop.placeOrder')}
                 </button>
                 {orderError && <p className="mt-3 text-xs text-red-500">{orderError}</p>}
               </div>
