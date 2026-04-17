@@ -9,8 +9,6 @@ import {
   type ApiResponse,
 } from './_lib/server';
 
-const supabase = createPrivilegedSupabase();
-
 type FallbackProductRow = {
   id: string;
   name: string;
@@ -20,6 +18,7 @@ type FallbackProductRow = {
 };
 
 const createFallbackOrder = async (
+  supabase: Awaited<ReturnType<typeof createPrivilegedSupabase>>,
   buyerName: string,
   buyerEmail: string,
   deliveryNote: string,
@@ -155,6 +154,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const supabase = await createPrivilegedSupabase();
+
   if (!supabase) {
     return res.status(500).json({
       error: 'Server not configured',
@@ -202,7 +203,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
 
     if (!sessionId) {
-      const orderId = await createFallbackOrder(buyerName, buyerEmail, deliveryNote, normalizedItems);
+      const orderId = await createFallbackOrder(supabase, buyerName, buyerEmail, deliveryNote, normalizedItems);
       return res.status(200).json({ orderId });
     }
 
@@ -216,7 +217,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
     if (error) {
       if (error.message.toLowerCase().includes('reservation missing')) {
-        const orderId = await createFallbackOrder(buyerName, buyerEmail, deliveryNote, normalizedItems);
+        const orderId = await createFallbackOrder(supabase, buyerName, buyerEmail, deliveryNote, normalizedItems);
         return res.status(200).json({ orderId });
       }
       return res.status(400).json({ error: error.message });

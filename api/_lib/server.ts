@@ -1,5 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
-
 export type ApiRequest = {
   method?: string;
   body?: unknown;
@@ -28,9 +26,9 @@ export const serverConfig = {
 
 export const createPrivilegedSupabase = () => {
   if (!supabaseUrl || !supabaseServiceKey) return null;
-  return createClient(supabaseUrl, supabaseServiceKey, {
+  return import('@supabase/supabase-js').then(({ createClient }) => createClient(supabaseUrl, supabaseServiceKey, {
     auth: { persistSession: false },
-  });
+  }));
 };
 
 export const getRequestBody = (body: unknown): Record<string, unknown> => {

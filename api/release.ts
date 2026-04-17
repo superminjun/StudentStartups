@@ -7,13 +7,13 @@ import {
   type ApiResponse,
 } from './_lib/server';
 
-const supabase = createPrivilegedSupabase();
-
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  const supabase = await createPrivilegedSupabase();
 
   if (!supabase) {
     return res.status(500).json({ error: 'Server not configured' });

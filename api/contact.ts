@@ -9,7 +9,6 @@ import {
   type ApiResponse,
 } from './_lib/server';
 
-const supabase = createPrivilegedSupabase();
 const submissionWindowMs = 30_000;
 const recentSubmissions = new Map<string, number>();
 
@@ -18,6 +17,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  const supabase = await createPrivilegedSupabase();
 
   if (!supabase) {
     return res.status(500).json({
