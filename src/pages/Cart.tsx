@@ -89,7 +89,21 @@ export default function Cart() {
           }),
         });
 
-        const data = await response.json().catch(() => ({}));
+        const rawResponse = await response.text();
+        let data: Record<string, unknown> = {};
+
+        try {
+          data = rawResponse ? JSON.parse(rawResponse) as Record<string, unknown> : {};
+        } catch {
+          if (!response.ok) {
+            throw new Error('Checkout API returned an invalid response. Please redeploy the site and try again.');
+          }
+        }
+
+        if (response.ok && !data?.orderId) {
+          throw new Error('Checkout API returned an invalid response. Please redeploy the site and try again.');
+        }
+
         if (!response.ok || !data?.orderId) {
           throw new Error(
             typeof data?.error === 'string' && data.error
