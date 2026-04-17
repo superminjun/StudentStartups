@@ -154,19 +154,19 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const supabase = await createPrivilegedSupabase();
-
-  if (!supabase) {
-    return res.status(500).json({
-      error: 'Server not configured',
-      missing: {
-        supabaseUrl: !serverConfig.supabaseUrl,
-        serviceRoleKey: !serverConfig.serviceRoleKey,
-      },
-    });
-  }
-
   try {
+    const supabase = createPrivilegedSupabase();
+
+    if (!supabase) {
+      return res.status(500).json({
+        error: 'Server not configured',
+        missing: {
+          supabaseUrl: !serverConfig.supabaseUrl,
+          serviceRoleKey: !serverConfig.serviceRoleKey,
+        },
+      });
+    }
+
     const body = getRequestBody(req.body);
     const buyerName = readTrimmedText(body.buyerName, 120);
     const buyerEmail = readTrimmedText(body.buyerEmail, 160).toLowerCase();

@@ -13,13 +13,13 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const supabase = await createPrivilegedSupabase();
-
-  if (!supabase) {
-    return res.status(500).json({ error: 'Server not configured' });
-  }
-
   try {
+    const supabase = createPrivilegedSupabase();
+
+    if (!supabase) {
+      return res.status(500).json({ error: 'Server not configured' });
+    }
+
     const body = getRequestBody(req.body);
     const pId = readTrimmedText(body.productId, 128);
     const pQty = readPositiveInteger(body.qty);
