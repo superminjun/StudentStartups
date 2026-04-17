@@ -11,6 +11,66 @@ import {
 
 const supabase = createPrivilegedSupabase();
 
+const createFallbackOrder = async (
+  buyerName: string,
+  buyerEmail: string,
+  deliveryNote: string,
+  items: { id: string; qty: number }[]
+) => {
+  if (!supabase) {
+    throw new Error('Server not configured');
+  }
+
+  const productIds = items.map((item) => item.id);
+  const { data: products, error: productsError } = await supabase
+    .from('products')
+    .select('id,name,price')
+    .in('id', productIds);
+
+  if (productsError) {
+    throw new Error(productsError.message);
+  }
+
+  const productMap = new Map(
+    ((products as { id: string; name: string; price: number }[] | null) ?? []).map((product) => [product.id, product])
+  );
+
+  const orderItems = items.map((item) => {
+    const product = productMap.get(item.id);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    return {
+      id: product.id,
+      name: product.name,
+      qty: item.qty,
+      price: Number(product.price) || 0,
+    };
+  });
+
+  const total = orderItems.reduce((sum, item) => sum + item.price * item.qty, 0);
+
+  const { data: insertedOrder, error: insertError } = await supabase
+    .from('orders')
+    .insert({
+      buyer_name: buyerName,
+      buyer_email: buyerEmail,
+      total,
+      delivery_note: deliveryNote || null,
+      items: orderItems,
+      status: 'pending',
+    })
+    .select('id')
+    .single();
+
+  if (insertError || !insertedOrder?.id) {
+    throw new Error(insertError?.message || 'Could not create order');
+  }
+
+  return insertedOrder.id as string;
+};
+
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -35,7 +95,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     const sessionId = readTrimmedText(body.sessionId, 128);
     const rawItems = Array.isArray(body.items) ? body.items : [];
 
-    if (!buyerName || !buyerEmail || rawItems.length === 0 || !sessionId) {
+    if (!buyerName || !buyerEmail || rawItems.length === 0) {
       return res.status(400).json({ error: 'Invalid payload' });
     }
 
@@ -63,6 +123,11 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       return res.status(400).json({ error: 'Invalid items' });
     }
 
+    if (!sessionId) {
+      const orderId = await createFallbackOrder(buyerName, buyerEmail, deliveryNote, normalizedItems);
+      return res.status(200).json({ orderId });
+    }
+
     const { data, error } = await supabase.rpc('create_order_with_items', {
       p_buyer_name: buyerName,
       p_buyer_email: buyerEmail,
@@ -72,6 +137,10 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     });
 
     if (error) {
+      if (error.message.toLowerCase().includes('reservation missing')) {
+        const orderId = await createFallbackOrder(buyerName, buyerEmail, deliveryNote, normalizedItems);
+        return res.status(200).json({ orderId });
+      }
       return res.status(400).json({ error: error.message });
     }
 

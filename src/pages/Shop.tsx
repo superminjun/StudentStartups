@@ -1,35 +1,16 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCMSStore } from '@/stores/cmsStore';
 import { TERMS } from '@/constants/config';
-import { useSiteContentStore } from '@/stores/siteContentStore';
 import ProductCard from '@/components/features/ProductCard';
 import ScrollReveal from '@/components/features/ScrollReveal';
 
 export default function Shop() {
   const { t } = useLanguage();
-  const { content } = useSiteContentStore();
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeTerm, setActiveTerm] = useState('All');
   const products = useCMSStore((s) => s.products);
-
-  const parseTerms = (value: string) =>
-    value
-      .split(',')
-      .map((term) => term.trim())
-      .filter(Boolean);
-
-  const termOptions = useMemo(() => {
-    const parsed = parseTerms(content.shopTerms ?? '');
-    return parsed.length ? parsed : TERMS;
-  }, [content.shopTerms]);
-
-  useEffect(() => {
-    if (activeTerm !== 'All' && !termOptions.includes(activeTerm)) {
-      setActiveTerm('All');
-    }
-  }, [activeTerm, termOptions]);
 
   const categories = useMemo(() => {
     const cats = [...new Set(products.map((p) => p.category))].sort();
@@ -45,12 +26,12 @@ export default function Shop() {
 
   return (
     <div>
-      <section className="section bg-charcoal pt-32 lg:pt-40">
+      <section className="bg-charcoal pb-16 pt-32 lg:pb-24 lg:pt-40">
         <div className="mx-auto max-w-6xl px-6">
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-semibold tracking-tight text-white sm:text-4xl"
+            className="text-3xl font-bold tracking-tight text-white sm:text-4xl"
           >
             {t('shop.title')}
           </motion.h1>
@@ -58,31 +39,35 @@ export default function Shop() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="mt-3 max-w-xl text-base text-white/55"
+            className="mt-3 max-w-xl text-base text-white/50"
           >
             {t('shop.subtitle')}
           </motion.p>
         </div>
       </section>
 
-      <section className="section-tight bg-beige">
+      <section className="bg-beige py-10 lg:py-14">
         <div className="mx-auto max-w-6xl px-6">
           {/* Term filter */}
           <ScrollReveal>
             <div className="mb-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t('shop.termFilter')}</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-light">Term / Rotation</p>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setActiveTerm('All')}
-                  className={`btn btn-sm ${activeTerm === 'All' ? 'btn-primary' : 'btn-secondary'}`}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                    activeTerm === 'All' ? 'bg-charcoal text-white' : 'bg-white text-mid hover:text-charcoal border border-[hsl(30,12%,90%)]'
+                  }`}
                 >
                   {t('shop.allTerms')}
                 </button>
-                {termOptions.map((term) => (
+                {TERMS.map((term) => (
                   <button
                     key={term}
                     onClick={() => setActiveTerm(term)}
-                    className={`btn btn-sm ${activeTerm === term ? 'btn-primary' : 'btn-secondary'}`}
+                    className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                      activeTerm === term ? 'bg-charcoal text-white' : 'bg-white text-mid hover:text-charcoal border border-[hsl(30,12%,90%)]'
+                    }`}
                   >
                     {term}
                   </button>
@@ -98,7 +83,9 @@ export default function Shop() {
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`btn btn-sm ${activeCategory === cat ? 'btn-primary' : 'btn-secondary'}`}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                    activeCategory === cat ? 'bg-charcoal text-white' : 'bg-white text-mid hover:text-charcoal border border-[hsl(30,12%,90%)]'
+                  }`}
                 >
                   {cat === 'All' ? t('shop.allCategories') : cat}
                 </button>
@@ -108,7 +95,7 @@ export default function Shop() {
 
           {filtered.length === 0 ? (
             <div className="py-20 text-center">
-              <p className="text-base text-muted-foreground">{t('shop.noProducts')}</p>
+              <p className="text-base text-light">No products found.</p>
             </div>
           ) : (
             <motion.div

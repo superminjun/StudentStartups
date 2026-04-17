@@ -22,38 +22,32 @@ export default function ProductDetailPage() {
     return (
       <div className="flex min-h-screen items-center justify-center pt-16">
         <div className="text-center">
-          <p className="text-base text-light">{t('shop.productNotFound')}</p>
-          <Link to="/shop" className="mt-4 inline-block text-sm font-medium text-charcoal underline">{t('shop.backToShop')}</Link>
+          <p className="text-base text-light">Product not found.</p>
+          <Link to="/shop" className="mt-4 inline-block text-sm font-medium text-charcoal underline">Back to Shop</Link>
         </div>
       </div>
     );
   }
 
-  const cartQty = cartItems.find((i) => i.productId === product.id)?.quantity ?? 0;
-  const availableStock = Math.max(product.inventory, 0);
-  const isPreOrderOpen = product.status === 'in-production' && product.isPreOrder;
-  const isSoldOut = product.status === 'sold-out' || availableStock <= 0;
-  const canAddToCart = !isSoldOut && (product.status === 'available' || isPreOrderOpen);
-
-  const handleAdd = async () => {
-    if (!canAddToCart) return;
-    const ok = await addItem(product);
-    if (!ok) return;
+  const handleAdd = () => {
+    if (isSoldOut) return;
+    addItem(product.id);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   };
 
-  const allImages = Array.from(new Set([product.image, ...(product.images ?? [])].filter(Boolean)));
-  const hasImages = allImages.length > 0;
+  const allImages = product.images.length > 0 ? product.images : [product.image];
   const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
 
+  const cartQty = cartItems.find((i) => i.productId === product.id)?.quantity ?? 0;
+  const availableStock = Math.max(product.inventory - cartQty, 0);
+  const isSoldOut = availableStock <= 0 || product.status === 'sold-out';
+
   const statusLabel = isSoldOut ? t('shop.soldOut')
-    : isPreOrderOpen ? t('shop.preOrder')
     : product.status === 'in-production' ? t('shop.inProduction')
     : t('shop.available');
 
   const statusColor = isSoldOut ? 'text-red-500'
-    : isPreOrderOpen ? 'text-amber-600'
     : product.status === 'in-production' ? 'text-amber-600'
     : 'text-emerald-600';
 
@@ -63,28 +57,22 @@ export default function ProductDetailPage() {
         <div className="mx-auto max-w-6xl px-6">
           <Link to="/shop" className="mb-6 inline-flex items-center gap-1.5 text-sm text-mid hover:text-charcoal transition-colors">
             <ArrowLeft className="size-4" />
-            {t('shop.backToShop')}
+            Back to Shop
           </Link>
 
           <div className="grid gap-10 lg:grid-cols-2">
             {/* Images */}
             <div>
-              <div className="overflow-hidden rounded-xl bg-card border border-border">
-                {hasImages ? (
-                  <img
-                    src={allImages[activeImg]}
-                    alt={product.name}
-                    loading="lazy"
-                    decoding="async"
-                    className="aspect-square w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex aspect-square w-full items-center justify-center bg-muted/60 px-6 text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    {t('common.comingSoon')}
-                  </div>
-                )}
+              <div className="overflow-hidden rounded-xl bg-white border border-[hsl(30,12%,90%)]">
+                <img
+                  src={allImages[activeImg]}
+                  alt={product.name}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-square w-full object-cover"
+                />
               </div>
-              {hasImages && allImages.length > 1 && (
+              {allImages.length > 1 && (
                 <div className="mt-3 flex gap-2">
                   {allImages.map((img, i) => (
                     <button
@@ -105,12 +93,12 @@ export default function ProductDetailPage() {
             <div>
               <p className="text-xs font-medium uppercase tracking-wider text-light">{product.category} · {product.term}</p>
               <h1 className="mt-2 text-2xl font-bold text-charcoal sm:text-3xl">{product.name}</h1>
-              <p className="mt-4 whitespace-pre-line break-words text-base leading-relaxed text-mid">{product.description}</p>
+              <p className="mt-4 text-base leading-relaxed text-mid">{product.description}</p>
 
               <div className="mt-6 flex flex-wrap items-baseline gap-4">
                 <span className="text-3xl font-bold text-charcoal tabular-nums">${product.price.toFixed(2)}</span>
                 <span className={`text-sm font-medium ${statusColor}`}>{statusLabel}</span>
-                <div className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-charcoal">
+                <div className="rounded-full bg-[hsl(30,15%,94%)] px-3 py-1 text-xs font-semibold text-charcoal">
                   {t('shop.stocks')}:{' '}
                   <AnimatePresence mode="popLayout">
                     <motion.span
@@ -129,8 +117,8 @@ export default function ProductDetailPage() {
 
               <button
                 onClick={handleAdd}
-                disabled={!canAddToCart}
-                className="btn btn-primary btn-lg mt-8 w-full disabled:opacity-30 disabled:cursor-not-allowed"
+                disabled={isSoldOut}
+                className="mt-8 flex w-full items-center justify-center gap-2 rounded-full bg-charcoal px-8 py-3.5 text-sm font-semibold text-white transition-all hover:bg-[hsl(20,8%,28%)] disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.98]"
               >
                 {added ? (
                   <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex items-center gap-2">
@@ -139,20 +127,14 @@ export default function ProductDetailPage() {
                 ) : (
                   <>
                     <ShoppingBag className="size-4" />
-                    {isSoldOut
-                      ? t('shop.soldOut')
-                      : isPreOrderOpen
-                        ? t('shop.preOrder')
-                        : product.status === 'in-production'
-                          ? t('shop.inProduction')
-                          : t('shop.addToCart')}
+                    {product.status === 'in-production' ? t('shop.preOrder') : t('shop.addToCart')}
                   </>
                 )}
               </button>
 
               <Link
                 to="/cart"
-                className="mt-3 block text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="mt-3 block text-center text-sm text-mid hover:text-charcoal transition-colors"
               >
                 {t('shop.checkout')} →
               </Link>
@@ -163,7 +145,7 @@ export default function ProductDetailPage() {
 
       {/* Related */}
       {related.length > 0 && (
-        <section className="bg-card py-14">
+        <section className="bg-white py-14">
           <div className="mx-auto max-w-6xl px-6">
             <ScrollReveal>
               <h2 className="text-xl font-bold text-charcoal">{t('shop.relatedProducts')}</h2>
