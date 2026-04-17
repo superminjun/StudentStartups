@@ -9,6 +9,17 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 
 const isLocalDev = import.meta.env.DEV;
 
+type OrderPayload = {
+  id: string;
+  items: { id: string; name: string; qty: number; price: number }[];
+  total: number;
+  buyerName: string;
+  buyerEmail: string;
+  deliveryNote: string;
+  date: string;
+  status: 'pending';
+};
+
 export default function Cart() {
   const { t } = useLanguage();
   const { items, removeItem, addItem, clearCart } = useCartStore();
@@ -26,6 +37,12 @@ export default function Cart() {
   }).filter(Boolean) as (typeof products[0] & { qty: number })[];
 
   const total = cartProducts.reduce((sum, p) => sum + p.price * p.qty, 0);
+
+  const saveOrderLocally = (orderPayload: OrderPayload) => {
+    const orders = JSON.parse(localStorage.getItem('bnss-orders') || '[]');
+    orders.push(orderPayload);
+    localStorage.setItem('bnss-orders', JSON.stringify(orders));
+  };
 
   const decreaseQty = (productId: string) => {
     const item = items.find((i) => i.productId === productId);
@@ -71,12 +88,52 @@ export default function Cart() {
 
         const data = await response.json().catch(() => ({}));
         if (!response.ok || !data?.orderId) {
-          setOrderError(data?.error || 'Checkout failed. Please try again.');
-          return;
+          if (supabase) {
+            const { error } = await supabase.from('orders').insert({
+              id: order.id,
+              buyer_name: buyerName,
+              buyer_email: buyerEmail,
+              total,
+              delivery_note: deliveryNote,
+              items: order.items,
+              status: order.status,
+            });
+
+            if (error) {
+              saveOrderLocally(order);
+            }
+          } else {
+            saveOrderLocally(order);
+          }
         }
       } catch (fallbackError) {
-        setOrderError(fallbackError instanceof Error ? fallbackError.message : 'Checkout failed. Please try again.');
-        return;
+        if (supabase) {
+          const { error } = await supabase.from('orders').insert({
+            id: order.id,
+            buyer_name: buyerName,
+            buyer_email: buyerEmail,
+            total,
+            delivery_note: deliveryNote,
+            items: order.items,
+            status: order.status,
+          });
+
+          if (error) {
+            try {
+              saveOrderLocally(order);
+            } catch {
+              setOrderError(fallbackError instanceof Error ? fallbackError.message : 'Checkout failed. Please try again.');
+              return;
+            }
+          }
+        } else {
+          try {
+            saveOrderLocally(order);
+          } catch {
+            setOrderError(fallbackError instanceof Error ? fallbackError.message : 'Checkout failed. Please try again.');
+            return;
+          }
+        }
       }
     } else if (isSupabaseConfigured && supabase && isLocalDev) {
       const { error } = await supabase.from('orders').insert({
@@ -90,18 +147,14 @@ export default function Cart() {
       });
       if (error) {
         try {
-          const orders = JSON.parse(localStorage.getItem('bnss-orders') || '[]');
-          orders.push(order);
-          localStorage.setItem('bnss-orders', JSON.stringify(orders));
+          saveOrderLocally(order);
         } catch {
           setOrderError(error.message);
           return;
         }
       }
     } else {
-      const orders = JSON.parse(localStorage.getItem('bnss-orders') || '[]');
-      orders.push(order);
-      localStorage.setItem('bnss-orders', JSON.stringify(orders));
+      saveOrderLocally(order);
     }
     clearCart();
     setOrderPlaced(true);
