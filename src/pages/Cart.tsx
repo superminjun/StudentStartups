@@ -7,6 +7,8 @@ import { useCartStore } from '@/stores/cartStore';
 import { useCMSStore } from '@/stores/cmsStore';
 import { isSupabaseConfigured } from '@/lib/supabaseClient';
 
+const isLocalDevPreview = import.meta.env.DEV;
+
 export default function Cart() {
   const { t } = useLanguage();
   const { items, removeItem, addItem, decreaseItem, clearCart } = useCartStore();
@@ -41,7 +43,7 @@ export default function Cart() {
       date: new Date().toISOString(),
       status: 'pending' as const,
     };
-    if (isSupabaseConfigured) {
+    if (isSupabaseConfigured && !isLocalDevPreview) {
       try {
         const ensureSessionId = () => {
           if (typeof window === 'undefined') return null;

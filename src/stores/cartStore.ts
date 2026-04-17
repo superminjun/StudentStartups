@@ -14,6 +14,7 @@ interface CartStore {
 }
 
 const reservationQueue = new Map<string, Promise<boolean>>();
+const isLocalDevPreview = import.meta.env.DEV;
 
 const getSessionId = () => {
   if (typeof window === 'undefined') return 'server';
@@ -41,6 +42,7 @@ const enqueueReservation = async (productId: string, task: () => Promise<boolean
 };
 
 const reserveInventory = async (productId: string, qty: number) => {
+  if (isLocalDevPreview) return true;
   const sessionId = getSessionId();
   const response = await fetch('/api/reserve', {
     method: 'POST',
@@ -56,6 +58,7 @@ const reserveInventory = async (productId: string, qty: number) => {
 };
 
 const releaseInventory = async (productId: string, qty: number) => {
+  if (isLocalDevPreview) return true;
   const sessionId = getSessionId();
   const response = await fetch('/api/release', {
     method: 'POST',
