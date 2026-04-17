@@ -1,4 +1,4 @@
-import type { ApiRequest, ApiResponse } from './_lib/server';
+import type { ApiRequest, ApiResponse } from './_lib/server.js';
 
 type FallbackProductRow = {
   id: string;
@@ -155,7 +155,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   }
 
   try {
-    const server = await import('./_lib/server');
+    const server = await import('./_lib/server.js');
     const {
       createPrivilegedSupabase,
       getRequestBody,

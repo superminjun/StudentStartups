@@ -6,7 +6,7 @@ import {
   serverConfig,
   type ApiRequest,
   type ApiResponse,
-} from './_lib/server';
+} from './_lib/server.js';
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') {

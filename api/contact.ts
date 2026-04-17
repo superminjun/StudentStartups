@@ -7,7 +7,7 @@ import {
   serverConfig,
   type ApiRequest,
   type ApiResponse,
-} from './_lib/server';
+} from './_lib/server.js';
 
 const submissionWindowMs = 30_000;
 const recentSubmissions = new Map<string, number>();
