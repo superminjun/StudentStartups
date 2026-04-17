@@ -1,13 +1,4 @@
-import {
-  createPrivilegedSupabase,
-  getRequestBody,
-  readPositiveInteger,
-  readTrimmedText,
-  isValidEmail,
-  serverConfig,
-  type ApiRequest,
-  type ApiResponse,
-} from './_lib/server';
+import type { ApiRequest, ApiResponse } from './_lib/server';
 
 type FallbackProductRow = {
   id: string;
@@ -17,8 +8,17 @@ type FallbackProductRow = {
   status: string | null;
 };
 
+type SupabaseClientLike = {
+  from: (table: string) => {
+    select: (...args: unknown[]) => unknown;
+    insert: (...args: unknown[]) => unknown;
+    update: (...args: unknown[]) => unknown;
+  };
+  rpc: (fn: string, args?: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
+};
+
 const createFallbackOrder = async (
-  supabase: Awaited<ReturnType<typeof createPrivilegedSupabase>>,
+  supabase: SupabaseClientLike,
   buyerName: string,
   buyerEmail: string,
   deliveryNote: string,
@@ -155,6 +155,16 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   }
 
   try {
+    const server = await import('./_lib/server');
+    const {
+      createPrivilegedSupabase,
+      getRequestBody,
+      readPositiveInteger,
+      readTrimmedText,
+      isValidEmail,
+      serverConfig,
+    } = server;
+
     const supabase = createPrivilegedSupabase();
 
     if (!supabase) {
@@ -203,7 +213,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     }
 
     if (!sessionId) {
-      const orderId = await createFallbackOrder(supabase, buyerName, buyerEmail, deliveryNote, normalizedItems);
+      const orderId = await createFallbackOrder(supabase as SupabaseClientLike, buyerName, buyerEmail, deliveryNote, normalizedItems);
       return res.status(200).json({ orderId });
     }
 
@@ -217,7 +227,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
     if (error) {
       if (error.message.toLowerCase().includes('reservation missing')) {
-        const orderId = await createFallbackOrder(supabase, buyerName, buyerEmail, deliveryNote, normalizedItems);
+        const orderId = await createFallbackOrder(supabase as SupabaseClientLike, buyerName, buyerEmail, deliveryNote, normalizedItems);
         return res.status(200).json({ orderId });
       }
       return res.status(400).json({ error: error.message });
