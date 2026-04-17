@@ -7,6 +7,8 @@ import { useCartStore } from '@/stores/cartStore';
 import { useCMSStore } from '@/stores/cmsStore';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 
+const isLocalDev = import.meta.env.DEV;
+
 export default function Cart() {
   const { t } = useLanguage();
   const { items, removeItem, addItem, clearCart } = useCartStore();
@@ -54,7 +56,29 @@ export default function Cart() {
       date: new Date().toISOString(),
       status: 'pending' as const,
     };
-    if (isSupabaseConfigured && supabase) {
+    if (isSupabaseConfigured && !isLocalDev) {
+      try {
+        const response = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            buyerName,
+            buyerEmail,
+            deliveryNote,
+            items: cartProducts.map((p) => ({ id: p.id, qty: p.qty })),
+          }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data?.orderId) {
+          setOrderError(data?.error || 'Checkout failed. Please try again.');
+          return;
+        }
+      } catch (fallbackError) {
+        setOrderError(fallbackError instanceof Error ? fallbackError.message : 'Checkout failed. Please try again.');
+        return;
+      }
+    } else if (isSupabaseConfigured && supabase && isLocalDev) {
       const { error } = await supabase.from('orders').insert({
         id: order.id,
         buyer_name: buyerName,
@@ -66,24 +90,11 @@ export default function Cart() {
       });
       if (error) {
         try {
-          const response = await fetch('/api/checkout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              buyerName,
-              buyerEmail,
-              deliveryNote,
-              items: cartProducts.map((p) => ({ id: p.id, qty: p.qty })),
-            }),
-          });
-
-          const data = await response.json().catch(() => ({}));
-          if (!response.ok || !data?.orderId) {
-            setOrderError(data?.error || error.message);
-            return;
-          }
-        } catch (fallbackError) {
-          setOrderError(fallbackError instanceof Error ? fallbackError.message : error.message);
+          const orders = JSON.parse(localStorage.getItem('bnss-orders') || '[]');
+          orders.push(order);
+          localStorage.setItem('bnss-orders', JSON.stringify(orders));
+        } catch {
+          setOrderError(error.message);
           return;
         }
       }
