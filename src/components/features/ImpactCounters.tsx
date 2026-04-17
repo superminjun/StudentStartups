@@ -36,19 +36,33 @@ function CounterCard({ metric, index }: { metric: Metric; index: number }) {
 
 export default function ImpactCounters({ className }: { className?: string }) {
   const metrics = useCMSStore((s) => s.impactMetrics);
+  const projects = useCMSStore((s) => s.projects);
+  const activeProjectCount = projects.filter((project) => (project.status ?? 'active').toLowerCase() === 'active').length;
+
+  const normalizeMetric = (metric: Metric): Metric => {
+    const labelEn = metric.labelEn.trim().toLowerCase();
+    const labelKo = metric.labelKo.trim();
+    const isActiveProjects = labelEn === 'active projects' || labelKo === '진행 중 프로젝트';
+    if (!isActiveProjects) return metric;
+    return {
+      ...metric,
+      value: activeProjectCount,
+      prefix: undefined,
+    };
+  };
 
   return (
     <div className={cn('grid grid-cols-2 gap-6 lg:grid-cols-4', className)}>
       {metrics.map((metric, i) => (
         <CounterCard
           key={`${metric.labelEn}-${i}`}
-          metric={{
+          metric={normalizeMetric({
             labelEn: metric.labelEn,
             labelKo: metric.labelKo,
             value: metric.value,
             prefix: metric.prefix,
             suffix: metric.suffix,
-          }}
+          })}
           index={i}
         />
       ))}

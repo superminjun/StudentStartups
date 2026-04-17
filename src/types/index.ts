@@ -7,6 +7,7 @@ export interface Project {
   revenue: number;
   expenses: number;
   profit: number;
+  fundraise?: number;
   donation: number;
   donationPercent: number;
   team: TeamAssignment[];

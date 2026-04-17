@@ -26,6 +26,10 @@ export default function ProductCard({ product }: { product: Product }) {
     return Array.from(new Set(list));
   }, [product.image, product.images]);
   const hasImages = images.length > 0;
+  const normalizedDescription = product.description.replace(/\s+/g, ' ').trim();
+  const previewDescription = normalizedDescription.length > 92
+    ? `${normalizedDescription.slice(0, 92).trimEnd()}...`
+    : normalizedDescription;
 
   const startHoverCycle = () => {
     if (images.length <= 1 || intervalRef.current) return;
@@ -167,7 +171,9 @@ export default function ProductCard({ product }: { product: Product }) {
 
         <div className="p-4">
           <h3 className="text-sm font-semibold text-foreground line-clamp-1">{product.name}</h3>
-          <p className="mt-1 text-xs text-muted-foreground line-clamp-2 leading-relaxed">{product.description}</p>
+          <p className="mt-1 min-h-[2.5rem] break-words text-xs leading-relaxed text-muted-foreground">
+            {previewDescription}
+          </p>
 
           <div className="mt-3 flex items-center justify-between">
             <span className="text-base font-semibold text-foreground tabular-nums">${product.price.toFixed(2)}</span>

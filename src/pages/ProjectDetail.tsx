@@ -5,18 +5,37 @@ import { useCMSStore } from '@/stores/cmsStore';
 import { STAGE_LABELS_EN, STAGE_LABELS_KO, STAGE_COLORS } from '@/constants/config';
 import { formatCurrency } from '@/lib/utils';
 import ScrollReveal from '@/components/features/ScrollReveal';
+import type { Project } from '@/types';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
 import { Calendar, Tag } from 'lucide-react';
 
 const COLORS = ['hsl(20,10%,15%)', 'hsl(24,80%,50%)', 'hsl(160,50%,40%)', 'hsl(210,50%,50%)'];
+const FINANCE_FACTORS = [0.18, 0.42, 0.68, 1];
+
+function buildProjectFinanceData(project: Project, locale: string) {
+  const startDate = new Date(`${project.startDate}T00:00:00`);
+  const formatter = new Intl.DateTimeFormat(locale, { month: 'short' });
+
+  return FINANCE_FACTORS.map((factor, index) => {
+    const pointDate = Number.isNaN(startDate.getTime())
+      ? null
+      : new Date(startDate.getFullYear(), startDate.getMonth() + index, 1);
+
+    return {
+      label: pointDate ? formatter.format(pointDate) : `${index + 1}`,
+      revenue: Math.round(project.revenue * factor),
+      expenses: Math.round(project.expenses * factor),
+      fundraise: Math.round((project.fundraise ?? 0) * factor),
+    };
+  });
+}
 
 export default function ProjectDetail() {
   const { id } = useParams();
   const { lang, t } = useLanguage();
   const projects = useCMSStore((s) => s.projects);
-  const revenueChartData = useCMSStore((s) => s.revenueData);
   const project = projects.find((p) => p.id === id);
   const stageLabels = lang === 'en' ? STAGE_LABELS_EN : STAGE_LABELS_KO;
   const bannerImage = project?.bannerImage || project?.image;
@@ -29,7 +48,7 @@ export default function ProjectDetail() {
     return (
       <div className="flex min-h-screen items-center justify-center pt-16">
         <div className="text-center">
-          <p className="text-base text-light">Project not found.</p>
+          <p className="text-base text-light">{t('projectDetail.notFound')}</p>
           <Link to="/projects" className="mt-4 inline-block text-sm font-medium text-charcoal underline">
             {t('projectDetail.back')}
           </Link>
@@ -37,6 +56,8 @@ export default function ProjectDetail() {
       </div>
     );
   }
+
+  const financeTimeline = buildProjectFinanceData(project, lang === 'ko' ? 'ko-KR' : 'en-US');
 
   const donationData = [
     { name: t('projects.donation'), value: project.donation },
@@ -94,7 +115,7 @@ export default function ProjectDetail() {
           <div className="grid gap-8 lg:grid-cols-12">
             <div className="lg:col-span-8 space-y-8">
               <ScrollReveal>
-                <p className="text-base leading-relaxed text-mid">{project.description}</p>
+                <p className="whitespace-pre-line break-words text-base leading-relaxed text-mid">{project.description}</p>
               </ScrollReveal>
 
               {/* Progress stages */}
@@ -129,13 +150,14 @@ export default function ProjectDetail() {
                   <h3 className="text-lg font-semibold text-charcoal">{t('projectDetail.revenueChart')}</h3>
                   <div className="mt-5 h-64">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={revenueChartData.slice(0, project.stage + 2)}>
+                      <BarChart data={financeTimeline}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+                        <XAxis dataKey="label" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                         <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
                         <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
                         <Bar dataKey="revenue" fill="hsl(var(--foreground))" radius={[4, 4, 0, 0]} name={t('projects.revenue')} />
                         <Bar dataKey="expenses" fill="hsl(var(--muted))" radius={[4, 4, 0, 0]} name={t('projectDetail.expenses')} />
+                        <Bar dataKey="fundraise" fill="hsl(160 55% 40%)" radius={[4, 4, 0, 0]} name={t('projectDetail.fundraise')} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -185,6 +207,7 @@ export default function ProjectDetail() {
                     {[
                       { label: t('projects.revenue'), value: formatCurrency(project.revenue), color: 'text-charcoal' },
                       { label: t('projectDetail.expenses'), value: formatCurrency(project.expenses), color: 'text-red-500' },
+                      { label: t('projectDetail.fundraise'), value: formatCurrency(project.fundraise ?? 0), color: 'text-teal-600' },
                       { label: t('projects.profit'), value: formatCurrency(project.profit), color: 'text-emerald-600' },
                       { label: t('projects.donation'), value: formatCurrency(project.donation), color: 'text-[hsl(24,80%,50%)]' },
                     ].map((item) => (

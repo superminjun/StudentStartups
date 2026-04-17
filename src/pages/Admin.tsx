@@ -52,6 +52,14 @@ type MeetingRow = {
   meeting_date: string;
 };
 
+type MeetingAttendanceView = {
+  attendanceId: string;
+  memberId: string;
+  memberName: string;
+  memberEmail: string;
+  status: 'present' | 'absent';
+};
+
 type CopyDraft = {
   key: string;
   en: string;
@@ -114,6 +122,9 @@ export default function Admin() {
   const [memberMeetingsLoading, setMemberMeetingsLoading] = useState(false);
   const [meetings, setMeetings] = useState<MeetingRow[]>([]);
   const [meetingsLoading, setMeetingsLoading] = useState(false);
+  const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(null);
+  const [meetingAttendance, setMeetingAttendance] = useState<MeetingAttendanceView[]>([]);
+  const [meetingAttendanceLoading, setMeetingAttendanceLoading] = useState(false);
   const [newMeetingDate, setNewMeetingDate] = useState('');
   const [meetingError, setMeetingError] = useState('');
   const [memberNotice, setMemberNotice] = useState('');
@@ -172,6 +183,10 @@ export default function Admin() {
   const [projectImagePreview, setProjectImagePreview] = useState<Record<string, string>>({});
   const [projectBannerPreview, setProjectBannerPreview] = useState<Record<string, string>>({});
   const [productImagePreview, setProductImagePreview] = useState<Record<string, string>>({});
+  const activeProjectCount = useMemo(
+    () => cmsProjects.filter((project) => (project.status ?? 'active').toLowerCase() === 'active').length,
+    [cmsProjects]
+  );
 
   const loadOrders = async () => {
     if (!supabase) return;
@@ -306,6 +321,33 @@ export default function Admin() {
     setMeetingsLoading(false);
   };
 
+  const loadMeetingAttendance = async (meetingId: string) => {
+    if (!supabase) return;
+    setMeetingAttendanceLoading(true);
+    const { data } = await supabase
+      .from('attendance')
+      .select('id,status, member:members(id,name,email)')
+      .eq('meeting_id', meetingId)
+      .order('member_id', { ascending: true });
+
+    const rows = ((data as {
+      id: string;
+      status: 'present' | 'absent';
+      member: { id: string; name: string; email: string } | null;
+    }[] | null) ?? [])
+      .filter((row) => row.member)
+      .map((row) => ({
+        attendanceId: row.id,
+        memberId: row.member?.id ?? '',
+        memberName: row.member?.name ?? row.member?.email ?? '',
+        memberEmail: row.member?.email ?? '',
+        status: row.status,
+      }));
+
+    setMeetingAttendance(rows);
+    setMeetingAttendanceLoading(false);
+  };
+
   const handleCreateMeeting = async () => {
     if (!newMeetingDate || !supabase) return;
     setMeetingError('');
@@ -318,11 +360,25 @@ export default function Admin() {
     }
     setNewMeetingDate('');
     loadMeetings();
+    const { data: createdMeeting } = await supabase
+      .from('meetings')
+      .select('id')
+      .eq('meeting_date', newMeetingDate)
+      .maybeSingle();
+    const nextMeetingId = (createdMeeting as { id: string } | null)?.id;
+    if (nextMeetingId) {
+      setSelectedMeetingId(nextMeetingId);
+      loadMeetingAttendance(nextMeetingId);
+    }
   };
 
   const handleDeleteMeeting = async (meetingId: string) => {
     if (!supabase) return;
     await supabase.from('meetings').delete().eq('id', meetingId);
+    if (selectedMeetingId === meetingId) {
+      setSelectedMeetingId(null);
+      setMeetingAttendance([]);
+    }
     loadMeetings();
     if (selectedMember) loadMemberMeetings(selectedMember);
     loadMembers();
@@ -474,6 +530,8 @@ export default function Admin() {
     Array.from(new Set(images.map((img) => toPublicStorageUrl(img.trim())).filter(Boolean)))
   );
 
+  const projectStatusOptions = ['active', 'paused', 'completed', 'archived'];
+
   const normalizeProductImages = (mainImage: string, images: string[] | undefined) => {
     const normalizedMain = toPublicStorageUrl(mainImage);
     const base = dedupeImages(images ?? []);
@@ -491,6 +549,7 @@ export default function Admin() {
     revenue: 0,
     expenses: 0,
     profit: 0,
+    fundraise: 0,
     donation: 0,
     donationPercent: 0,
     team: [],
@@ -528,6 +587,7 @@ export default function Admin() {
       revenue: Number(normalized.revenue) || 0,
       expenses: Number(normalized.expenses) || 0,
       profit: Number(normalized.profit) || 0,
+      fundraise: Number(normalized.fundraise) || 0,
       donation: Number(normalized.donation) || 0,
       donation_percent: Number(normalized.donationPercent) || 0,
       team: normalized.team ?? [],
@@ -969,6 +1029,7 @@ export default function Admin() {
   function normalizeProject(project: Project): Project {
     const revenue = Number(project.revenue) || 0;
     const expenses = Number(project.expenses) || 0;
+    const fundraise = Number(project.fundraise) || 0;
     const donation = Number(project.donation) || 0;
     const profit = revenue - expenses;
     const donationPercent = revenue > 0 ? Math.round((donation / revenue) * 1000) / 10 : 0;
@@ -979,6 +1040,7 @@ export default function Admin() {
       revenue,
       expenses,
       donation,
+      fundraise,
       profit,
       donationPercent,
       stage,
@@ -1083,10 +1145,12 @@ export default function Admin() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance' }, () => {
         loadMembers();
         if (selectedMember) loadMemberMeetings(selectedMember);
+        if (selectedMeetingId) loadMeetingAttendance(selectedMeetingId);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'meetings' }, () => {
         loadMembers();
         if (selectedMember) loadMemberMeetings(selectedMember);
+        if (selectedMeetingId) loadMeetingAttendance(selectedMeetingId);
         loadMeetings();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'contributions' }, () => {
@@ -1097,7 +1161,7 @@ export default function Admin() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedMember]);
+  }, [selectedMember, selectedMeetingId]);
 
   const handleSaveContent = async () => {
     await updateContent({ ...siteContent });
@@ -1159,6 +1223,22 @@ export default function Admin() {
       .from('attendance')
       .update({ status: currentStatus === 'present' ? 'absent' : 'present' })
       .eq('id', attendanceId);
+  };
+
+  const toggleMeetingAttendance = async (attendanceId: string, currentStatus: 'present' | 'absent') => {
+    if (!supabase) return;
+    const nextStatus = currentStatus === 'present' ? 'absent' : 'present';
+    setMeetingAttendance((prev) =>
+      prev.map((row) => (row.attendanceId === attendanceId ? { ...row, status: nextStatus } : row))
+    );
+    const { error: updateError } = await supabase
+      .from('attendance')
+      .update({ status: nextStatus })
+      .eq('id', attendanceId);
+
+    if (updateError && selectedMeetingId) {
+      await loadMeetingAttendance(selectedMeetingId);
+    }
   };
 
   const tabs = [
@@ -1301,7 +1381,7 @@ export default function Admin() {
           {tabs.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
-              onClick={() => { setTab(key); setSelectedMember(null); }}
+              onClick={() => { setTab(key); setSelectedMember(null); if (key !== 'members') setSelectedMeetingId(null); }}
               className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all whitespace-nowrap ${
                 tab === key ? 'bg-charcoal text-white' : 'bg-card text-mid hover:text-charcoal border border-border'
               }`}
@@ -1347,10 +1427,21 @@ export default function Admin() {
               ) : (
                 <div className="mt-3 space-y-2">
                   {meetings.map((meeting) => (
-                    <div key={meeting.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-                      <span className="text-sm text-charcoal">
-                        {formatMeetingDate(meeting.meeting_date)}
-                      </span>
+                    <div key={meeting.id} className={`flex items-center justify-between rounded-lg border px-3 py-2 transition-colors ${
+                      selectedMeetingId === meeting.id ? 'border-charcoal bg-muted/40' : 'border-border'
+                    }`}>
+                      <button
+                        onClick={() => {
+                          setSelectedMeetingId(meeting.id);
+                          loadMeetingAttendance(meeting.id);
+                        }}
+                        className="text-left"
+                      >
+                        <span className="text-sm text-charcoal">
+                          {formatMeetingDate(meeting.meeting_date)}
+                        </span>
+                        <p className="mt-0.5 text-[10px] text-light">Open attendance</p>
+                      </button>
                       <button
                         onClick={() => handleDeleteMeeting(meeting.id)}
                         className="text-xs text-red-500 hover:text-red-600"
@@ -1362,6 +1453,67 @@ export default function Admin() {
                 </div>
               )}
             </div>
+
+            {selectedMeetingId && (
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-charcoal">Meeting Attendance</p>
+                    <p className="text-xs text-light">Click a member to toggle present or absent.</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedMeetingId(null);
+                      setMeetingAttendance([]);
+                    }}
+                    className="text-xs text-mid hover:text-charcoal"
+                  >
+                    Close
+                  </button>
+                </div>
+
+                {meetingAttendanceLoading ? (
+                  <p className="mt-4 text-xs text-light">Loading attendance...</p>
+                ) : meetingAttendance.length === 0 ? (
+                  <p className="mt-4 text-xs text-light">No attendance rows yet.</p>
+                ) : (
+                  <>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700">Present</p>
+                        <p className="mt-1 text-2xl font-bold text-emerald-800">
+                          {meetingAttendance.filter((row) => row.status === 'present').length}
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-red-200 bg-red-50/60 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-red-700">Absent</p>
+                        <p className="mt-1 text-2xl font-bold text-red-800">
+                          {meetingAttendance.filter((row) => row.status === 'absent').length}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {meetingAttendance.map((row) => (
+                        <button
+                          key={row.attendanceId}
+                          type="button"
+                          onClick={() => toggleMeetingAttendance(row.attendanceId, row.status)}
+                          className={`rounded-full px-3 py-2 text-xs font-semibold transition ${
+                            row.status === 'present'
+                              ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                              : 'bg-card text-red-600 border border-red-200 hover:border-red-300'
+                          }`}
+                          title={row.memberEmail}
+                        >
+                          {row.memberName}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
             {membersLoading ? (
               <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-light">
@@ -1707,12 +1859,15 @@ export default function Admin() {
                     </div>
                     <div>
                       <label className="text-xs font-semibold text-mid">Status</label>
-                      <input
-                        type="text"
-                        value={project.status ?? ''}
+                      <select
+                        value={project.status ?? 'active'}
                         onChange={(e) => updateProjectDraft(project.id, { status: e.target.value })}
                         className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
-                      />
+                      >
+                        {projectStatusOptions.map((status) => (
+                          <option key={status} value={status}>{status}</option>
+                        ))}
+                      </select>
                     </div>
                     <div className="sm:col-span-2">
                       <label className="text-xs font-semibold text-mid">Stage</label>
@@ -1810,6 +1965,15 @@ export default function Admin() {
                         type="number"
                         value={project.expenses}
                         onChange={(e) => updateProjectDraft(project.id, { expenses: Number(e.target.value) })}
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-mid">Fundraise</label>
+                      <input
+                        type="number"
+                        value={Number(project.fundraise || 0)}
+                        onChange={(e) => updateProjectDraft(project.id, { fundraise: Number(e.target.value) })}
                         className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                       />
                     </div>
@@ -2604,6 +2768,12 @@ export default function Admin() {
                   onChange={(e) => handleHeroBackgroundUpload(e.target.files?.[0])}
                   className="mt-2 w-full text-xs text-mid"
                 />
+              </div>
+
+              <div className="rounded-xl border border-border bg-muted/40 p-4">
+                <p className="text-sm font-semibold text-charcoal">Active Projects (auto)</p>
+                <p className="mt-2 text-2xl font-bold text-charcoal tabular-nums">{activeProjectCount}</p>
+                <p className="mt-1 text-xs text-light">This updates automatically from projects where status is `active`.</p>
               </div>
 
               {contentEntries.map(([key, val]) => (

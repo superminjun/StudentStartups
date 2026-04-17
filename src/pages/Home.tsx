@@ -15,6 +15,7 @@ export default function Home() {
   const { content } = useSiteContentStore();
   const projects = useCMSStore((s) => s.projects);
   const featuredProjects = projects.filter((p) => p.stage >= 6).slice(0, 3);
+  const activeProjectCount = projects.filter((project) => (project.status ?? 'active').toLowerCase() === 'active').length;
 
   const formatCurrencyValue = (value: string) => {
     const numeric = Number(value.replace(/[^0-9.]/g, ''));
@@ -30,7 +31,7 @@ export default function Home() {
   };
 
   const stats = [
-    { icon: FolderOpen, key: 'stat1Label', value: '22' },
+    { icon: FolderOpen, key: 'stat1Label', value: formatCountValue(String(activeProjectCount)) },
     { icon: DollarSign, key: 'stat2Label', value: formatCurrencyValue(content.totalRevenue) },
     { icon: Users, key: 'stat3Label', value: formatCountValue(content.activeMembers) },
     { icon: Heart, key: 'stat4Label', value: formatCurrencyValue(content.totalDonated) },

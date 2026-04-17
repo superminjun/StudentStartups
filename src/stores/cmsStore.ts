@@ -92,6 +92,7 @@ type ProjectRow = {
   revenue: number;
   expenses: number;
   profit: number;
+  fundraise?: number | null;
   donation: number;
   donation_percent: number;
   team: unknown;
@@ -159,6 +160,7 @@ const mapProjectRow = (row: ProjectRow): Project => ({
   revenue: Number(row.revenue) || 0,
   expenses: Number(row.expenses) || 0,
   profit: Number(row.profit) || 0,
+  fundraise: Number(row.fundraise) || 0,
   donation: Number(row.donation) || 0,
   donationPercent: Number(row.donation_percent) || 0,
   team: Array.isArray(row.team) ? (row.team as Project['team']) : [],

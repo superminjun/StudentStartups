@@ -22,8 +22,8 @@ export default function ProductDetailPage() {
     return (
       <div className="flex min-h-screen items-center justify-center pt-16">
         <div className="text-center">
-          <p className="text-base text-light">Product not found.</p>
-          <Link to="/shop" className="mt-4 inline-block text-sm font-medium text-charcoal underline">Back to Shop</Link>
+          <p className="text-base text-light">{t('shop.productNotFound')}</p>
+          <Link to="/shop" className="mt-4 inline-block text-sm font-medium text-charcoal underline">{t('shop.backToShop')}</Link>
         </div>
       </div>
     );
@@ -63,7 +63,7 @@ export default function ProductDetailPage() {
         <div className="mx-auto max-w-6xl px-6">
           <Link to="/shop" className="mb-6 inline-flex items-center gap-1.5 text-sm text-mid hover:text-charcoal transition-colors">
             <ArrowLeft className="size-4" />
-            Back to Shop
+            {t('shop.backToShop')}
           </Link>
 
           <div className="grid gap-10 lg:grid-cols-2">
@@ -105,7 +105,7 @@ export default function ProductDetailPage() {
             <div>
               <p className="text-xs font-medium uppercase tracking-wider text-light">{product.category} · {product.term}</p>
               <h1 className="mt-2 text-2xl font-bold text-charcoal sm:text-3xl">{product.name}</h1>
-              <p className="mt-4 text-base leading-relaxed text-mid">{product.description}</p>
+              <p className="mt-4 whitespace-pre-line break-words text-base leading-relaxed text-mid">{product.description}</p>
 
               <div className="mt-6 flex flex-wrap items-baseline gap-4">
                 <span className="text-3xl font-bold text-charcoal tabular-nums">${product.price.toFixed(2)}</span>
