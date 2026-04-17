@@ -187,6 +187,57 @@ export default function Admin() {
     () => cmsProjects.filter((project) => (project.status ?? 'active').toLowerCase() === 'active').length,
     [cmsProjects]
   );
+  const unreadMessagesCount = useMemo(
+    () => messages.filter((message) => !message.is_read).length,
+    [messages]
+  );
+  const pendingOrdersCount = useMemo(
+    () => orders.filter((order) => (order.status ?? 'pending') !== 'completed').length,
+    [orders]
+  );
+  const lowStockProducts = useMemo(
+    () => cmsProducts
+      .filter((product) => product.inventory > 0 && product.inventory <= 5)
+      .sort((a, b) => a.inventory - b.inventory)
+      .slice(0, 4),
+    [cmsProducts]
+  );
+  const projectsMissingMedia = useMemo(
+    () => cmsProjects
+      .filter((project) => !project.image?.trim() || !project.bannerImage?.trim())
+      .slice(0, 4),
+    [cmsProjects]
+  );
+  const unassignedMembers = useMemo(
+    () => members
+      .filter((member) => {
+        const normalizedTeam = member.team?.trim().toLowerCase();
+        return !normalizedTeam || normalizedTeam === 'unassigned' || normalizedTeam === 'tbd' || normalizedTeam === 'none';
+      })
+      .slice(0, 4),
+    [members]
+  );
+  const averageAttendanceRate = useMemo(() => {
+    const membersWithMeetings = members.filter((member) => member.totalMeetings > 0);
+    if (!membersWithMeetings.length) return null;
+    const totalRate = membersWithMeetings.reduce(
+      (sum, member) => sum + (member.attendance / member.totalMeetings) * 100,
+      0
+    );
+    return Math.round(totalRate / membersWithMeetings.length);
+  }, [members]);
+  const nextMeeting = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return meetings
+      .map((meeting) => ({
+        ...meeting,
+        timestamp: new Date(`${meeting.meeting_date}T00:00:00`).getTime(),
+      }))
+      .filter((meeting) => Number.isFinite(meeting.timestamp) && meeting.timestamp >= today.getTime())
+      .sort((a, b) => a.timestamp - b.timestamp)[0] ?? null;
+  }, [meetings]);
 
   const loadOrders = async () => {
     if (!supabase) return;
@@ -2913,19 +2964,169 @@ export default function Admin() {
 
         {/* Overview */}
         {tab === 'overview' && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { label: 'Total Projects', value: cmsProjects.length, icon: FolderOpen },
-              { label: 'Total Products', value: cmsProducts.length, icon: ShoppingBag },
-              { label: 'Messages', value: messages.length, icon: MessageSquare },
-              { label: 'Orders', value: orders.length, icon: BarChart3 },
-            ].map((item) => (
-              <div key={item.label} className="rounded-xl border border-border bg-card p-5">
-                <item.icon className="size-5 text-[hsl(24,80%,50%)]" />
-                <p className="mt-3 text-2xl font-bold text-charcoal">{item.value}</p>
-                <p className="mt-1 text-xs text-light">{item.label}</p>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {[
+                { label: 'Active Projects', value: activeProjectCount, icon: FolderOpen },
+                { label: 'Unread Messages', value: unreadMessagesCount, icon: MessageSquare },
+                { label: 'Pending Orders', value: pendingOrdersCount, icon: ShoppingBag },
+                { label: 'Attendance Avg', value: averageAttendanceRate === null ? '—' : `${averageAttendanceRate}%`, icon: BarChart3 },
+              ].map((item) => (
+                <div key={item.label} className="rounded-xl border border-border bg-card p-5">
+                  <item.icon className="size-5 text-[hsl(24,80%,50%)]" />
+                  <p className="mt-3 text-2xl font-bold text-charcoal">{item.value}</p>
+                  <p className="mt-1 text-xs text-light">{item.label}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-[1.2fr,1fr,1fr]">
+              <div className="rounded-xl border border-border bg-card p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-charcoal">Needs Attention</h3>
+                    <p className="mt-1 text-xs text-light">A quick operational sweep for this week.</p>
+                  </div>
+                  <div className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
+                    {lowStockProducts.length + projectsMissingMedia.length + unassignedMembers.length} items
+                  </div>
+                </div>
+
+                <div className="mt-5 space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Low Stock</p>
+                      <button onClick={() => setTab('shop')} className="text-xs font-medium text-charcoal underline-offset-4 hover:underline">
+                        Open Shop
+                      </button>
+                    </div>
+                    <div className="mt-2 space-y-2">
+                      {lowStockProducts.length ? lowStockProducts.map((product) => (
+                        <div key={product.id} className="flex items-center justify-between rounded-lg border border-border/70 px-3 py-2">
+                          <div>
+                            <p className="text-sm font-medium text-charcoal">{product.name}</p>
+                            <p className="text-[11px] text-light">{product.term || 'No term set'}</p>
+                          </div>
+                          <span className="rounded-full bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-700">
+                            {product.inventory} left
+                          </span>
+                        </div>
+                      )) : (
+                        <p className="rounded-lg border border-dashed border-border px-3 py-2 text-xs text-light">No low-stock products right now.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Project Media</p>
+                      <button onClick={() => setTab('projects')} className="text-xs font-medium text-charcoal underline-offset-4 hover:underline">
+                        Open Projects
+                      </button>
+                    </div>
+                    <div className="mt-2 space-y-2">
+                      {projectsMissingMedia.length ? projectsMissingMedia.map((project) => (
+                        <div key={project.id} className="flex items-center justify-between rounded-lg border border-border/70 px-3 py-2">
+                          <div>
+                            <p className="text-sm font-medium text-charcoal">{project.name}</p>
+                            <p className="text-[11px] text-light">
+                              {!project.image?.trim() ? 'Main image missing' : 'Banner image missing'}
+                            </p>
+                          </div>
+                          <span className="rounded-full bg-stone-100 px-2 py-1 text-[11px] font-semibold text-stone-700">
+                            Needs upload
+                          </span>
+                        </div>
+                      )) : (
+                        <p className="rounded-lg border border-dashed border-border px-3 py-2 text-xs text-light">All projects have core visuals set.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Unassigned Members</p>
+                      <button onClick={() => setTab('members')} className="text-xs font-medium text-charcoal underline-offset-4 hover:underline">
+                        Open Members
+                      </button>
+                    </div>
+                    <div className="mt-2 space-y-2">
+                      {unassignedMembers.length ? unassignedMembers.map((member) => (
+                        <div key={member.id} className="flex items-center justify-between rounded-lg border border-border/70 px-3 py-2">
+                          <div>
+                            <p className="text-sm font-medium text-charcoal">{member.name}</p>
+                            <p className="text-[11px] text-light">{member.email}</p>
+                          </div>
+                          <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700">
+                            Assign team
+                          </span>
+                        </div>
+                      )) : (
+                        <p className="rounded-lg border border-dashed border-border px-3 py-2 text-xs text-light">Everyone is assigned to a team.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
-            ))}
+
+              <div className="rounded-xl border border-border bg-card p-5">
+                <h3 className="text-sm font-semibold text-charcoal">Weekly Snapshot</h3>
+                <div className="mt-4 space-y-3">
+                  <div className="rounded-lg border border-border/70 px-3 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Next Meeting</p>
+                    <p className="mt-2 text-base font-semibold text-charcoal">
+                      {nextMeeting ? formatMeetingDate(nextMeeting.meeting_date) : 'No meeting scheduled'}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border/70 px-3 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Projects</p>
+                    <div className="mt-2 grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="font-semibold text-charcoal">{cmsProjects.length}</p>
+                        <p className="text-light">Total tracked</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-charcoal">{cmsProjects.filter((project) => (project.status ?? '').toLowerCase() === 'completed').length}</p>
+                        <p className="text-light">Completed</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-border/70 px-3 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Store Health</p>
+                    <div className="mt-2 grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="font-semibold text-charcoal">{cmsProducts.filter((product) => product.inventory <= 0 || product.status === 'sold-out').length}</p>
+                        <p className="text-light">Sold out</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-charcoal">{lowStockProducts.length}</p>
+                        <p className="text-light">Low stock</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border bg-card p-5">
+                <h3 className="text-sm font-semibold text-charcoal">Quick Actions</h3>
+                <div className="mt-4 grid gap-2">
+                  {[
+                    { label: 'Review unread messages', tabKey: 'messages' },
+                    { label: 'Update low-stock products', tabKey: 'shop' },
+                    { label: 'Assign member teams', tabKey: 'members' },
+                    { label: 'Check project media', tabKey: 'projects' },
+                  ].map((action) => (
+                    <button
+                      key={action.label}
+                      onClick={() => setTab(action.tabKey)}
+                      className="rounded-lg border border-border px-3 py-3 text-left text-sm text-charcoal transition-colors hover:border-charcoal hover:bg-stone-50"
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
       </div>

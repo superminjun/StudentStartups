@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -14,7 +15,15 @@ export default function Home() {
   const { t } = useLanguage();
   const { content } = useSiteContentStore();
   const projects = useCMSStore((s) => s.projects);
-  const featuredProjects = projects.filter((p) => p.stage >= 6).slice(0, 3);
+  const featuredProjects = useMemo(() => {
+    const visibleProjects = projects.filter((project) => (project.status ?? 'active').toLowerCase() !== 'archived');
+    const launchReady = visibleProjects.filter((project) => project.stage >= 6).slice(0, 3);
+    if (launchReady.length) return launchReady;
+
+    return [...visibleProjects]
+      .sort((a, b) => (b.revenue + (b.fundraise ?? 0)) - (a.revenue + (a.fundraise ?? 0)))
+      .slice(0, 3);
+  }, [projects]);
   const activeProjectCount = projects.filter((project) => (project.status ?? 'active').toLowerCase() === 'active').length;
 
   const formatCurrencyValue = (value: string) => {

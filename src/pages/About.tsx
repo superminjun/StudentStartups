@@ -68,6 +68,7 @@ function TeamWheel() {
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ['start 0.7', 'end 0.3'] });
   const rotation = useTransform(scrollYProgress, [0, 1], [0, 360]);
+  const counterRotation = useTransform(scrollYProgress, [0, 1], [0, -360]);
 
   const colors = ['hsl(350,60%,55%)', 'hsl(210,70%,50%)', 'hsl(160,55%,45%)', 'hsl(270,50%,55%)'];
 
@@ -92,7 +93,7 @@ function TeamWheel() {
                 }}
               >
                 <motion.div
-                  style={{ rotate: useTransform(scrollYProgress, [0, 1], [0, -360]) }}
+                  style={{ rotate: counterRotation }}
                   className="flex size-16 items-center justify-center rounded-full text-white text-xs font-bold shadow-lg"
                   whileHover={{ scale: 1.1 }}
                 >

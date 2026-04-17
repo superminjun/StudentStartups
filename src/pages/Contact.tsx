@@ -6,11 +6,15 @@ import ScrollReveal from '@/components/features/ScrollReveal';
 import { Mail, Send, AlertCircle, MapPin, Instagram } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 
+const CONTACT_COOLDOWN_MS = 30_000;
+const CONTACT_COOLDOWN_KEY = 'bnss-contact-last-sent';
+
 export default function Contact() {
   const { t } = useLanguage();
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '', website: '' });
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [statusMessage, setStatusMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
   const validate = () => {
@@ -18,23 +22,45 @@ export default function Contact() {
     if (!form.name.trim()) e.name = true;
     if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) e.email = true;
     if (!form.subject.trim()) e.subject = true;
-    if (!form.message.trim()) e.message = true;
+    if (!form.message.trim() || form.message.trim().length < 10) e.message = true;
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) { setStatus('error'); return; }
+    setStatusMessage('');
+    if (!validate()) {
+      setStatus('error');
+      setStatusMessage(t('contact.error'));
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      const lastSent = Number(window.localStorage.getItem(CONTACT_COOLDOWN_KEY) || 0);
+      if (lastSent && Date.now() - lastSent < CONTACT_COOLDOWN_MS) {
+        setStatus('error');
+        setStatusMessage(t('contact.cooldown'));
+        return;
+      }
+    }
+
     setStatus('sending');
     if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase.from('messages').insert({
-        name: form.name,
-        email: form.email,
-        subject: form.subject,
-        message: form.message,
-      });
-      if (error) {
+      try {
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          setStatusMessage(data?.error || t('contact.errorServer'));
+          setStatus('error');
+          return;
+        }
+      } catch {
+        setStatusMessage(t('contact.errorServer'));
         setStatus('error');
         return;
       }
@@ -45,19 +71,26 @@ export default function Contact() {
         : `${Date.now()}`;
       messages.push({
         id: localId,
-        ...form,
+        name: form.name,
+        email: form.email,
+        subject: form.subject,
+        message: form.message,
         created_at: new Date().toISOString(),
         is_read: false,
         is_resolved: false,
       });
       localStorage.setItem('bnss-messages', JSON.stringify(messages));
     }
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(CONTACT_COOLDOWN_KEY, String(Date.now()));
+    }
     setStatus('success');
     setShowSuccess(true);
-    setForm({ name: '', email: '', subject: '', message: '' });
+    setForm({ name: '', email: '', subject: '', message: '', website: '' });
     window.setTimeout(() => {
       setShowSuccess(false);
       setStatus('idle');
+      setStatusMessage('');
     }, 1800);
   };
 
@@ -92,6 +125,17 @@ export default function Contact() {
             <div className="lg:col-span-7">
               <ScrollReveal>
                 <form onSubmit={handleSubmit} className="card p-6 lg:p-8">
+                  <div className="hidden" aria-hidden="true">
+                    <label htmlFor="website">Website</label>
+                    <input
+                      id="website"
+                      type="text"
+                      value={form.website}
+                      onChange={(e) => setForm({ ...form, website: e.target.value })}
+                      autoComplete="off"
+                      tabIndex={-1}
+                    />
+                  </div>
                   <div className="grid gap-5 sm:grid-cols-2">
                     <div>
                       <label className="mb-1.5 block text-sm font-medium text-foreground">{t('contact.name')}</label>
@@ -101,6 +145,7 @@ export default function Contact() {
                         onChange={(e) => { setForm({ ...form, name: e.target.value }); setErrors({ ...errors, name: false }); }}
                         className={inputClass('name')}
                         placeholder="John Doe"
+                        maxLength={120}
                       />
                       {errors.name && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="size-3" /> Required</p>}
                     </div>
@@ -112,6 +157,7 @@ export default function Contact() {
                         onChange={(e) => { setForm({ ...form, email: e.target.value }); setErrors({ ...errors, email: false }); }}
                         className={inputClass('email')}
                         placeholder="john@example.com"
+                        maxLength={160}
                       />
                       {errors.email && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="size-3" /> Valid email required</p>}
                     </div>
@@ -124,6 +170,7 @@ export default function Contact() {
                       onChange={(e) => { setForm({ ...form, subject: e.target.value }); setErrors({ ...errors, subject: false }); }}
                       className={inputClass('subject')}
                       placeholder="How can we help?"
+                      maxLength={160}
                     />
                     {errors.subject && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="size-3" /> Required</p>}
                   </div>
@@ -135,13 +182,14 @@ export default function Contact() {
                       onChange={(e) => { setForm({ ...form, message: e.target.value }); setErrors({ ...errors, message: false }); }}
                       className={`${inputClass('message')} resize-none`}
                       placeholder="Tell us more..."
+                      maxLength={2000}
                     />
                     {errors.message && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="size-3" /> Required</p>}
                   </div>
 
                   {status === 'error' && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-5 flex items-center gap-2 rounded-lg bg-red-50 p-4 text-sm text-red-600">
-                      <AlertCircle className="size-4 shrink-0" /> {t('contact.error')}
+                      <AlertCircle className="size-4 shrink-0" /> {statusMessage || t('contact.error')}
                     </motion.div>
                   )}
 

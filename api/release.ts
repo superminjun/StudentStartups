@@ -1,13 +1,15 @@
-import { createClient } from '@supabase/supabase-js';
+import {
+  createPrivilegedSupabase,
+  getRequestBody,
+  readPositiveInteger,
+  readTrimmedText,
+  type ApiRequest,
+  type ApiResponse,
+} from './_lib/server';
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createPrivilegedSupabase();
 
-const supabase = supabaseUrl && supabaseServiceKey
-  ? createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false } })
-  : null;
-
-export default async function handler(req: any, res: any) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
@@ -18,12 +20,12 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const { productId, qty, sessionId } = req.body ?? {};
-    const pId = String(productId || '');
-    const pQty = Number(qty || 0);
-    const sId = String(sessionId || '');
+    const body = getRequestBody(req.body);
+    const pId = readTrimmedText(body.productId, 128);
+    const pQty = readPositiveInteger(body.qty);
+    const sId = readTrimmedText(body.sessionId, 128);
 
-    if (!pId || !sId || !Number.isFinite(pQty) || pQty <= 0) {
+    if (!pId || !sId || pQty <= 0 || pQty > 50) {
       return res.status(400).json({ error: 'Invalid payload' });
     }
 
@@ -38,7 +40,8 @@ export default async function handler(req: any, res: any) {
     }
 
     return res.status(200).json({ ok: true });
-  } catch (err: any) {
-    return res.status(500).json({ error: err?.message ?? 'Server error' });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Server error';
+    return res.status(500).json({ error: message });
   }
 }
