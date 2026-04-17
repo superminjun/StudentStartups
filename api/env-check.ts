@@ -1,7 +1,7 @@
-import { serverConfig, type ApiRequest, type ApiResponse } from './_lib/server';
+import { serverConfig } from './_lib/server';
 
-export default async function handler(_req: ApiRequest, res: ApiResponse) {
-  return res.status(200).json({
+export function GET() {
+  return Response.json({
     ok: true,
     supabaseUrl: serverConfig.supabaseUrl,
     serviceRoleKey: serverConfig.serviceRoleKey,
