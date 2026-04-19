@@ -20,9 +20,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-clip">
       <Navbar />
-      <main>{children}</main>
+      <main className="min-w-0 overflow-x-clip">{children}</main>
       <Footer />
       <AnimatePresence>
         {showTop && (

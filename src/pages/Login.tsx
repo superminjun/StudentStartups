@@ -220,7 +220,7 @@ export default function Login() {
   return (
     <div>
       <section className="section bg-charcoal pt-28 lg:pt-32">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -240,7 +240,7 @@ export default function Login() {
       </section>
 
       <section className="bg-beige py-12 lg:py-16">
-        <div className="mx-auto grid max-w-6xl gap-10 px-6 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-6">
             {[
               { icon: User, title: t('login.memberTitle'), description: t('login.memberDesc') },

@@ -17,7 +17,7 @@ export default function HeroSection() {
   const hasHeroImage = Boolean(heroBackgroundUrl && heroBackgroundUrl !== defaultHeroUrl);
 
   return (
-    <section ref={ref} id="intro" className="relative h-[92vh] min-h-[640px] overflow-hidden scroll-mt-24">
+    <section ref={ref} id="intro" className="relative h-[92vh] min-h-[560px] overflow-hidden scroll-mt-24 sm:min-h-[640px]">
       <motion.div className="absolute inset-0" style={{ y: bgY }}>
         {hasHeroImage ? (
           <div className="relative size-full">
@@ -32,7 +32,7 @@ export default function HeroSection() {
         <div className="pointer-events-none absolute left-[20%] top-[30%] h-56 w-56 rounded-full bg-accent/15 blur-3xl opacity-60 animate-drift-slow" />
       </motion.div>
 
-      <motion.div className="relative z-10 flex h-full flex-col items-start justify-center px-6" style={{ opacity }}>
+      <motion.div className="relative z-10 flex h-full flex-col items-start justify-center px-4 sm:px-6" style={{ opacity }}>
         <div className="mx-auto w-full max-w-6xl">
           <motion.p
             initial={{ opacity: 0, y: 16 }}

@@ -100,7 +100,7 @@ export default function Contact() {
   return (
     <div>
       <section className="section bg-charcoal pt-32 lg:pt-40">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -120,7 +120,7 @@ export default function Contact() {
       </section>
 
       <section className="section-tight bg-beige">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid gap-10 lg:grid-cols-12">
             <div className="lg:col-span-7">
               <ScrollReveal>
@@ -215,7 +215,7 @@ export default function Contact() {
                       className="flex items-center gap-2 transition-colors hover:text-foreground"
                     >
                       <Mail className="size-4 text-accent" />
-                      {SITE_CONFIG.email}
+                      <span className="break-all">{SITE_CONFIG.email}</span>
                     </a>
                     <a
                       href={SITE_CONFIG.social.instagram}
@@ -233,7 +233,7 @@ export default function Contact() {
                       className="flex items-start gap-2 transition-colors hover:text-foreground"
                     >
                       <MapPin className="mt-0.5 size-4 text-accent" />
-                      <span>{SITE_CONFIG.address}</span>
+                      <span className="break-words">{SITE_CONFIG.address}</span>
                     </a>
                   </div>
                 </div>

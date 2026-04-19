@@ -72,12 +72,12 @@ export default function ProductCard({ product }: { product: Product }) {
           <h3 className="text-sm font-semibold text-charcoal line-clamp-1">{product.name}</h3>
           <p className="mt-1 text-xs text-mid line-clamp-2 leading-relaxed">{product.description}</p>
 
-          <div className="mt-3 flex items-center justify-between">
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-base font-bold text-charcoal tabular-nums">${product.price.toFixed(2)}</span>
             <button
               onClick={handleAdd}
               disabled={isSoldOut}
-              className="flex items-center gap-1.5 rounded-full bg-charcoal px-3 py-1.5 text-xs font-medium text-white transition-all hover:bg-[hsl(20,8%,28%)] disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
+              className="flex w-full items-center justify-center gap-1.5 rounded-full bg-charcoal px-3 py-1.5 text-xs font-medium text-white transition-all hover:bg-[hsl(20,8%,28%)] disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 sm:w-auto"
             >
               {added ? (
                 <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex items-center gap-1">

@@ -129,7 +129,7 @@ export default function Impact() {
   return (
     <div>
       <section className="section bg-charcoal pt-32 lg:pt-40">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -150,7 +150,7 @@ export default function Impact() {
 
       {/* Counters */}
       <section className="section-tight bg-beige">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {impactMetrics.map((m, i) => (
               <BigCounter key={m.labelEn} metric={m} index={i} />
@@ -161,7 +161,7 @@ export default function Impact() {
 
       {/* Charts */}
       <section className="bg-card py-14 lg:py-20">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Revenue */}
             <ScrollReveal>

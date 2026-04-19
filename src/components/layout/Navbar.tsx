@@ -125,15 +125,15 @@ export default function Navbar() {
   return (
     <>
       <nav className={cn(
-        'fixed top-0 left-0 right-0 z-nav transition-all duration-400',
+        'fixed top-0 left-0 right-0 z-nav overflow-x-clip transition-all duration-400',
         'bg-card/90 backdrop-blur-xl border-b border-border',
         elevated ? 'shadow-sm' : 'shadow-none'
       )}>
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+        <div className="mx-auto flex h-16 max-w-6xl min-w-0 items-center justify-between px-4 sm:px-6">
           <button
             type="button"
             onClick={handleBrandClick}
-            className={cn('text-lg font-semibold tracking-tight transition-colors', solid ? 'text-foreground' : 'text-white')}
+            className={cn('min-w-0 max-w-[11rem] truncate text-left text-base font-semibold tracking-tight transition-colors sm:max-w-none sm:text-lg', solid ? 'text-foreground' : 'text-white')}
             aria-label="Go to overview"
           >
             Student Startups
@@ -233,7 +233,7 @@ export default function Navbar() {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => setLang(lang === 'en' ? 'ko' : 'en')}
               className={cn(
@@ -295,7 +295,7 @@ export default function Navbar() {
             transition={{ duration: 0.2 }}
             className="fixed inset-x-0 top-16 z-dropdown bg-card/98 backdrop-blur-xl border-b border-border lg:hidden"
           >
-            <div className="flex flex-col p-6 gap-1">
+            <div className="flex min-w-0 flex-col gap-1 px-4 py-6 sm:px-6">
               {navLinks.map((link, i) => (
                 <motion.div
                   key={isHome ? (link as { id: string }).id : (link as { path: string }).path}

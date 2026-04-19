@@ -42,7 +42,7 @@ export default function ProjectCard({ project }: { project: Project }) {
           </h3>
           <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground line-clamp-2">{project.description}</p>
 
-          <div className="mt-4 grid grid-cols-3 gap-2 border-t border-border pt-4">
+          <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border pt-4 sm:grid-cols-3">
             <div>
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t('projects.revenue')}</p>
               <p className="mt-0.5 text-sm font-semibold text-foreground tabular-nums">{formatCurrency(project.revenue)}</p>
@@ -51,7 +51,7 @@ export default function ProjectCard({ project }: { project: Project }) {
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t('projects.profit')}</p>
               <p className="mt-0.5 text-sm font-semibold text-emerald-500 tabular-nums">{formatCurrency(project.profit)}</p>
             </div>
-            <div>
+            <div className="col-span-2 sm:col-span-1">
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t('projects.donation')}</p>
               <p className="mt-0.5 text-sm font-semibold text-accent tabular-nums">{formatCurrency(project.donation)}</p>
             </div>

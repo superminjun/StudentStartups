@@ -58,7 +58,7 @@ export default function Home() {
 
       {/* Value */}
       <section id="value" className="section bg-beige scroll-mt-24">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid gap-14 lg:grid-cols-12 lg:gap-12">
             <div className="lg:col-span-5">
               <ScrollReveal>
@@ -114,7 +114,7 @@ export default function Home() {
 
       {/* Proof */}
       <section id="proof" className="section bg-beige scroll-mt-24">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <ScrollReveal>
             <p className="section-kicker">{t('proof.kicker')}</p>
             <h2 className="section-title mt-3">{t('impactPreview.title')}</h2>
@@ -148,7 +148,7 @@ export default function Home() {
 
       {/* CTA */}
       <section id="cta" className="section bg-charcoal scroll-mt-24">
-        <div className="mx-auto max-w-3xl px-6 text-center">
+        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <ScrollReveal>
             <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
               {t('cta.title')}

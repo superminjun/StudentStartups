@@ -83,7 +83,7 @@ export default function ProjectDetail() {
             {t('common.comingSoon')}
           </div>
         )}
-        <div className="absolute bottom-0 left-0 right-0 p-8 lg:p-12">
+        <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8 lg:p-12">
           <div className="mx-auto max-w-6xl">
             <Link to="/projects" className={`mb-3 inline-flex items-center text-sm transition-colors ${backText}`}>
               {t('projectDetail.back')}
@@ -111,9 +111,9 @@ export default function ProjectDetail() {
       </section>
 
       <section className="bg-beige py-10 lg:py-16">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid gap-8 lg:grid-cols-12">
-            <div className="lg:col-span-8 space-y-8">
+            <div className="space-y-8 lg:col-span-8">
               <ScrollReveal>
                 <p className="whitespace-pre-line break-words text-base leading-relaxed text-mid">{project.description}</p>
               </ScrollReveal>
@@ -134,9 +134,9 @@ export default function ProjectDetail() {
                       />
                     ))}
                   </div>
-                  <div className="mt-3 flex justify-between">
+                  <div className="mt-3 grid grid-cols-7 gap-1 text-center">
                     {[1, 2, 3, 4, 5, 6, 7].map((s) => (
-                      <span key={s} className={`text-[10px] ${s <= project.stage ? 'font-semibold text-charcoal' : 'text-light'}`}>
+                      <span key={s} className={`text-[9px] sm:text-[10px] ${s <= project.stage ? 'font-semibold text-charcoal' : 'text-light'}`}>
                         {stageLabels[s]}
                       </span>
                     ))}
@@ -169,8 +169,8 @@ export default function ProjectDetail() {
                 <ScrollReveal>
                   <div className="rounded-xl border border-border bg-card p-6">
                     <h3 className="text-lg font-semibold text-charcoal">{t('projectDetail.donationImpact')}</h3>
-                    <div className="mt-5 flex items-center gap-8">
-                      <div className="h-44 w-44 shrink-0">
+                    <div className="mt-5 flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-8">
+                      <div className="h-44 w-full max-w-[11rem] shrink-0 self-center sm:self-auto">
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie data={donationData} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" stroke="none">
@@ -199,7 +199,7 @@ export default function ProjectDetail() {
             </div>
 
             {/* Sidebar */}
-            <div className="lg:col-span-4 space-y-6">
+            <div className="space-y-6 lg:col-span-4">
               <ScrollReveal direction="right">
                 <div className="rounded-xl border border-border bg-card p-6">
                   <h3 className="text-lg font-semibold text-charcoal">{t('projectDetail.financial')}</h3>

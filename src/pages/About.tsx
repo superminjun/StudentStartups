@@ -73,8 +73,8 @@ function TeamWheel() {
   const colors = ['hsl(350,60%,55%)', 'hsl(210,70%,50%)', 'hsl(160,55%,45%)', 'hsl(270,50%,55%)'];
 
   return (
-    <div ref={containerRef} className="flex flex-col items-center gap-12 lg:flex-row lg:gap-20">
-      <div className="relative size-64 shrink-0 lg:size-80">
+    <div ref={containerRef} className="flex max-w-full flex-col items-center gap-12 overflow-hidden lg:flex-row lg:gap-20">
+      <div className="relative size-64 max-w-full shrink-0 lg:size-80">
         <motion.div style={{ rotate: rotation }} className="size-full">
           {teamInfos.map((team, i) => {
             const angle = (i * 360) / 4;
@@ -126,7 +126,7 @@ function TeamWheel() {
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
           {t('about.teamWheelDesc')}
         </p>
-        <div className="mt-6 grid grid-cols-2 gap-3">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
           {['Q1', 'Q2', 'Q3', 'Q4'].map((q, qi) => (
             <div key={q} className="card p-3">
               <p className="text-xs font-semibold text-muted-foreground">{q}</p>
@@ -155,7 +155,7 @@ export default function About() {
   return (
     <div>
       <section className="section bg-charcoal pt-32 lg:pt-40">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -176,7 +176,7 @@ export default function About() {
       </section>
 
       <section className="section bg-beige">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <ScrollReveal>
             <h2 className="section-title">
               {t('about.teamsTitle')}
@@ -191,7 +191,7 @@ export default function About() {
       </section>
 
       <section className="section bg-card">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <ScrollReveal>
             <h2 className="section-title">
               {t('about.howTitle')}
@@ -204,7 +204,7 @@ export default function About() {
       </section>
 
       <section className="section bg-beige">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <TeamWheel />
         </div>
       </section>

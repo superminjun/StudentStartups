@@ -20,9 +20,9 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="border-t border-border bg-card">
+    <footer className="overflow-x-clip border-t border-border bg-card">
       <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 lg:grid-cols-12">
-        <div className="lg:col-span-5">
+        <div className="min-w-0 lg:col-span-5">
           <Link to="/" className="text-lg font-semibold text-foreground">
             Student Startups
           </Link>
@@ -39,7 +39,7 @@ export default function Footer() {
             </Link>
           </div>
         </div>
-        <div className="lg:col-span-3">
+        <div className="min-w-0 lg:col-span-3">
           <h4 className="text-sm font-semibold text-foreground">{t('footer.quickLinks')}</h4>
           <ul className="mt-4 space-y-2.5">
             {navLinks.map((link) => (
@@ -51,7 +51,7 @@ export default function Footer() {
             ))}
           </ul>
         </div>
-        <div className="lg:col-span-2">
+        <div className="min-w-0 lg:col-span-2">
           <h4 className="text-sm font-semibold text-foreground">{t('footer.programs')}</h4>
           <ul className="mt-4 space-y-2.5">
             {programLinks.map((link) => (
@@ -63,7 +63,7 @@ export default function Footer() {
             ))}
           </ul>
         </div>
-        <div className="lg:col-span-2">
+        <div className="min-w-0 lg:col-span-2">
           <h4 className="text-sm font-semibold text-foreground">{t('footer.connect')}</h4>
           <div className="mt-4 flex gap-3">
             {[
@@ -82,12 +82,12 @@ export default function Footer() {
               </a>
             ))}
           </div>
-          <p className="mt-5 text-sm text-muted-foreground">{SITE_CONFIG.email}</p>
+          <p className="mt-5 break-all text-sm text-muted-foreground">{SITE_CONFIG.email}</p>
           <a
             href={SITE_CONFIG.maps.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 block text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="mt-2 block break-words text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             {SITE_CONFIG.address}
           </a>

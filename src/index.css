@@ -67,14 +67,33 @@
   * {
     @apply border-border;
   }
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-body);
     font-size: var(--font-size-base);
+    position: relative;
+    overscroll-behavior-x: none;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     letter-spacing: -0.02em;
+  }
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
   }
 }
 
@@ -124,10 +143,6 @@
     background: hsl(30 15% 82%);
     border-radius: 3px;
   }
-}
-
-html {
-  scroll-behavior: smooth;
 }
 
 @keyframes counter-pulse {

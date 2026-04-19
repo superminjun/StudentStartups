@@ -20,7 +20,7 @@ export default function Projects() {
   return (
     <div>
       <section className="section bg-charcoal pt-32 lg:pt-40">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -40,7 +40,7 @@ export default function Projects() {
       </section>
 
       <section className="section-tight bg-beige">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <ScrollReveal>
             <div className="flex flex-wrap gap-2">
               <button

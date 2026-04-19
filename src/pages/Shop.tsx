@@ -27,7 +27,7 @@ export default function Shop() {
   return (
     <div>
       <section className="bg-charcoal pb-16 pt-32 lg:pb-24 lg:pt-40">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -47,7 +47,7 @@ export default function Shop() {
       </section>
 
       <section className="bg-beige py-10 lg:py-14">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           {/* Term filter */}
           <ScrollReveal>
             <div className="mb-4">

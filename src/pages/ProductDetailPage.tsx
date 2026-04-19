@@ -54,7 +54,7 @@ export default function ProductDetailPage() {
   return (
     <div>
       <section className="bg-beige pt-24 pb-16 lg:pt-28">
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <Link to="/shop" className="mb-6 inline-flex items-center gap-1.5 text-sm text-mid hover:text-charcoal transition-colors">
             <ArrowLeft className="size-4" />
             Back to Shop
@@ -73,12 +73,12 @@ export default function ProductDetailPage() {
                 />
               </div>
               {allImages.length > 1 && (
-                <div className="mt-3 flex gap-2">
+                <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
                   {allImages.map((img, i) => (
                     <button
                       key={i}
                       onClick={() => setActiveImg(i)}
-                      className={`size-16 overflow-hidden rounded-lg border-2 transition-all ${
+                      className={`size-16 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
                         activeImg === i ? 'border-charcoal' : 'border-transparent opacity-60 hover:opacity-100'
                       }`}
                     >
@@ -91,9 +91,9 @@ export default function ProductDetailPage() {
 
             {/* Details */}
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-light">{product.category} · {product.term}</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-light">{product.category} · <span className="break-words">{product.term}</span></p>
               <h1 className="mt-2 text-2xl font-bold text-charcoal sm:text-3xl">{product.name}</h1>
-              <p className="mt-4 text-base leading-relaxed text-mid">{product.description}</p>
+              <p className="mt-4 whitespace-pre-line break-words text-base leading-relaxed text-mid">{product.description}</p>
 
               <div className="mt-6 flex flex-wrap items-baseline gap-4">
                 <span className="text-3xl font-bold text-charcoal tabular-nums">${product.price.toFixed(2)}</span>
@@ -146,7 +146,7 @@ export default function ProductDetailPage() {
       {/* Related */}
       {related.length > 0 && (
         <section className="bg-white py-14">
-          <div className="mx-auto max-w-6xl px-6">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <ScrollReveal>
               <h2 className="text-xl font-bold text-charcoal">{t('shop.relatedProducts')}</h2>
             </ScrollReveal>
