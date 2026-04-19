@@ -31,7 +31,7 @@ export default function Shop() {
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold tracking-tight text-white sm:text-4xl"
+            className="text-2xl font-bold tracking-tight text-white sm:text-4xl"
           >
             {t('shop.title')}
           </motion.h1>
@@ -51,11 +51,12 @@ export default function Shop() {
           {/* Term filter */}
           <ScrollReveal>
             <div className="mb-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-light">Term / Rotation</p>
-              <div className="flex flex-wrap gap-2">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-light sm:text-xs">Term / Rotation</p>
+              <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 scrollbar-thin">
+                <div className="flex min-w-max gap-2">
                 <button
                   onClick={() => setActiveTerm('All')}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-all sm:px-4 sm:py-2 sm:text-sm ${
                     activeTerm === 'All' ? 'bg-charcoal text-white' : 'bg-white text-mid hover:text-charcoal border border-[hsl(30,12%,90%)]'
                   }`}
                 >
@@ -65,31 +66,34 @@ export default function Shop() {
                   <button
                     key={term}
                     onClick={() => setActiveTerm(term)}
-                    className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                    className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-all sm:px-4 sm:py-2 sm:text-sm ${
                       activeTerm === term ? 'bg-charcoal text-white' : 'bg-white text-mid hover:text-charcoal border border-[hsl(30,12%,90%)]'
                     }`}
                   >
                     {term}
                   </button>
                 ))}
+                </div>
               </div>
             </div>
           </ScrollReveal>
 
           {/* Category filter */}
           <ScrollReveal>
-            <div className="flex flex-wrap gap-2">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                    activeCategory === cat ? 'bg-charcoal text-white' : 'bg-white text-mid hover:text-charcoal border border-[hsl(30,12%,90%)]'
-                  }`}
-                >
-                  {cat === 'All' ? t('shop.allCategories') : cat}
-                </button>
-              ))}
+            <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 scrollbar-thin">
+              <div className="flex min-w-max gap-2">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-all sm:px-4 sm:py-2 sm:text-sm ${
+                      activeCategory === cat ? 'bg-charcoal text-white' : 'bg-white text-mid hover:text-charcoal border border-[hsl(30,12%,90%)]'
+                    }`}
+                  >
+                    {cat === 'All' ? t('shop.allCategories') : cat}
+                  </button>
+                ))}
+              </div>
             </div>
           </ScrollReveal>
 
@@ -103,7 +107,7 @@ export default function Shop() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.25 }}
-              className="mt-8 grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+              className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-5 md:grid-cols-3 lg:grid-cols-4"
             >
               {filtered.map((product, i) => (
                 <ScrollReveal key={product.id} delay={Math.min(i * 0.04, 0.25)}>
