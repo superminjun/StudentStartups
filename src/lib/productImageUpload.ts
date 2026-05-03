@@ -20,9 +20,10 @@ const replaceExtension = (name: string, extension: string) => {
 };
 
 export type ProductCropSettings = {
-  sourceX: number;
-  sourceY: number;
-  sourceSize: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
   outputSize?: number;
   quality?: number;
 };
@@ -37,17 +38,30 @@ export async function cropProductImageToSquare(
   settings: ProductCropSettings
 ) {
   const image = await loadImage(sourceUrl);
-  const squareSize = Math.max(
+  const requestedWidth = Math.round(settings.width);
+  const requestedHeight = Math.round(settings.height);
+  const requestedX = Math.round(settings.x);
+  const requestedY = Math.round(settings.y);
+  const cropWidth = Math.max(
     1,
     Math.min(
-      settings.sourceSize,
+      requestedWidth,
       image.naturalWidth,
       image.naturalHeight
     )
   );
-  const sourceX = Math.max(0, Math.min(image.naturalWidth - squareSize, settings.sourceX));
-  const sourceY = Math.max(0, Math.min(image.naturalHeight - squareSize, settings.sourceY));
-  const outputSize = Math.max(600, Math.min(settings.outputSize ?? 1400, Math.round(squareSize)));
+  const cropHeight = Math.max(
+    1,
+    Math.min(
+      requestedHeight,
+      image.naturalHeight,
+      image.naturalWidth
+    )
+  );
+  const sourceSize = Math.max(1, Math.min(cropWidth, cropHeight));
+  const sourceX = Math.max(0, Math.min(image.naturalWidth - sourceSize, requestedX));
+  const sourceY = Math.max(0, Math.min(image.naturalHeight - sourceSize, requestedY));
+  const outputSize = Math.max(600, Math.min(settings.outputSize ?? 1400, Math.round(sourceSize)));
   const canvas = document.createElement('canvas');
   canvas.width = outputSize;
   canvas.height = outputSize;
@@ -59,7 +73,7 @@ export async function cropProductImageToSquare(
 
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(image, sourceX, sourceY, squareSize, squareSize, 0, 0, outputSize, outputSize);
+  ctx.drawImage(image, sourceX, sourceY, sourceSize, sourceSize, 0, 0, outputSize, outputSize);
 
   const preferredType = 'image/webp';
   const quality = settings.quality ?? 0.86;

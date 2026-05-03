@@ -934,7 +934,7 @@ export default function Admin() {
     setProductCropSession(null);
   };
 
-  const handleProductCropSave = async (settings: { sourceX: number; sourceY: number; sourceSize: number }) => {
+  const handleProductCropSave = async (settings: { x: number; y: number; width: number; height: number }) => {
     if (!productCropSession) return;
 
     const session = productCropSession;
