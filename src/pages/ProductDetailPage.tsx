@@ -6,6 +6,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { useCartStore } from '@/stores/cartStore';
 import { useCMSStore } from '@/stores/cmsStore';
 import ProductCard from '@/components/features/ProductCard';
+import ProductImageFrame from '@/components/features/ProductImageFrame';
 import ScrollReveal from '@/components/features/ScrollReveal';
 
 export default function ProductDetailPage() {
@@ -85,19 +86,16 @@ export default function ProductDetailPage() {
           <div className="grid gap-10 lg:grid-cols-2">
             {/* Images */}
             <div>
-              <div className="overflow-hidden rounded-2xl border border-[hsl(30,12%,90%)] bg-white">
-                <img
-                  src={allImages[activeImg]}
-                  alt={product.name}
-                  loading="eager"
-                  decoding="async"
-                  fetchPriority="high"
-                  width={1400}
-                  height={1400}
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="aspect-square w-full object-cover"
-                />
-              </div>
+              <ProductImageFrame
+                containerClassName="rounded-2xl border border-[hsl(30,12%,90%)] bg-white"
+                imageClassName="rounded-2xl"
+                src={allImages[activeImg]}
+                alt={product.name}
+                priority
+                width={1400}
+                height={1400}
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
               {allImages.length > 1 && (
                 <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
                   {allImages.map((img, i) => (
@@ -108,15 +106,15 @@ export default function ProductDetailPage() {
                         activeImg === i ? 'border-charcoal' : 'border-transparent opacity-60 hover:opacity-100'
                       }`}
                     >
-                      <img
+                      <ProductImageFrame
                         src={img}
                         alt=""
-                        loading="lazy"
-                        decoding="async"
+                        priority={false}
                         width={160}
                         height={160}
                         sizes="64px"
-                        className="size-full object-cover"
+                        containerClassName="size-full rounded-md"
+                        imageClassName="rounded-md"
                       />
                     </button>
                   ))}

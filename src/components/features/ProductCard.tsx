@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCartStore } from '@/stores/cartStore';
 import type { Product } from '@/types';
+import ProductImageFrame from './ProductImageFrame';
 
 export default function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
   const { t } = useLanguage();
@@ -35,17 +36,15 @@ export default function ProductCard({ product, priority = false }: { product: Pr
         transition={{ duration: 0.2 }}
         className="group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-[hsl(30,12%,90%)] bg-white"
       >
-        <div className="relative aspect-square overflow-hidden bg-[hsl(30,15%,94%)]">
-          <img
+        <div className="relative">
+          <ProductImageFrame
             src={product.image}
             alt={product.name}
-            loading={priority ? 'eager' : 'lazy'}
-            decoding="async"
-            fetchPriority={priority ? 'high' : 'auto'}
+            priority={priority}
             width={900}
             height={900}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+            imageClassName="transition-transform duration-500 group-hover:scale-105"
           />
           {statusLabel && (
             <span className="absolute left-2 top-2 rounded-full bg-charcoal px-2 py-0.5 text-[9px] font-semibold text-white sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-[10px]">
