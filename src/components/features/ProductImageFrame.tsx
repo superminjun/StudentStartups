@@ -4,6 +4,7 @@ type ProductImageFrameProps = {
   src: string;
   alt: string;
   priority?: boolean;
+  fit?: 'cover' | 'contain';
   sizes?: string;
   containerClassName?: string;
   imageClassName?: string;
@@ -15,6 +16,7 @@ export default function ProductImageFrame({
   src,
   alt,
   priority = false,
+  fit = 'cover',
   sizes,
   containerClassName,
   imageClassName,
@@ -32,7 +34,7 @@ export default function ProductImageFrame({
         width={width}
         height={height}
         sizes={sizes}
-        className={cn('product-image-media', imageClassName)}
+        className={cn('product-image-media', fit === 'contain' ? 'product-image-media--contain' : 'product-image-media--cover', imageClassName)}
       />
     </div>
   );

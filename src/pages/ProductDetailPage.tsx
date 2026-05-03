@@ -87,8 +87,9 @@ export default function ProductDetailPage() {
             {/* Images */}
             <div>
               <ProductImageFrame
-                containerClassName="rounded-2xl border border-[hsl(30,12%,90%)] bg-white"
-                imageClassName="rounded-2xl"
+                fit="contain"
+                containerClassName="rounded-2xl border border-[hsl(30,12%,90%)] bg-white p-2 sm:p-3"
+                imageClassName="rounded-xl bg-white"
                 src={allImages[activeImg]}
                 alt={product.name}
                 priority
