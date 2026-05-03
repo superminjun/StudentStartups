@@ -5,6 +5,7 @@ type ProductImageFrameProps = {
   alt: string;
   priority?: boolean;
   fit?: 'cover' | 'contain';
+  variant?: 'square' | 'detail';
   sizes?: string;
   containerClassName?: string;
   imageClassName?: string;
@@ -17,6 +18,7 @@ export default function ProductImageFrame({
   alt,
   priority = false,
   fit = 'cover',
+  variant = 'square',
   sizes,
   containerClassName,
   imageClassName,
@@ -24,7 +26,7 @@ export default function ProductImageFrame({
   height = 1200,
 }: ProductImageFrameProps) {
   return (
-    <div className={cn('product-image-shell', containerClassName)}>
+    <div className={cn('product-image-shell', variant === 'detail' && 'product-image-shell--detail', containerClassName)}>
       <img
         src={src}
         alt={alt}
@@ -34,7 +36,12 @@ export default function ProductImageFrame({
         width={width}
         height={height}
         sizes={sizes}
-        className={cn('product-image-media', fit === 'contain' ? 'product-image-media--contain' : 'product-image-media--cover', imageClassName)}
+        className={cn(
+          'product-image-media',
+          variant === 'detail' && 'product-image-media--detail',
+          fit === 'contain' ? 'product-image-media--contain' : 'product-image-media--cover',
+          imageClassName
+        )}
       />
     </div>
   );
