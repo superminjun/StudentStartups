@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Cropper, { type Area } from 'react-easy-crop';
 import 'react-easy-crop/react-easy-crop.css';
 import { Focus, ZoomIn } from 'lucide-react';
@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Slider } from '@/components/ui/slider';
+import { PRODUCT_IMAGE_ASPECT_RATIO } from '@/constants/productImages';
 
 type Props = {
   open: boolean;
@@ -35,6 +36,13 @@ export default function ProductImageCropDialog({
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
+  useEffect(() => {
+    if (!open) return;
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
+  }, [open, sourceUrl]);
+
   const helperText = useMemo(() => {
     if (fileCount && fileCount > 1) {
       return `Image ${fileIndex ?? 1} of ${fileCount}`;
@@ -53,7 +61,7 @@ export default function ProductImageCropDialog({
         <DialogHeader>
           <DialogTitle>Crop Product Image</DialogTitle>
           <DialogDescription>
-            Position the product exactly where you want it. The live site will use a premium full-bleed crop.
+            Position the product exactly where you want it. This fixed square frame matches the live product detail image.
           </DialogDescription>
         </DialogHeader>
 
@@ -64,10 +72,10 @@ export default function ProductImageCropDialog({
                 image={sourceUrl}
                 crop={crop}
                 zoom={zoom}
-                aspect={1}
+                aspect={PRODUCT_IMAGE_ASPECT_RATIO}
                 cropShape="rect"
                 showGrid={false}
-                objectFit="contain"
+                objectFit="cover"
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={(_, croppedPixels) => setCroppedAreaPixels(croppedPixels)}

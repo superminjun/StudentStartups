@@ -1,0 +1,2 @@
+export const PRODUCT_IMAGE_ASPECT_RATIO = 1;
+export const PRODUCT_IMAGE_OUTPUT_SIZE = 1400;

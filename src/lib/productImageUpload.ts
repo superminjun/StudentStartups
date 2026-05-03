@@ -1,3 +1,5 @@
+import { PRODUCT_IMAGE_OUTPUT_SIZE } from '@/constants/productImages';
+
 const readFileAsDataUrl = (file: File) =>
   new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -42,26 +44,14 @@ export async function cropProductImageToSquare(
   const requestedHeight = Math.round(settings.height);
   const requestedX = Math.round(settings.x);
   const requestedY = Math.round(settings.y);
-  const cropWidth = Math.max(
-    1,
-    Math.min(
-      requestedWidth,
-      image.naturalWidth,
-      image.naturalHeight
-    )
-  );
-  const cropHeight = Math.max(
-    1,
-    Math.min(
-      requestedHeight,
-      image.naturalHeight,
-      image.naturalWidth
-    )
-  );
+  const cropWidth = Math.max(1, Math.min(requestedWidth, image.naturalWidth));
+  const cropHeight = Math.max(1, Math.min(requestedHeight, image.naturalHeight));
   const sourceSize = Math.max(1, Math.min(cropWidth, cropHeight));
-  const sourceX = Math.max(0, Math.min(image.naturalWidth - sourceSize, requestedX));
-  const sourceY = Math.max(0, Math.min(image.naturalHeight - sourceSize, requestedY));
-  const outputSize = Math.max(600, Math.min(settings.outputSize ?? 1400, Math.round(sourceSize)));
+  const centeredX = requestedX + Math.max(0, (cropWidth - sourceSize) / 2);
+  const centeredY = requestedY + Math.max(0, (cropHeight - sourceSize) / 2);
+  const sourceX = Math.max(0, Math.min(image.naturalWidth - sourceSize, Math.round(centeredX)));
+  const sourceY = Math.max(0, Math.min(image.naturalHeight - sourceSize, Math.round(centeredY)));
+  const outputSize = Math.max(600, Math.min(settings.outputSize ?? PRODUCT_IMAGE_OUTPUT_SIZE, Math.round(sourceSize)));
   const canvas = document.createElement('canvas');
   canvas.width = outputSize;
   canvas.height = outputSize;
