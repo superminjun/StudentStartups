@@ -25,7 +25,7 @@ export default function ProductDetailPage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid gap-10 lg:grid-cols-2">
             <div className="overflow-hidden rounded-2xl border border-[hsl(30,12%,90%)] bg-white">
-              <div className="aspect-[4/5] animate-pulse bg-[hsl(30,15%,92%)] sm:aspect-square" />
+              <div className="aspect-square animate-pulse bg-[hsl(30,15%,92%)]" />
             </div>
             <div className="space-y-4">
               <div className="h-4 w-32 animate-pulse rounded bg-[hsl(30,12%,88%)]" />
@@ -92,7 +92,10 @@ export default function ProductDetailPage() {
                   loading="eager"
                   decoding="async"
                   fetchPriority="high"
-                  className="max-h-[52vh] w-full bg-[hsl(30,15%,96%)] object-contain p-3 sm:max-h-[60vh] sm:p-5 lg:max-h-[36rem]"
+                  width={1400}
+                  height={1400}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="aspect-square w-full object-cover"
                 />
               </div>
               {allImages.length > 1 && (
@@ -105,7 +108,16 @@ export default function ProductDetailPage() {
                         activeImg === i ? 'border-charcoal' : 'border-transparent opacity-60 hover:opacity-100'
                       }`}
                     >
-                      <img src={img} alt="" loading="lazy" decoding="async" className="size-full object-cover" />
+                      <img
+                        src={img}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        width={160}
+                        height={160}
+                        sizes="64px"
+                        className="size-full object-cover"
+                      />
                     </button>
                   ))}
                 </div>

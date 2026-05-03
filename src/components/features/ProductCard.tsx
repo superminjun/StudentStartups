@@ -42,6 +42,9 @@ export default function ProductCard({ product, priority = false }: { product: Pr
             loading={priority ? 'eager' : 'lazy'}
             decoding="async"
             fetchPriority={priority ? 'high' : 'auto'}
+            width={900}
+            height={900}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           {statusLabel && (

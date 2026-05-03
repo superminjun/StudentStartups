@@ -8,6 +8,8 @@ import { useSiteCopyStore } from '@/stores/siteCopyStore';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { resolveStorageUrl, toPublicStorageUrl } from '@/lib/storage';
+import ProductImageCropDialog from '@/components/admin/ProductImageCropDialog';
+import { cropProductImageToSquare, getFilePreviewUrl } from '@/lib/productImageUpload';
 import { TEAM_OPTIONS, STAGE_LABELS_EN, TERMS } from '@/constants/config';
 import { translations } from '@/constants/translations';
 import { normalizeHex } from '@/lib/color';
@@ -111,6 +113,14 @@ type UploadState = {
   message?: string;
 };
 
+type ProductCropSession = {
+  productId: string;
+  kind: 'main' | 'gallery';
+  files: File[];
+  index: number;
+  sourceUrl: string;
+};
+
 export default function Admin() {
   const { user } = useAuth();
   const [tab, setTab] = useState('members');
@@ -183,6 +193,7 @@ export default function Admin() {
   const [projectImagePreview, setProjectImagePreview] = useState<Record<string, string>>({});
   const [projectBannerPreview, setProjectBannerPreview] = useState<Record<string, string>>({});
   const [productImagePreview, setProductImagePreview] = useState<Record<string, string>>({});
+  const [productCropSession, setProductCropSession] = useState<ProductCropSession | null>(null);
   const activeProjectCount = useMemo(
     () => cmsProjects.filter((project) => (project.status ?? 'active').toLowerCase() === 'active').length,
     [cmsProjects]
@@ -691,10 +702,8 @@ export default function Admin() {
 
   const syncProductToCMS = async (product: Product) => {
     const normalizedImages = normalizeProductImages(product.image, product.images);
-    const image = product.image ? await resolveStorageUrl(product.image) : product.image;
-    const images = normalizedImages.length
-      ? await Promise.all(normalizedImages.map((img) => (img ? resolveStorageUrl(img) : img)))
-      : [];
+    const image = toPublicStorageUrl(product.image);
+    const images = normalizedImages.map((img) => toPublicStorageUrl(img));
     useCMSStore.setState((state) => {
       const nextProduct = { ...product, image, images };
       const existingIndex = state.products.findIndex((item) => item.id === product.id);
@@ -838,13 +847,126 @@ export default function Admin() {
     if (!supabase) return { url: null, error: 'Supabase not configured' };
     const { error: uploadError } = await supabase.storage
       .from(bucket)
-      .upload(filePath, file, { upsert: true });
+      .upload(filePath, file, {
+        upsert: true,
+        contentType: file.type || undefined,
+        cacheControl: '31536000',
+      });
     if (uploadError) {
       setCmsNotice(uploadError.message);
       return { url: null, error: uploadError.message };
     }
     const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
     return { url: data.publicUrl, error: null };
+  };
+
+  const startProductCropSession = async (
+    productId: string,
+    kind: ProductCropSession['kind'],
+    files: File[]
+  ) => {
+    if (!files.length) return;
+    try {
+      const sourceUrl = await getFilePreviewUrl(files[0]);
+      setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'uploading' } }));
+      setProductCropSession({
+        productId,
+        kind,
+        files,
+        index: 0,
+        sourceUrl,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not load the selected image.';
+      setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'error', message } }));
+    }
+  };
+
+  const uploadProcessedMainProductImage = async (productId: string, file: File) => {
+    const safeName = file.name.replace(/\s+/g, '-');
+    const path = `${productId}/${Date.now()}-${safeName}`;
+    const { url, error } = await uploadToBucket('product-images', path, file);
+    if (!url) {
+      throw new Error(error ?? 'Upload failed');
+    }
+    const previewUrl = await resolveStorageUrl(url);
+    setProductDrafts((prev) => (
+      prev.map((p) => (
+        p.id === productId
+          ? { ...p, image: url, images: normalizeProductImages(url, p.images) }
+          : p
+      ))
+    ));
+    setProductImagePreview((prev) => ({ ...prev, [productId]: previewUrl }));
+    setProductDirty((prev) => ({ ...prev, [productId]: true }));
+  };
+
+  const uploadProcessedProductGalleryImage = async (productId: string, file: File) => {
+    const safeName = file.name.replace(/\s+/g, '-');
+    const path = `${productId}/gallery-${Date.now()}-${safeName}`;
+    const { url, error } = await uploadToBucket('product-images', path, file);
+    if (!url) {
+      throw new Error(error ?? 'Upload failed');
+    }
+
+    setProductDrafts((prev) => (
+      prev.map((p) => {
+        if (p.id !== productId) return p;
+        const mergedImages = normalizeProductImages(p.image, [...(p.images ?? []), url]);
+        const nextMain = p.image || mergedImages[0] || '';
+        return { ...p, image: nextMain, images: normalizeProductImages(nextMain, mergedImages) };
+      })
+    ));
+    setProductDirty((prev) => ({ ...prev, [productId]: true }));
+  };
+
+  const finishProductUploadState = (productId: string) => {
+    setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'done' } }));
+    window.setTimeout(() => {
+      setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'idle' } }));
+    }, 1800);
+  };
+
+  const handleProductCropCancel = () => {
+    if (productCropSession) {
+      setProductUploadState((prev) => ({ ...prev, [productCropSession.productId]: { status: 'idle' } }));
+    }
+    setProductCropSession(null);
+  };
+
+  const handleProductCropSave = async (settings: { sourceX: number; sourceY: number; sourceSize: number }) => {
+    if (!productCropSession) return;
+
+    const session = productCropSession;
+    const currentFile = session.files[session.index];
+
+    try {
+      const croppedFile = await cropProductImageToSquare(currentFile, session.sourceUrl, settings);
+
+      if (session.kind === 'main') {
+        await uploadProcessedMainProductImage(session.productId, croppedFile);
+      } else {
+        await uploadProcessedProductGalleryImage(session.productId, croppedFile);
+      }
+
+      const nextIndex = session.index + 1;
+      if (nextIndex < session.files.length) {
+        const nextSourceUrl = await getFilePreviewUrl(session.files[nextIndex]);
+        setProductCropSession({
+          ...session,
+          index: nextIndex,
+          sourceUrl: nextSourceUrl,
+        });
+        return;
+      }
+
+      setProductCropSession(null);
+      finishProductUploadState(session.productId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Upload failed';
+      setProductUploadState((prev) => ({ ...prev, [session.productId]: { status: 'error', message } }));
+      setProductCropSession(null);
+    }
   };
 
   const handleProjectImageUpload = async (projectId: string, file?: File | null) => {
@@ -894,58 +1016,12 @@ export default function Admin() {
 
   const handleProductImageUpload = async (productId: string, file?: File | null) => {
     if (!file) return;
-    setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'uploading' } }));
-    const safeName = file.name.replace(/\\s+/g, '-');
-    const path = `${productId}/${Date.now()}-${safeName}`;
-    const { url, error } = await uploadToBucket('product-images', path, file);
-    if (!url) {
-      setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'error', message: error ?? 'Upload failed' } }));
-      return;
-    }
-    const previewUrl = await resolveStorageUrl(url);
-    setProductDrafts((prev) => (
-      prev.map((p) => (
-        p.id === productId
-          ? { ...p, image: url, images: normalizeProductImages(url, p.images) }
-          : p
-      ))
-    ));
-    setProductImagePreview((prev) => ({ ...prev, [productId]: previewUrl }));
-    setProductDirty((prev) => ({ ...prev, [productId]: true }));
-    setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'done' } }));
-    window.setTimeout(() => {
-      setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'idle' } }));
-    }, 1800);
+    await startProductCropSession(productId, 'main', [file]);
   };
 
   const handleProductGalleryUpload = async (productId: string, files: FileList | null) => {
     if (!files || !files.length) return;
-    setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'uploading' } }));
-    const uploaded: string[] = [];
-    for (const file of Array.from(files)) {
-      const safeName = file.name.replace(/\\s+/g, '-');
-      const path = `${productId}/gallery-${Date.now()}-${safeName}`;
-      // eslint-disable-next-line no-await-in-loop
-      const { url } = await uploadToBucket('product-images', path, file);
-      if (url) uploaded.push(url);
-    }
-    if (!uploaded.length) {
-      setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'error', message: 'Upload failed' } }));
-      return;
-    }
-    setProductDrafts((prev) => (
-      prev.map((p) => {
-        if (p.id !== productId) return p;
-        const mergedImages = normalizeProductImages(p.image, [...(p.images ?? []), ...uploaded]);
-        const nextMain = p.image || mergedImages[0] || '';
-        return { ...p, image: nextMain, images: normalizeProductImages(nextMain, mergedImages) };
-      })
-    ));
-    setProductDirty((prev) => ({ ...prev, [productId]: true }));
-    setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'done' } }));
-    window.setTimeout(() => {
-      setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'idle' } }));
-    }, 1800);
+    await startProductCropSession(productId, 'gallery', Array.from(files));
   };
 
   const handleHeroBackgroundUpload = async (file?: File | null) => {
@@ -2175,7 +2251,7 @@ export default function Admin() {
                   ? 'text-emerald-600'
                   : 'text-mid';
               const uploadLabel = uploadState === 'uploading'
-                ? 'Uploading images...'
+                ? 'Cropping / optimizing image...'
                 : uploadState === 'done'
                   ? 'Upload complete. Click Save.'
                   : uploadMessage ?? 'Upload failed';
@@ -2191,7 +2267,7 @@ export default function Admin() {
                         <div className="flex h-full items-center justify-center text-xs text-light">No image</div>
                       )}
                     </div>
-                    <p className="mt-1 text-[10px] text-light">Recommended 1000×1000 (1:1)</p>
+                    <p className="mt-1 text-[10px] text-light">Uploads are cropped to 1:1, compressed, and saved as fast-loading web images.</p>
                     <label className="mt-3 block text-xs font-semibold text-mid">Image URL</label>
                     <input
                       type="text"
@@ -2203,14 +2279,14 @@ export default function Admin() {
                       }}
                       className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-xs outline-none focus:border-charcoal"
                     />
-                    <label className="mt-3 block text-xs font-semibold text-mid">Upload Main Image</label>
+                    <label className="mt-3 block text-xs font-semibold text-mid">Upload Main Image (crop to square)</label>
                     <input
                       type="file"
                       accept="image/*"
                       onChange={(e) => handleProductImageUpload(product.id, e.target.files?.[0])}
                       className="mt-1 w-full text-xs text-mid"
                     />
-                    <label className="mt-3 block text-xs font-semibold text-mid">Upload Gallery Images (auto sets main if empty)</label>
+                    <label className="mt-3 block text-xs font-semibold text-mid">Upload Gallery Images (crop each to square)</label>
                     <input
                       type="file"
                       accept="image/*"
@@ -2360,7 +2436,7 @@ export default function Admin() {
                         </div>
                       )}
                       {galleryImages.length > 0 && (
-                        <p className="mt-2 text-[10px] text-light">Recommended 1000×1000 (1:1)</p>
+                        <p className="mt-2 text-[10px] text-light">All gallery images are displayed as square crops across the site.</p>
                       )}
                     </div>
                   </div>
@@ -3130,6 +3206,16 @@ export default function Admin() {
           </motion.div>
         )}
       </div>
+
+      <ProductImageCropDialog
+        open={Boolean(productCropSession)}
+        sourceUrl={productCropSession?.sourceUrl ?? ''}
+        fileName={productCropSession?.files[productCropSession.index]?.name ?? 'product-image'}
+        fileIndex={productCropSession ? productCropSession.index + 1 : undefined}
+        fileCount={productCropSession?.files.length}
+        onCancel={handleProductCropCancel}
+        onSave={handleProductCropSave}
+      />
     </div>
   );
 }
