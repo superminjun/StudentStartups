@@ -131,11 +131,11 @@ export default function Home() {
           </ScrollReveal>
 
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredProjects.map((project, i) => (
-              <ScrollReveal key={project.id} delay={i * 0.08}>
-                <ProjectCard project={project} />
-              </ScrollReveal>
-            ))}
+              {featuredProjects.map((project, i) => (
+                <ScrollReveal key={project.id} delay={i * 0.08}>
+                  <ProjectCard project={project} priority={i < 3} />
+                </ScrollReveal>
+              ))}
           </div>
 
           <ScrollReveal className="mt-10">

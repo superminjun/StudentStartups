@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabaseClient';
 type StorageLocation = { bucket: string; path: string };
 
 const cache = new Map<string, string>();
+const preloadedImages = new Set<string>();
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, '');
 
 export const parseStorageUrl = (url: string): StorageLocation | null => {
   try {
@@ -20,14 +22,34 @@ export const parseStorageUrl = (url: string): StorageLocation | null => {
   }
 };
 
+export const toPublicStorageUrl = (url: string): string => {
+  if (!url) return url;
+
+  const base = url.split('?')[0];
+
+  if (base.includes('/storage/v1/object/sign/')) {
+    return base.replace('/storage/v1/object/sign/', '/storage/v1/object/public/');
+  }
+
+  if (base.includes('/storage/v1/object/public/')) {
+    return base;
+  }
+
+  const location = parseStorageUrl(base);
+  if (!location || !supabaseUrl) return url;
+
+  return `${supabaseUrl}/storage/v1/object/public/${location.bucket}/${location.path}`;
+};
+
 export const resolveStorageUrl = async (url: string, expiresInSeconds = 60 * 60 * 24): Promise<string> => {
   if (!url) return url;
-  if (url.includes('/storage/v1/object/sign/')) {
-    const base = url.split('?')[0];
-    const publicUrl = base.replace('/storage/v1/object/sign/', '/storage/v1/object/public/');
+
+  const publicUrl = toPublicStorageUrl(url);
+  if (publicUrl !== url || publicUrl.includes('/storage/v1/object/public/')) {
     cache.set(url, publicUrl);
     return publicUrl;
   }
+
   if (cache.has(url)) return cache.get(url) as string;
   if (!supabase) return url;
 
@@ -47,11 +69,15 @@ export const resolveStorageUrl = async (url: string, expiresInSeconds = 60 * 60 
   return data.signedUrl;
 };
 
-export const toPublicStorageUrl = (url: string): string => {
-  if (!url) return url;
-  if (url.includes('/storage/v1/object/sign/')) {
-    const base = url.split('?')[0];
-    return base.replace('/storage/v1/object/sign/', '/storage/v1/object/public/');
-  }
-  return url;
+export const preloadImage = (url: string) => {
+  if (typeof window === 'undefined' || !url || preloadedImages.has(url)) return;
+
+  preloadedImages.add(url);
+  const img = new Image();
+  img.decoding = 'async';
+  img.src = url;
+};
+
+export const preloadImages = (urls: string[]) => {
+  urls.forEach(preloadImage);
 };

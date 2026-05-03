@@ -5,7 +5,7 @@ import { formatCurrency } from '@/lib/utils';
 import { STAGE_LABELS_EN, STAGE_LABELS_KO, STAGE_COLORS } from '@/constants/config';
 import type { Project } from '@/types';
 
-export default function ProjectCard({ project }: { project: Project }) {
+export default function ProjectCard({ project, priority = false }: { project: Project; priority?: boolean }) {
   const { lang, t } = useLanguage();
   const stageLabel = lang === 'en' ? (STAGE_LABELS_EN[project.stage] || project.stageName) : (STAGE_LABELS_KO[project.stage] || project.stageName);
   const hasImage = Boolean(project.image);
@@ -22,8 +22,9 @@ export default function ProjectCard({ project }: { project: Project }) {
             <img
               src={project.image}
               alt={project.name}
-              loading="lazy"
+              loading={priority ? 'eager' : 'lazy'}
               decoding="async"
+              fetchPriority={priority ? 'high' : 'auto'}
               className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (

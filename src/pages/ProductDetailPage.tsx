@@ -16,7 +16,29 @@ export default function ProductDetailPage() {
   const [added, setAdded] = useState(false);
   const [activeImg, setActiveImg] = useState(0);
   const products = useCMSStore((s) => s.products);
+  const status = useCMSStore((s) => s.status);
   const product = products.find((p) => p.id === id);
+
+  if (status === 'loading' && !product) {
+    return (
+      <div className="bg-beige pt-24 pb-16 lg:pt-28">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="grid gap-10 lg:grid-cols-2">
+            <div className="overflow-hidden rounded-2xl border border-[hsl(30,12%,90%)] bg-white">
+              <div className="aspect-[4/5] animate-pulse bg-[hsl(30,15%,92%)] sm:aspect-square" />
+            </div>
+            <div className="space-y-4">
+              <div className="h-4 w-32 animate-pulse rounded bg-[hsl(30,12%,88%)]" />
+              <div className="h-10 w-2/3 animate-pulse rounded bg-[hsl(30,12%,92%)]" />
+              <div className="h-4 w-full animate-pulse rounded bg-[hsl(30,12%,92%)]" />
+              <div className="h-4 w-5/6 animate-pulse rounded bg-[hsl(30,12%,88%)]" />
+              <div className="h-12 w-full animate-pulse rounded-full bg-[hsl(30,12%,90%)]" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -63,13 +85,14 @@ export default function ProductDetailPage() {
           <div className="grid gap-10 lg:grid-cols-2">
             {/* Images */}
             <div>
-              <div className="overflow-hidden rounded-xl bg-white border border-[hsl(30,12%,90%)]">
+              <div className="overflow-hidden rounded-2xl border border-[hsl(30,12%,90%)] bg-white">
                 <img
                   src={allImages[activeImg]}
                   alt={product.name}
-                  loading="lazy"
+                  loading="eager"
                   decoding="async"
-                  className="aspect-square w-full object-cover"
+                  fetchPriority="high"
+                  className="max-h-[52vh] w-full bg-[hsl(30,15%,96%)] object-contain p-3 sm:max-h-[60vh] sm:p-5 lg:max-h-[36rem]"
                 />
               </div>
               {allImages.length > 1 && (
@@ -153,7 +176,7 @@ export default function ProductDetailPage() {
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {related.map((p, i) => (
                 <ScrollReveal key={p.id} delay={i * 0.06}>
-                  <ProductCard product={p} />
+                  <ProductCard product={p} priority={i < 2} />
                 </ScrollReveal>
               ))}
             </div>

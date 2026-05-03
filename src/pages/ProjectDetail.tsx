@@ -36,6 +36,7 @@ export default function ProjectDetail() {
   const { id } = useParams();
   const { lang, t } = useLanguage();
   const projects = useCMSStore((s) => s.projects);
+  const status = useCMSStore((s) => s.status);
   const project = projects.find((p) => p.id === id);
   const stageLabels = lang === 'en' ? STAGE_LABELS_EN : STAGE_LABELS_KO;
   const bannerImage = project?.bannerImage || project?.image;
@@ -43,6 +44,36 @@ export default function ProjectDetail() {
   const titleText = hasBanner ? 'text-white' : 'text-charcoal';
   const metaText = hasBanner ? 'text-white/40' : 'text-mid';
   const backText = hasBanner ? 'text-white/50 hover:text-white' : 'text-mid hover:text-charcoal';
+
+  if (status === 'loading' && !project) {
+    return (
+      <div className="bg-beige pt-24 pb-16 lg:pt-28">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="overflow-hidden rounded-3xl border border-border bg-card">
+            <div className="h-[32vh] min-h-[240px] animate-pulse bg-muted" />
+          </div>
+          <div className="mt-8 grid gap-6 lg:grid-cols-3">
+            <div className="space-y-3 lg:col-span-2">
+              <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+              <div className="h-4 w-full animate-pulse rounded bg-muted" />
+              <div className="h-4 w-5/6 animate-pulse rounded bg-muted" />
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-6">
+              <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="h-3 w-16 animate-pulse rounded bg-muted" />
+                    <div className="h-5 w-20 animate-pulse rounded bg-muted" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!project) {
     return (
@@ -58,6 +89,9 @@ export default function ProjectDetail() {
   }
 
   const financeTimeline = buildProjectFinanceData(project, lang === 'ko' ? 'ko-KR' : 'en-US');
+  const uniqueMembers = Array.from(new Set(project.team.flatMap((assignment) => assignment.members))).length;
+  const marginPercent = project.revenue > 0 ? Math.round((project.profit / project.revenue) * 100) : 0;
+  const totalCapital = project.revenue + (project.fundraise ?? 0);
 
   const donationData = [
     { name: t('projects.donation'), value: project.donation },
@@ -72,8 +106,9 @@ export default function ProjectDetail() {
             <img
               src={bannerImage}
               alt={project.name}
-              loading="lazy"
+              loading="eager"
               decoding="async"
+              fetchPriority="high"
               className="size-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
@@ -116,6 +151,22 @@ export default function ProjectDetail() {
             <div className="space-y-8 lg:col-span-8">
               <ScrollReveal>
                 <p className="whitespace-pre-line break-words text-base leading-relaxed text-mid">{project.description}</p>
+              </ScrollReveal>
+
+              <ScrollReveal>
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {[
+                    { label: t('projectDetail.margin'), value: `${marginPercent}%`, tone: 'text-emerald-600' },
+                    { label: t('projectDetail.teamMembers'), value: uniqueMembers.toString(), tone: 'text-charcoal' },
+                    { label: t('projectDetail.fundraise'), value: formatCurrency(project.fundraise ?? 0), tone: 'text-teal-600' },
+                    { label: t('projectDetail.totalCapital'), value: formatCurrency(totalCapital), tone: 'text-[hsl(24,80%,50%)]' },
+                  ].map((item) => (
+                    <div key={item.label} className="rounded-2xl border border-border bg-card p-4">
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-light">{item.label}</p>
+                      <p className={`mt-2 text-xl font-bold tabular-nums ${item.tone}`}>{item.value}</p>
+                    </div>
+                  ))}
+                </div>
               </ScrollReveal>
 
               {/* Progress stages */}
@@ -223,18 +274,22 @@ export default function ProjectDetail() {
               <ScrollReveal direction="right" delay={0.1}>
                 <div className="rounded-xl border border-border bg-card p-6">
                   <h3 className="text-lg font-semibold text-charcoal">{t('projectDetail.team')}</h3>
-                  <div className="mt-4 space-y-4">
-                    {project.team.map((ta) => (
-                      <div key={ta.role}>
-                        <p className="text-xs font-semibold text-[hsl(24,80%,50%)]">{ta.role}</p>
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {ta.members.map((m) => (
-                            <span key={m} className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-mid">{m}</span>
-                          ))}
+                  {project.team.length === 0 ? (
+                    <p className="mt-4 text-sm text-light">{t('projectDetail.teamPending')}</p>
+                  ) : (
+                    <div className="mt-4 space-y-4">
+                      {project.team.map((ta) => (
+                        <div key={ta.role}>
+                          <p className="text-xs font-semibold text-[hsl(24,80%,50%)]">{ta.role}</p>
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {ta.members.map((m) => (
+                              <span key={m} className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-mid">{m}</span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </ScrollReveal>
             </div>

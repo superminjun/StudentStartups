@@ -1,12 +1,13 @@
-import { useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCounter } from '@/hooks/useCounter';
 import { useCMSStore } from '@/stores/cmsStore';
+import { STAGE_LABELS_EN, STAGE_LABELS_KO } from '@/constants/config';
 import ScrollReveal from '@/components/features/ScrollReveal';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, LineChart, Line, Cell,
+  BarChart, Bar, LineChart, Line,
 } from 'recharts';
 
 type ImpactMetricView = {
@@ -84,7 +85,8 @@ function DonationBarChart({ data, emptyLabel }: { data: { name: string; value: n
 }
 
 export default function Impact() {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
+  const [activePanel, setActivePanel] = useState<'revenue' | 'donations' | 'members' | 'stages'>('revenue');
   const impactMetricsRaw = useCMSStore((s) => s.impactMetrics);
   const revenueChartData = useCMSStore((s) => s.revenueData);
   const donationByProject = useCMSStore((s) => s.donationData);
@@ -92,6 +94,7 @@ export default function Impact() {
   const projects = useCMSStore((s) => s.projects);
 
   const getChartWidth = (count: number, base = 560, per = 90) => Math.max(base, count * per);
+  const stageLabels = lang === 'en' ? STAGE_LABELS_EN : STAGE_LABELS_KO;
 
   const fallbackDonations = projects
     .map((project) => ({ name: project.name, value: project.donation }))
@@ -109,22 +112,27 @@ export default function Impact() {
     suffix: metric.suffix,
   }));
 
-  const categoryCounts = projects.reduce<Record<string, number>>((acc, project) => {
-    const key = project.category?.trim() || 'General';
+  const stageCounts = projects.reduce<Record<number, number>>((acc, project) => {
+    const key = Number(project.stage) || 1;
     acc[key] = (acc[key] ?? 0) + 1;
     return acc;
   }, {});
 
-  const categoryEntries = Object.entries(categoryCounts)
-    .map(([category, count]) => ({ category, count }))
-    .sort((a, b) => b.count - a.count);
+  const stageData = useMemo(
+    () =>
+      [1, 2, 3, 4, 5, 6, 7].map((stage) => ({
+        stage: stageLabels[stage],
+        count: stageCounts[stage] ?? 0,
+      })),
+    [stageCounts, stageLabels]
+  );
 
-  const categoryData = categoryEntries.length > 6
-    ? [
-        ...categoryEntries.slice(0, 5),
-        { category: 'Other', count: categoryEntries.slice(5).reduce((sum, item) => sum + item.count, 0) },
-      ]
-    : categoryEntries;
+  const panelTabs = [
+    { key: 'revenue' as const, label: t('impact.revenueTitle') },
+    { key: 'donations' as const, label: t('impact.donationTitle') },
+    { key: 'members' as const, label: t('impact.memberTitle') },
+    { key: 'stages' as const, label: t('impact.stageTitle') },
+  ];
 
   return (
     <div>
@@ -162,85 +170,121 @@ export default function Impact() {
       {/* Charts */}
       <section className="bg-card py-14 lg:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* Revenue */}
-            <ScrollReveal>
-              <div className="rounded-xl border border-border bg-card p-6">
-                <h3 className="text-lg font-semibold text-charcoal">{t('impact.revenueTitle')}</h3>
-                <div className="mt-5 overflow-x-auto">
-                  <div className="h-64" style={{ minWidth: getChartWidth(revenueChartData.length) }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={revenueChartData}>
-                        <defs>
-                          <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--foreground))" stopOpacity={0.15} />
-                            <stop offset="95%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} interval="preserveStartEnd" />
-                        <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                        <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
-                        <Area type="monotone" dataKey="revenue" stroke="hsl(var(--foreground))" fill="url(#revGrad)" strokeWidth={2} />
-                        <Area type="monotone" dataKey="expenses" stroke="hsl(var(--accent))" fill="none" strokeWidth={1.5} strokeDasharray="5 5" />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
+          <ScrollReveal>
+            <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
+              <div className="flex min-w-max gap-2">
+                {panelTabs.map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActivePanel(tab.key)}
+                    className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                      activePanel === tab.key
+                        ? 'bg-charcoal text-white'
+                        : 'border border-border bg-white text-mid hover:text-charcoal'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
-            </ScrollReveal>
+            </div>
+          </ScrollReveal>
 
-            {/* Donations 3D bars */}
-            <ScrollReveal delay={0.08}>
-              <div className="rounded-xl border border-border bg-card p-6">
-                <h3 className="text-lg font-semibold text-charcoal">{t('impact.donationTitle')}</h3>
-                <div className="mt-5 overflow-x-auto">
-                  <div style={{ minWidth: getChartWidth(donationChartData.length) }}>
-                    <DonationBarChart data={donationChartData} emptyLabel={t('impact.noDonations')} />
+          <div className="mt-6">
+            {activePanel === 'revenue' && (
+              <ScrollReveal>
+                <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+                  <div className="max-w-2xl">
+                    <h3 className="text-lg font-semibold text-charcoal">{t('impact.revenueTitle')}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-mid">{t('impact.revenueBody')}</p>
+                  </div>
+                  <div className="mt-5 overflow-x-auto">
+                    <div className="h-[18rem] min-w-[18rem] sm:h-80" style={{ minWidth: getChartWidth(revenueChartData.length, 320, 80) }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={revenueChartData}>
+                          <defs>
+                            <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(var(--foreground))" stopOpacity={0.15} />
+                              <stop offset="95%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} interval="preserveStartEnd" />
+                          <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                          <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
+                          <Area type="monotone" dataKey="revenue" stroke="hsl(var(--foreground))" fill="url(#revGrad)" strokeWidth={2} />
+                          <Area type="monotone" dataKey="expenses" stroke="hsl(var(--accent))" fill="none" strokeWidth={1.5} strokeDasharray="5 5" />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </ScrollReveal>
+              </ScrollReveal>
+            )}
 
-            {/* Member growth */}
-            <ScrollReveal>
-              <div className="rounded-xl border border-border bg-card p-6">
-                <h3 className="text-lg font-semibold text-charcoal">{t('impact.memberTitle')}</h3>
-                <div className="mt-5 overflow-x-auto">
-                  <div className="h-64" style={{ minWidth: getChartWidth(memberGrowth.length) }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={memberGrowth}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} interval="preserveStartEnd" />
-                        <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                        <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
-                        <Line type="monotone" dataKey="members" stroke="hsl(var(--accent))" strokeWidth={2.5} dot={{ r: 3, fill: 'hsl(var(--accent))' }} />
-                      </LineChart>
-                    </ResponsiveContainer>
+            {activePanel === 'donations' && (
+              <ScrollReveal>
+                <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+                  <div className="max-w-2xl">
+                    <h3 className="text-lg font-semibold text-charcoal">{t('impact.donationTitle')}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-mid">{t('impact.donationBody')}</p>
+                  </div>
+                  <div className="mt-5 overflow-x-auto">
+                    <div style={{ minWidth: getChartWidth(donationChartData.length, 320, 80) }}>
+                      <DonationBarChart data={donationChartData} emptyLabel={t('impact.noDonations')} />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </ScrollReveal>
+              </ScrollReveal>
+            )}
 
-            {/* Stage distribution */}
-            <ScrollReveal delay={0.08}>
-              <div className="rounded-xl border border-border bg-card p-6">
-                <h3 className="text-lg font-semibold text-charcoal">{t('impact.projectTitle')}</h3>
-                <div className="mt-5 overflow-x-auto">
-                  <div style={{ minWidth: 520, height: Math.max(220, categoryData.length * 38) }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={categoryData} layout="vertical" margin={{ top: 0, right: 12, left: 8, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} allowDecimals={false} />
-                        <YAxis type="category" dataKey="category" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} width={120} />
-                        <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
-                        <Bar dataKey="count" radius={[0, 6, 6, 0]} fill="hsl(var(--foreground))" />
-                      </BarChart>
-                    </ResponsiveContainer>
+            {activePanel === 'members' && (
+              <ScrollReveal>
+                <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+                  <div className="max-w-2xl">
+                    <h3 className="text-lg font-semibold text-charcoal">{t('impact.memberTitle')}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-mid">{t('impact.memberBody')}</p>
+                  </div>
+                  <div className="mt-5 overflow-x-auto">
+                    <div className="h-[18rem] min-w-[18rem] sm:h-80" style={{ minWidth: getChartWidth(memberGrowth.length, 320, 80) }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={memberGrowth}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} interval="preserveStartEnd" />
+                          <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                          <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
+                          <Line type="monotone" dataKey="members" stroke="hsl(var(--accent))" strokeWidth={2.5} dot={{ r: 3, fill: 'hsl(var(--accent))' }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </ScrollReveal>
+              </ScrollReveal>
+            )}
+
+            {activePanel === 'stages' && (
+              <ScrollReveal>
+                <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+                  <div className="max-w-2xl">
+                    <h3 className="text-lg font-semibold text-charcoal">{t('impact.stageTitle')}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-mid">{t('impact.stageBody')}</p>
+                  </div>
+                  <div className="mt-5 overflow-x-auto">
+                    <div className="h-[19rem] min-w-[18rem] sm:h-[24rem]" style={{ minWidth: 320 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={stageData} margin={{ top: 8, right: 8, left: -12, bottom: 8 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="stage" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} interval={0} angle={stageData.length > 4 ? -12 : 0} textAnchor={stageData.length > 4 ? 'end' : 'middle'} height={stageData.length > 4 ? 52 : 36} />
+                          <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} allowDecimals={false} />
+                          <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
+                          <Bar dataKey="count" radius={[6, 6, 0, 0]} fill="hsl(var(--foreground))" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+              </ScrollReveal>
+            )}
           </div>
         </div>
       </section>

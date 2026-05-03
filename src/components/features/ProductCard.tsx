@@ -6,7 +6,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { useCartStore } from '@/stores/cartStore';
 import type { Product } from '@/types';
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
   const { t } = useLanguage();
   const addItem = useCartStore((s) => s.addItem);
   const cartItems = useCartStore((s) => s.items);
@@ -39,8 +39,9 @@ export default function ProductCard({ product }: { product: Product }) {
           <img
             src={product.image}
             alt={product.name}
-            loading="lazy"
+            loading={priority ? 'eager' : 'lazy'}
             decoding="async"
+            fetchPriority={priority ? 'high' : 'auto'}
             className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           {statusLabel && (

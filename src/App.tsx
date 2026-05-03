@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import RequireAuth from '@/components/auth/RequireAuth';
@@ -38,6 +38,14 @@ export default function App() {
   useSiteThemeSync();
   useSiteCopySync();
   useCMSDataSync();
+
+  useEffect(() => {
+    void import('@/pages/Projects');
+    void import('@/pages/ProjectDetail');
+    void import('@/pages/Impact');
+    void import('@/pages/Shop');
+    void import('@/pages/ProductDetailPage');
+  }, []);
 
   return (
     <BrowserRouter>

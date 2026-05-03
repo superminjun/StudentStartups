@@ -11,11 +11,14 @@ export default function Projects() {
   const [activeStage, setActiveStage] = useState(0);
   const stageLabels = lang === 'en' ? STAGE_LABELS_EN : STAGE_LABELS_KO;
   const projects = useCMSStore((s) => s.projects);
+  const status = useCMSStore((s) => s.status);
 
   const filtered = useMemo(
     () => (activeStage === 0 ? projects : projects.filter((p) => p.stage === activeStage)),
     [activeStage, projects]
   );
+
+  const showSkeleton = status === 'loading' && projects.length === 0;
 
   return (
     <div>
@@ -64,7 +67,23 @@ export default function Projects() {
             </div>
           </ScrollReveal>
 
-          {filtered.length === 0 ? (
+          {showSkeleton ? (
+            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="overflow-hidden rounded-2xl border border-border bg-card"
+                >
+                  <div className="aspect-[4/3] animate-pulse bg-muted" />
+                  <div className="space-y-3 p-5">
+                    <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
+                    <div className="h-3 w-full animate-pulse rounded bg-muted" />
+                    <div className="h-3 w-4/5 animate-pulse rounded bg-muted" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="py-20 text-center">
               <p className="text-base text-muted-foreground">{t('projects.noProjects')}</p>
             </div>
@@ -78,7 +97,7 @@ export default function Projects() {
             >
               {filtered.map((project, i) => (
                 <ScrollReveal key={project.id} delay={Math.min(i * 0.05, 0.3)}>
-                  <ProjectCard project={project} />
+                  <ProjectCard project={project} priority={i < 6} />
                 </ScrollReveal>
               ))}
             </motion.div>

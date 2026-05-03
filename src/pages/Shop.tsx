@@ -11,6 +11,7 @@ export default function Shop() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeTerm, setActiveTerm] = useState('All');
   const products = useCMSStore((s) => s.products);
+  const status = useCMSStore((s) => s.status);
 
   const categories = useMemo(() => {
     const cats = [...new Set(products.map((p) => p.category))].sort();
@@ -23,6 +24,8 @@ export default function Shop() {
     if (activeTerm !== 'All') result = result.filter((p) => p.term === activeTerm);
     return result;
   }, [products, activeCategory, activeTerm]);
+
+  const showSkeleton = status === 'loading' && products.length === 0;
 
   return (
     <div>
@@ -97,7 +100,23 @@ export default function Shop() {
             </div>
           </ScrollReveal>
 
-          {filtered.length === 0 ? (
+          {showSkeleton ? (
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="overflow-hidden rounded-xl border border-[hsl(30,12%,90%)] bg-white"
+                >
+                  <div className="aspect-square animate-pulse bg-[hsl(30,15%,92%)]" />
+                  <div className="space-y-2 p-3 sm:p-4">
+                    <div className="h-3 w-2/3 animate-pulse rounded bg-[hsl(30,12%,88%)]" />
+                    <div className="h-3 w-full animate-pulse rounded bg-[hsl(30,12%,92%)]" />
+                    <div className="h-3 w-1/2 animate-pulse rounded bg-[hsl(30,12%,88%)]" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="py-20 text-center">
               <p className="text-base text-light">No products found.</p>
             </div>
@@ -111,7 +130,7 @@ export default function Shop() {
             >
               {filtered.map((product, i) => (
                 <ScrollReveal key={product.id} delay={Math.min(i * 0.04, 0.25)}>
-                  <ProductCard product={product} />
+                  <ProductCard product={product} priority={i < 6} />
                 </ScrollReveal>
               ))}
             </motion.div>
