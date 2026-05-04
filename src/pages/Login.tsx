@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ComponentType } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, User, LogIn } from 'lucide-react';
+import { Shield, User, LogIn, Apple, Mail } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
@@ -10,6 +10,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 
 type LoginMode = 'member' | 'admin';
 type MemberAuthMode = 'signin' | 'signup';
+type SocialProvider = 'google' | 'azure' | 'apple';
 type SignupEmailStatus = {
   ok: boolean;
   exists: boolean;
@@ -36,6 +37,7 @@ export default function Login() {
   const [signupCode, setSignupCode] = useState('');
   const [pendingEmail, setPendingEmail] = useState('');
   const [resendingCode, setResendingCode] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const { user, isAdmin } = useAuth();
 
   const checkSignupEmailStatus = async (targetEmail: string): Promise<SignupEmailStatus | null> => {
@@ -104,14 +106,34 @@ export default function Login() {
   };
 
   useEffect(() => {
-    if (user) {
+    if (!user) return;
+
+    let cancelled = false;
+    const redirectTo = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+
+    const syncAndRoute = async () => {
       if (isAdmin || mode === 'admin') {
-        navigate('/admin', { replace: true });
-      } else {
-        navigate('/portal', { replace: true });
+        if (!cancelled) navigate(redirectTo || '/admin', { replace: true });
+        return;
       }
-    }
-  }, [user, isAdmin, mode, navigate]);
+
+      try {
+        await ensureMemberProfile(user.email ?? '', String(user.user_metadata?.full_name ?? ''));
+      } catch (err) {
+        console.warn('Could not ensure member profile during redirect', err);
+      }
+
+      if (!cancelled) {
+        navigate(redirectTo || '/portal', { replace: true });
+      }
+    };
+
+    void syncAndRoute();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, isAdmin, mode, navigate]);
 
   const resetSignupVerification = () => {
     setSignupPending(false);
@@ -304,9 +326,45 @@ export default function Login() {
     setResendingCode(false);
   };
 
+  const handleSocialAuth = async (provider: SocialProvider) => {
+    if (!supabase || !isSupabaseConfigured) {
+      setError(t('login.errorSupabase'));
+      return;
+    }
+
+    setError('');
+    setNotice('');
+    setSocialLoading(provider);
+
+    const redirectTo = `${window.location.origin}/login?mode=member`;
+    const scopesByProvider: Record<SocialProvider, string | undefined> = {
+      google: 'email profile',
+      azure: 'email openid profile',
+      apple: 'name email',
+    };
+
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo,
+        scopes: scopesByProvider[provider],
+      },
+    });
+
+    if (oauthError) {
+      setError(oauthError.message);
+      setSocialLoading(null);
+    }
+  };
+
   const modeLabel = mode === 'admin' ? t('login.adminTab') : t('login.memberTab');
   const isMemberSignup = mode === 'member' && memberMode === 'signup';
   const showSignupVerify = isMemberSignup && signupPending;
+  const socialProviders: Array<{ key: SocialProvider; label: string; icon: ComponentType<{ className?: string }> }> = [
+    { key: 'google', label: t('login.continueWithGoogle'), icon: Mail },
+    { key: 'azure', label: t('login.continueWithMicrosoft'), icon: Shield },
+    { key: 'apple', label: t('login.continueWithApple'), icon: Apple },
+  ];
   const submitLabel = () => {
     if (loading) {
       if (isMemberSignup && showSignupVerify) return t('login.verifyingCode');
@@ -412,6 +470,31 @@ export default function Login() {
             </div>
 
             <div className="space-y-4">
+              {mode === 'member' && !showSignupVerify && (
+                <div className="space-y-3">
+                  <div className="grid gap-2">
+                    {socialProviders.map((provider) => (
+                      <button
+                        key={provider.key}
+                        type="button"
+                        onClick={() => handleSocialAuth(provider.key)}
+                        disabled={socialLoading !== null || loading}
+                        className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground transition-all hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <provider.icon className="size-4" />
+                        {socialLoading === provider.key ? t('login.redirecting') : provider.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-px flex-1 bg-border" />
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                      {t('login.orContinueWithEmail')}
+                    </span>
+                    <div className="h-px flex-1 bg-border" />
+                  </div>
+                </div>
+              )}
               {mode === 'member' && memberMode === 'signup' && !showSignupVerify && (
                 <div>
                   <label className="mb-1 block text-sm font-medium text-foreground">{t('login.name')}</label>
