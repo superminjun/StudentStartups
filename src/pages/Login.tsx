@@ -15,6 +15,7 @@ type SignupEmailStatus = {
   exists: boolean;
   confirmed: boolean;
   needsVerification: boolean;
+  hasMemberProfile: boolean;
 };
 
 export default function Login() {
@@ -54,6 +55,51 @@ export default function Login() {
     } catch (err) {
       console.warn('Could not check signup email status', err);
       return null;
+    }
+  };
+
+  const ensureMemberProfile = async (targetEmail: string, displayName: string) => {
+    if (!supabase) return;
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData.user) {
+      throw new Error('Could not load your account after sign-in.');
+    }
+
+    const authUser = authData.user;
+    const normalizedEmail = (authUser.email ?? targetEmail).trim().toLowerCase();
+    const normalizedName =
+      displayName.trim() ||
+      String(authUser.user_metadata?.full_name ?? '').trim() ||
+      normalizedEmail.split('@')[0] ||
+      'Member';
+
+    const { data: existingMember, error: memberLookupError } = await supabase
+      .from('members')
+      .select('id')
+      .eq('user_id', authUser.id)
+      .maybeSingle();
+
+    if (memberLookupError) {
+      throw memberLookupError;
+    }
+
+    if (existingMember?.id) return;
+
+    const { error: upsertError } = await supabase.from('members').upsert(
+      {
+        user_id: authUser.id,
+        name: normalizedName,
+        email: normalizedEmail,
+        role: 'Member',
+        team: 'Unassigned',
+        contributions: 0,
+        is_verified: Boolean(authUser.email_confirmed_at),
+      },
+      { onConflict: 'user_id' }
+    );
+
+    if (upsertError) {
+      throw upsertError;
     }
   };
 
@@ -150,7 +196,11 @@ export default function Login() {
           const signupStatus = await checkSignupEmailStatus(normalizedEmail);
 
           if (signupStatus?.exists && signupStatus.confirmed) {
-            setError(t('login.errorAccountExists'));
+            setError(
+              signupStatus.hasMemberProfile
+                ? t('login.errorAccountExists')
+                : t('login.errorOrphanedAccount')
+            );
             return;
           }
 
@@ -209,15 +259,7 @@ export default function Login() {
 
         const verifiedUser = verifyData?.user ?? (await supabase.auth.getUser()).data.user;
         if (verifiedUser) {
-          await supabase.from('members').upsert({
-            user_id: verifiedUser.id,
-            name: trimmedName || verifiedUser.user_metadata?.full_name || verifiedUser.email?.split('@')[0] || 'Member',
-            email: verifiedUser.email ?? normalizedEmail,
-            role: 'Member',
-            team: 'Unassigned',
-            contributions: 0,
-            is_verified: true,
-          }, { onConflict: 'user_id' });
+          await ensureMemberProfile(verifiedUser.email ?? normalizedEmail, trimmedName);
         }
 
         navigate(redirectTo || '/portal', { replace: true });
@@ -236,6 +278,7 @@ export default function Login() {
         }
         return;
       }
+      await ensureMemberProfile(normalizedEmail, trimmedName);
       navigate(redirectTo || '/portal', { replace: true });
     } finally {
       setLoading(false);

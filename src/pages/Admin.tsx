@@ -141,6 +141,10 @@ export default function Admin() {
   const [memberNotice, setMemberNotice] = useState('');
   const [memberError, setMemberError] = useState('');
   const [memberDeleting, setMemberDeleting] = useState(false);
+  const [orphanEmailInput, setOrphanEmailInput] = useState('');
+  const [orphanResetLoading, setOrphanResetLoading] = useState(false);
+  const [orphanResetNotice, setOrphanResetNotice] = useState('');
+  const [orphanResetError, setOrphanResetError] = useState('');
 
   const formatMeetingDate = (date: string) => {
     if (!date) return '—';
@@ -500,6 +504,54 @@ export default function Admin() {
     setMemberNotice('Member deleted.');
     await loadMembers();
     setMemberDeleting(false);
+  };
+
+  const handleResetAuthEmail = async () => {
+    if (!supabase) return;
+
+    const normalizedEmail = orphanEmailInput.trim().toLowerCase();
+    if (!normalizedEmail) {
+      setOrphanResetError('Enter an email address first.');
+      setOrphanResetNotice('');
+      return;
+    }
+
+    setOrphanResetLoading(true);
+    setOrphanResetNotice('');
+    setOrphanResetError('');
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      if (!accessToken) {
+        throw new Error('Your admin session expired. Please sign in again.');
+      }
+
+      const response = await fetch('/api/admin-delete-auth-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ email: normalizedEmail }),
+      });
+
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error ?? 'Could not clear this email.');
+      }
+
+      setOrphanResetNotice(`${normalizedEmail} is now cleared for a fresh signup.`);
+      setOrphanEmailInput('');
+      if (selectedMember) {
+        await loadMembers();
+      }
+    } catch (error) {
+      setOrphanResetError(error instanceof Error ? error.message : 'Could not clear this email.');
+    } finally {
+      setOrphanResetLoading(false);
+    }
   };
 
   const loadContributions = async (memberId: string) => {
@@ -1594,6 +1646,34 @@ export default function Admin() {
         {/* Members */}
         {tab === 'members' && !selectedMember && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+            <div className="rounded-xl border border-border bg-card p-4">
+              <p className="text-sm font-semibold text-charcoal">Reset Stuck Signup Email</p>
+              <p className="mt-1 text-xs text-light">
+                Use this when an email says it already exists but the person never showed up in Members. This clears the auth account so they can sign up again from scratch.
+              </p>
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <input
+                  type="email"
+                  value={orphanEmailInput}
+                  onChange={(e) => setOrphanEmailInput(e.target.value)}
+                  placeholder="student@email.com"
+                  className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal sm:min-w-[280px]"
+                />
+                <button
+                  onClick={handleResetAuthEmail}
+                  disabled={orphanResetLoading}
+                  className="rounded-full border border-red-200 px-5 py-2 text-sm font-semibold text-red-600 transition-all hover:border-red-300 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {orphanResetLoading ? 'Clearing...' : 'Clear Email'}
+                </button>
+              </div>
+              {(orphanResetNotice || orphanResetError) && (
+                <p className={`mt-3 text-xs ${orphanResetError ? 'text-red-500' : 'text-emerald-600'}`}>
+                  {orphanResetError || orphanResetNotice}
+                </p>
+              )}
+            </div>
+
             <div className="rounded-xl border border-border bg-card p-4">
               <p className="text-sm font-semibold text-charcoal">Add Meeting</p>
               <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
