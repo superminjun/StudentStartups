@@ -450,7 +450,7 @@ export default function Admin() {
   const handleDeleteMember = async () => {
     if (!supabase || !activeMember) return;
     const confirmDelete = window.confirm(
-      `Delete ${activeMember.name}? This removes their profile, attendance, and contributions.`
+      `Delete ${activeMember.name}? This removes their login account, profile, attendance, and contributions.`
     );
     if (!confirmDelete) return;
 
@@ -458,13 +458,35 @@ export default function Admin() {
     setMemberNotice('');
     setMemberError('');
 
-    const { error: deleteError } = await supabase
-      .from('members')
-      .delete()
-      .eq('id', activeMember.id);
+    let deleteErrorMessage = '';
 
-    if (deleteError) {
-      setMemberError(deleteError.message);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      if (accessToken) {
+        const response = await fetch('/api/admin-delete-member', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({ memberId: activeMember.id }),
+        });
+
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) {
+          deleteErrorMessage = payload?.error ?? 'Could not delete this member account.';
+        }
+      } else {
+        deleteErrorMessage = 'Your admin session expired. Please sign in again.';
+      }
+    } catch (error) {
+      deleteErrorMessage = error instanceof Error ? error.message : 'Could not delete this member account.';
+    }
+
+    if (deleteErrorMessage) {
+      setMemberError(deleteErrorMessage);
       setMemberDeleting(false);
       return;
     }

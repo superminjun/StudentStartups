@@ -56,3 +56,66 @@ export const getRequestIp = (req: ApiRequest) => {
   const firstForwarded = Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(',')[0];
   return firstForwarded?.trim() || req.socket?.remoteAddress || 'unknown';
 };
+
+export const readBearerToken = (req: ApiRequest) => {
+  const header = req.headers?.authorization ?? req.headers?.Authorization;
+  const raw = Array.isArray(header) ? header[0] : header;
+  if (!raw?.startsWith('Bearer ')) return '';
+  return raw.slice('Bearer '.length).trim();
+};
+
+export const findAuthUserByEmail = async (email: string) => {
+  const supabase = createPrivilegedSupabase();
+  if (!supabase) return null;
+
+  const normalizedEmail = email.trim().toLowerCase();
+  let page = 1;
+  const perPage = 200;
+
+  while (page <= 10) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
+    if (error) {
+      throw error;
+    }
+
+    const users = data.users ?? [];
+    const match = users.find((user) => (user.email ?? '').trim().toLowerCase() === normalizedEmail);
+    if (match) {
+      return match;
+    }
+
+    if (users.length < perPage) break;
+    page += 1;
+  }
+
+  return null;
+};
+
+export const getAdminRequester = async (req: ApiRequest) => {
+  const supabase = createPrivilegedSupabase();
+  if (!supabase) {
+    throw new Error('Server not configured');
+  }
+
+  const token = readBearerToken(req);
+  if (!token) {
+    return { supabase, user: null, isAdmin: false };
+  }
+
+  const { data: authData, error: authError } = await supabase.auth.getUser(token);
+  if (authError || !authData.user) {
+    return { supabase, user: null, isAdmin: false };
+  }
+
+  const { data: adminRow, error: adminError } = await supabase
+    .from('admin_users')
+    .select('id')
+    .eq('id', authData.user.id)
+    .maybeSingle();
+
+  if (adminError || !adminRow) {
+    return { supabase, user: authData.user, isAdmin: false };
+  }
+
+  return { supabase, user: authData.user, isAdmin: true };
+};

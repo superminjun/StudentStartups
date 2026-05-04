@@ -10,6 +10,12 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 
 type LoginMode = 'member' | 'admin';
 type MemberAuthMode = 'signin' | 'signup';
+type SignupEmailStatus = {
+  ok: boolean;
+  exists: boolean;
+  confirmed: boolean;
+  needsVerification: boolean;
+};
 
 export default function Login() {
   const { t } = useLanguage();
@@ -30,6 +36,26 @@ export default function Login() {
   const [pendingEmail, setPendingEmail] = useState('');
   const [resendingCode, setResendingCode] = useState(false);
   const { user, isAdmin } = useAuth();
+
+  const checkSignupEmailStatus = async (targetEmail: string): Promise<SignupEmailStatus | null> => {
+    try {
+      const response = await fetch('/api/auth-check-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: targetEmail }),
+      });
+
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error ?? 'Could not check this email address.');
+      }
+
+      return payload as SignupEmailStatus;
+    } catch (err) {
+      console.warn('Could not check signup email status', err);
+      return null;
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -55,13 +81,15 @@ export default function Login() {
 
     const isMemberSignup = mode === 'member' && memberMode === 'signup';
     const isMemberSignin = mode === 'member' && memberMode === 'signin';
+    const normalizedEmail = email.trim().toLowerCase();
+    const trimmedName = name.trim();
 
-    if (!email) {
+    if (!normalizedEmail) {
       setError(t('login.errorRequired'));
       return;
     }
 
-    if (isMemberSignup && !signupPending && (!name || !password)) {
+    if (isMemberSignup && !signupPending && (!trimmedName || !password)) {
       setError(t('login.errorRequired'));
       return;
     }
@@ -92,7 +120,7 @@ export default function Login() {
 
       if (mode === 'admin') {
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
+          email: normalizedEmail,
           password,
         });
         if (signInError || !data.user) {
@@ -119,27 +147,57 @@ export default function Login() {
 
       if (isMemberSignup) {
         if (!signupPending) {
+          const signupStatus = await checkSignupEmailStatus(normalizedEmail);
+
+          if (signupStatus?.exists && signupStatus.confirmed) {
+            setError(t('login.errorAccountExists'));
+            return;
+          }
+
+          if (signupStatus?.needsVerification) {
+            const { error: resendError } = await supabase.auth.resend({
+              type: 'signup',
+              email: normalizedEmail,
+              options: { emailRedirectTo },
+            });
+
+            if (resendError) {
+              setError(resendError.message);
+              return;
+            }
+
+            setSignupPending(true);
+            setPendingEmail(normalizedEmail);
+            setSignupCode('');
+            setNotice(t('login.codeSent'));
+            return;
+          }
+
           const { error: signUpError } = await supabase.auth.signUp({
-            email,
+            email: normalizedEmail,
             password,
             options: {
-              data: { full_name: name },
+              data: { full_name: trimmedName },
               emailRedirectTo,
             },
           });
           if (signUpError) {
-            setError(signUpError.message);
+            if (signUpError.message.toLowerCase().includes('already')) {
+              setError(t('login.errorAccountExists'));
+            } else {
+              setError(signUpError.message);
+            }
             return;
           }
           setSignupPending(true);
-          setPendingEmail(email);
+          setPendingEmail(normalizedEmail);
           setSignupCode('');
           setNotice(t('login.codeSent'));
           return;
         }
 
         const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-          email: pendingEmail || email,
+          email: pendingEmail || normalizedEmail,
           token: signupCode.trim(),
           type: 'email',
         });
@@ -153,8 +211,8 @@ export default function Login() {
         if (verifiedUser) {
           await supabase.from('members').upsert({
             user_id: verifiedUser.id,
-            name: name || verifiedUser.user_metadata?.full_name || verifiedUser.email?.split('@')[0] || 'Member',
-            email: verifiedUser.email ?? email,
+            name: trimmedName || verifiedUser.user_metadata?.full_name || verifiedUser.email?.split('@')[0] || 'Member',
+            email: verifiedUser.email ?? normalizedEmail,
             role: 'Member',
             team: 'Unassigned',
             contributions: 0,
@@ -167,7 +225,7 @@ export default function Login() {
       }
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
+        email: normalizedEmail,
         password,
       });
       if (signInError) {
