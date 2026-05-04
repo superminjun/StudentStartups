@@ -34,6 +34,22 @@ export async function getFilePreviewUrl(file: File) {
   return readFileAsDataUrl(file);
 }
 
+export async function createProductImageFileFromUrl(imageUrl: string, fallbackName: string) {
+  const response = await fetch(imageUrl);
+  if (!response.ok) {
+    throw new Error('Unable to load the current product image.');
+  }
+
+  const blob = await response.blob();
+  const extensionFromType = blob.type.split('/')[1];
+  const extensionFromUrl = imageUrl.split('.').pop()?.split('?')[0];
+  const extension = extensionFromType || extensionFromUrl || 'jpg';
+
+  return new File([blob], replaceExtension(fallbackName, extension), {
+    type: blob.type || 'image/jpeg',
+  });
+}
+
 export async function cropProductImageToSquare(
   file: File,
   sourceUrl: string,

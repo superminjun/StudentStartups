@@ -72,8 +72,8 @@ export default function ProductCard({ product, priority = false }: { product: Pr
         </div>
 
         <div className="flex flex-1 flex-col p-3 sm:p-4">
-          <h3 className="line-clamp-2 text-xs font-semibold text-charcoal sm:text-sm">{product.name}</h3>
-          <p className="mt-1 hidden text-xs leading-relaxed text-mid sm:line-clamp-2 sm:block">{product.description}</p>
+          <h3 className="line-clamp-2 break-words text-xs font-semibold text-charcoal [overflow-wrap:anywhere] sm:text-sm">{product.name}</h3>
+          <p className="mt-1 hidden text-xs leading-relaxed text-mid [overflow-wrap:anywhere] sm:line-clamp-2 sm:block">{product.description}</p>
 
           <div className="mt-auto pt-3">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

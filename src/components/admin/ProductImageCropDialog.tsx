@@ -61,7 +61,7 @@ export default function ProductImageCropDialog({
         <DialogHeader>
           <DialogTitle>Crop Product Image</DialogTitle>
           <DialogDescription>
-            Position the product exactly where you want it. This fixed square frame matches the live product detail image.
+            Position the product exactly where you want it. This fixed square frame matches the live product detail image, and you can reopen it later from any product preview.
           </DialogDescription>
         </DialogHeader>
 

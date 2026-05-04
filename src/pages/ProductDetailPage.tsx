@@ -83,9 +83,9 @@ export default function ProductDetailPage() {
             Back to Shop
           </Link>
 
-          <div className="grid gap-10 lg:grid-cols-2">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {/* Images */}
-            <div>
+            <div className="min-w-0">
               <ProductImageFrame
                 variant="detail"
                 fit="cover"
@@ -126,10 +126,14 @@ export default function ProductDetailPage() {
             </div>
 
             {/* Details */}
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-light">{product.category} · <span className="break-words">{product.term}</span></p>
-              <h1 className="mt-2 text-2xl font-bold text-charcoal sm:text-3xl">{product.name}</h1>
-              <p className="mt-4 whitespace-pre-line break-words text-base leading-relaxed text-mid">{product.description}</p>
+            <div className="min-w-0">
+              <p className="text-xs font-medium uppercase tracking-wider text-light">
+                {product.category} · <span className="break-words [overflow-wrap:anywhere]">{product.term}</span>
+              </p>
+              <h1 className="mt-2 break-words text-2xl font-bold text-charcoal [overflow-wrap:anywhere] sm:text-3xl">{product.name}</h1>
+              <p className="mt-4 whitespace-pre-line break-words text-base leading-relaxed text-mid [overflow-wrap:anywhere]">
+                {product.description}
+              </p>
 
               <div className="mt-6 flex flex-wrap items-baseline gap-4">
                 <span className="text-3xl font-bold text-charcoal tabular-nums">${product.price.toFixed(2)}</span>

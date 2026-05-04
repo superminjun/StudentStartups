@@ -9,11 +9,11 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { resolveStorageUrl, toPublicStorageUrl } from '@/lib/storage';
 import ProductImageCropDialog from '@/components/admin/ProductImageCropDialog';
-import { cropProductImageToSquare, getFilePreviewUrl } from '@/lib/productImageUpload';
+import { createProductImageFileFromUrl, cropProductImageToSquare, getFilePreviewUrl } from '@/lib/productImageUpload';
 import { TEAM_OPTIONS, STAGE_LABELS_EN, TERMS } from '@/constants/config';
 import { translations } from '@/constants/translations';
 import { normalizeHex } from '@/lib/color';
-import { Users as UsersIcon, FolderOpen, ShoppingBag, BarChart3, MessageSquare, CheckCircle, XCircle, Save, FileText, Trash2, Package, Palette, Type } from 'lucide-react';
+import { Users as UsersIcon, FolderOpen, ShoppingBag, BarChart3, MessageSquare, CheckCircle, XCircle, Save, FileText, Trash2, Package, Palette, Type, Crop, Minus } from 'lucide-react';
 
 type MemberRow = {
   id: string;
@@ -119,6 +119,7 @@ type ProductCropSession = {
   files: File[];
   index: number;
   sourceUrl: string;
+  replaceUrl?: string;
 };
 
 export default function Admin() {
@@ -863,11 +864,12 @@ export default function Admin() {
   const startProductCropSession = async (
     productId: string,
     kind: ProductCropSession['kind'],
-    files: File[]
+    files: File[],
+    options?: { replaceUrl?: string; sourceUrl?: string }
   ) => {
     if (!files.length) return;
     try {
-      const sourceUrl = await getFilePreviewUrl(files[0]);
+      const sourceUrl = options?.sourceUrl ?? await getFilePreviewUrl(files[0]);
       setProductUploadState((prev) => ({ ...prev, [productId]: { status: 'uploading' } }));
       setProductCropSession({
         productId,
@@ -875,6 +877,7 @@ export default function Admin() {
         files,
         index: 0,
         sourceUrl,
+        replaceUrl: options?.replaceUrl,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Could not load the selected image.';
@@ -882,7 +885,7 @@ export default function Admin() {
     }
   };
 
-  const uploadProcessedMainProductImage = async (productId: string, file: File) => {
+  const uploadProcessedMainProductImage = async (productId: string, file: File, replaceUrl?: string) => {
     const safeName = file.name.replace(/\s+/g, '-');
     const path = `${productId}/${Date.now()}-${safeName}`;
     const { url, error } = await uploadToBucket('product-images', path, file);
@@ -890,10 +893,20 @@ export default function Admin() {
       throw new Error(error ?? 'Upload failed');
     }
     const previewUrl = await resolveStorageUrl(url);
+    const replaceTarget = replaceUrl ? toPublicStorageUrl(replaceUrl) : '';
     setProductDrafts((prev) => (
       prev.map((p) => (
         p.id === productId
-          ? { ...p, image: url, images: normalizeProductImages(url, p.images) }
+          ? {
+              ...p,
+              image: url,
+              images: normalizeProductImages(
+                url,
+                replaceTarget
+                  ? normalizeProductImages(p.image, p.images).map((img) => (img === replaceTarget ? url : img))
+                  : p.images
+              ),
+            }
           : p
       ))
     ));
@@ -901,7 +914,7 @@ export default function Admin() {
     setProductDirty((prev) => ({ ...prev, [productId]: true }));
   };
 
-  const uploadProcessedProductGalleryImage = async (productId: string, file: File) => {
+  const uploadProcessedProductGalleryImage = async (productId: string, file: File, replaceUrl?: string) => {
     const safeName = file.name.replace(/\s+/g, '-');
     const path = `${productId}/gallery-${Date.now()}-${safeName}`;
     const { url, error } = await uploadToBucket('product-images', path, file);
@@ -909,15 +922,51 @@ export default function Admin() {
       throw new Error(error ?? 'Upload failed');
     }
 
+    const currentProduct = productDrafts.find((product) => product.id === productId);
+    const replaceTarget = replaceUrl ? toPublicStorageUrl(replaceUrl) : '';
     setProductDrafts((prev) => (
       prev.map((p) => {
         if (p.id !== productId) return p;
-        const mergedImages = normalizeProductImages(p.image, [...(p.images ?? []), url]);
-        const nextMain = p.image || mergedImages[0] || '';
+        const mergedImages = replaceTarget
+          ? normalizeProductImages(p.image, p.images).map((img) => (img === replaceTarget ? url : img))
+          : normalizeProductImages(p.image, [...(p.images ?? []), url]);
+        const nextMain = p.image === replaceTarget ? url : (p.image || mergedImages[0] || '');
         return { ...p, image: nextMain, images: normalizeProductImages(nextMain, mergedImages) };
       })
     ));
+    if (!replaceTarget && !toPublicStorageUrl(currentProduct?.image ?? '')) {
+      setProductImagePreview((prev) => ({ ...prev, [productId]: url }));
+    }
     setProductDirty((prev) => ({ ...prev, [productId]: true }));
+  };
+
+  const handleRecropProductImage = async (product: Product, imageUrl: string) => {
+    const targetUrl = toPublicStorageUrl(imageUrl);
+    if (!targetUrl) return;
+
+    try {
+      const currentIsMain = toPublicStorageUrl(product.image) === targetUrl;
+      const fallbackName = `${product.id}-${currentIsMain ? 'main' : 'gallery'}.jpg`;
+      const file = await createProductImageFileFromUrl(targetUrl, fallbackName);
+      await startProductCropSession(product.id, currentIsMain ? 'main' : 'gallery', [file], {
+        replaceUrl: targetUrl,
+        sourceUrl: targetUrl,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not reopen the current image for cropping.';
+      setProductUploadState((prev) => ({ ...prev, [product.id]: { status: 'error', message } }));
+    }
+  };
+
+  const handleRemoveProductImage = (product: Product, imageUrl: string) => {
+    const targetUrl = toPublicStorageUrl(imageUrl);
+    const currentImages = normalizeProductImages(product.image, product.images);
+    const remainingImages = currentImages.filter((img) => img !== targetUrl);
+    const nextMain = toPublicStorageUrl(product.image) === targetUrl ? (remainingImages[0] ?? '') : product.image;
+    const nextImages = nextMain ? normalizeProductImages(nextMain, remainingImages) : [];
+
+    updateProductDraft(product.id, { image: nextMain, images: nextImages });
+    setProductImagePreview((prev) => ({ ...prev, [product.id]: nextMain }));
   };
 
   const finishProductUploadState = (productId: string) => {
@@ -944,9 +993,9 @@ export default function Admin() {
       const croppedFile = await cropProductImageToSquare(currentFile, session.sourceUrl, settings);
 
       if (session.kind === 'main') {
-        await uploadProcessedMainProductImage(session.productId, croppedFile);
+        await uploadProcessedMainProductImage(session.productId, croppedFile, session.replaceUrl);
       } else {
-        await uploadProcessedProductGalleryImage(session.productId, croppedFile);
+        await uploadProcessedProductGalleryImage(session.productId, croppedFile, session.replaceUrl);
       }
 
       const nextIndex = session.index + 1;
@@ -956,6 +1005,7 @@ export default function Admin() {
           ...session,
           index: nextIndex,
           sourceUrl: nextSourceUrl,
+          replaceUrl: undefined,
         });
         return;
       }
@@ -2260,11 +2310,31 @@ export default function Admin() {
                 <div key={product.id} className="rounded-xl border border-border bg-card p-5 space-y-4">
                   <div className="flex flex-col gap-4 lg:flex-row">
                   <div className="w-full lg:w-56">
-                    <div className="aspect-square overflow-hidden rounded-lg border border-border bg-muted">
+                    <div className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-muted">
                       {imageSrc ? (
                         <img src={imageSrc} alt={product.name} className="size-full object-cover" />
                       ) : (
                         <div className="flex h-full items-center justify-center text-xs text-light">No image</div>
+                      )}
+                      {imageSrc && (
+                        <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-end gap-1 p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                          <button
+                            type="button"
+                            title="Re-crop main image"
+                            onClick={() => handleRecropProductImage(product, product.image)}
+                            className="pointer-events-auto rounded-full bg-white/92 p-1.5 text-charcoal shadow-sm transition hover:bg-white"
+                          >
+                            <Crop className="size-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            title="Remove main image"
+                            onClick={() => handleRemoveProductImage(product, product.image)}
+                            className="pointer-events-auto rounded-full bg-white/92 p-1.5 text-red-500 shadow-sm transition hover:bg-white hover:text-red-600"
+                          >
+                            <Minus className="size-3.5" />
+                          </button>
+                        </div>
                       )}
                     </div>
                     <p className="mt-1 text-[10px] text-light">Uploads are cropped to 1:1, compressed, and saved as fast-loading web images.</p>
@@ -2414,29 +2484,57 @@ export default function Admin() {
                       ) : (
                         <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-6">
                           {galleryImages.map((img) => (
-                            <button
+                            <div
                               key={img}
-                              type="button"
-                              onClick={() => {
-                                const nextImages = normalizeProductImages(img, galleryImages);
-                                const nextMain = toPublicStorageUrl(img);
-                                updateProductDraft(product.id, { image: nextMain, images: normalizeProductImages(nextMain, nextImages) });
-                                setProductImagePreview((prev) => ({ ...prev, [product.id]: nextMain }));
-                              }}
                               className={`group relative aspect-square overflow-hidden rounded-lg border-2 ${
                                 product.image === img ? 'border-charcoal' : 'border-transparent hover:border-border'
                               }`}
                             >
-                              <img src={img} alt="" className="size-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const nextImages = normalizeProductImages(img, galleryImages);
+                                  const nextMain = toPublicStorageUrl(img);
+                                  updateProductDraft(product.id, { image: nextMain, images: normalizeProductImages(nextMain, nextImages) });
+                                  setProductImagePreview((prev) => ({ ...prev, [product.id]: nextMain }));
+                                }}
+                                className="size-full"
+                              >
+                                <img src={img} alt="" className="size-full object-cover" />
+                              </button>
                               {product.image === img && (
                                 <span className="absolute left-1 top-1 rounded-full bg-charcoal px-2 py-0.5 text-[10px] text-white">Main</span>
                               )}
-                            </button>
+                              <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-end gap-1 p-1.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                                <button
+                                  type="button"
+                                  title="Re-crop image"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleRecropProductImage(product, img);
+                                  }}
+                                  className="pointer-events-auto rounded-full bg-white/92 p-1 text-charcoal shadow-sm transition hover:bg-white"
+                                >
+                                  <Crop className="size-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  title="Remove image"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    handleRemoveProductImage(product, img);
+                                  }}
+                                  className="pointer-events-auto rounded-full bg-white/92 p-1 text-red-500 shadow-sm transition hover:bg-white hover:text-red-600"
+                                >
+                                  <Minus className="size-3" />
+                                </button>
+                              </div>
+                            </div>
                           ))}
                         </div>
                       )}
                       {galleryImages.length > 0 && (
-                        <p className="mt-2 text-[10px] text-light">All gallery images are displayed as square crops across the site.</p>
+                        <p className="mt-2 text-[10px] text-light">Hover any image to crop it again or remove it. Click the image itself to make it the main product shot.</p>
                       )}
                     </div>
                   </div>
