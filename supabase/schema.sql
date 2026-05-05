@@ -27,6 +27,8 @@ create table if not exists public.members (
   user_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
   email text not null,
+  primary_provider text not null default 'email',
+  linked_providers text[] not null default array['email']::text[],
   role text not null default 'Member',
   team text not null default 'Unassigned',
   contributions integer not null default 0,

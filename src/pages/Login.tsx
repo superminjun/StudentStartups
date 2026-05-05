@@ -1,16 +1,18 @@
-import { useEffect, useState, type ComponentType } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, User, LogIn, Mail } from 'lucide-react';
+import { Shield, User, LogIn } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import OAuthProviderButtons from '@/components/auth/OAuthProviderButtons';
+import { MissingAuthEmailError, syncMemberProfile } from '@/lib/auth/memberProfile';
+import { SOCIAL_PROVIDERS, type SocialProvider } from '@/lib/auth/oauthProviders';
 
 type LoginMode = 'member' | 'admin';
 type MemberAuthMode = 'signin' | 'signup';
-type SocialProvider = 'google';
 type SignupEmailStatus = {
   ok: boolean;
   exists: boolean;
@@ -18,6 +20,50 @@ type SignupEmailStatus = {
   needsVerification: boolean;
   hasMemberProfile: boolean;
 };
+
+const OAUTH_PENDING_KEY = 'studentstartups.oauth.pending';
+
+type PendingOAuthState = {
+  provider: SocialProvider;
+  startedAt: number;
+};
+
+function getAuthRedirectUrl() {
+  const configuredBaseUrl = (import.meta.env.VITE_SITE_URL as string | undefined)?.trim();
+  const baseUrl =
+    configuredBaseUrl && configuredBaseUrl.length > 0
+      ? configuredBaseUrl
+      : window.location.origin;
+
+  return new URL('/login?mode=member', baseUrl).toString();
+}
+
+function readPendingOAuthState(): PendingOAuthState | null {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const rawValue = window.sessionStorage.getItem(OAUTH_PENDING_KEY);
+    if (!rawValue) return null;
+    const parsed = JSON.parse(rawValue) as PendingOAuthState;
+    if (!parsed?.provider || !parsed?.startedAt) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writePendingOAuthState(provider: SocialProvider) {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.setItem(
+    OAUTH_PENDING_KEY,
+    JSON.stringify({ provider, startedAt: Date.now() } satisfies PendingOAuthState)
+  );
+}
+
+function clearPendingOAuthState() {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.removeItem(OAUTH_PENDING_KEY);
+}
 
 export default function Login() {
   const { t } = useLanguage();
@@ -39,6 +85,30 @@ export default function Login() {
   const [resendingCode, setResendingCode] = useState(false);
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const { user, isAdmin } = useAuth();
+
+  const formatOAuthError = useCallback((rawMessage?: string) => {
+    const normalized = String(rawMessage ?? '').toLowerCase();
+    if (!normalized) return t('login.errorOAuthGeneric');
+    if (
+      normalized.includes('missing') && normalized.includes('email')
+    ) {
+      return t('login.errorOAuthMissingEmail');
+    }
+    if (
+      normalized.includes('cancel') ||
+      normalized.includes('access_denied') ||
+      normalized.includes('user denied')
+    ) {
+      return t('login.errorOAuthCancelled');
+    }
+    if (
+      (normalized.includes('identity') && normalized.includes('already')) ||
+      (normalized.includes('credential') && normalized.includes('different'))
+    ) {
+      return t('login.errorOAuthAccountConflict');
+    }
+    return t('login.errorOAuthGeneric');
+  }, [t]);
 
   const checkSignupEmailStatus = async (targetEmail: string): Promise<SignupEmailStatus | null> => {
     try {
@@ -67,42 +137,11 @@ export default function Login() {
       throw new Error('Could not load your account after sign-in.');
     }
 
-    const authUser = authData.user;
-    const normalizedEmail = (authUser.email ?? targetEmail).trim().toLowerCase();
-    const normalizedName =
-      displayName.trim() ||
-      String(authUser.user_metadata?.full_name ?? '').trim() ||
-      normalizedEmail.split('@')[0] ||
-      'Member';
-
-    const { data: existingMember, error: memberLookupError } = await supabase
-      .from('members')
-      .select('id')
-      .eq('user_id', authUser.id)
-      .maybeSingle();
-
-    if (memberLookupError) {
-      throw memberLookupError;
-    }
-
-    if (existingMember?.id) return;
-
-    const { error: upsertError } = await supabase.from('members').upsert(
-      {
-        user_id: authUser.id,
-        name: normalizedName,
-        email: normalizedEmail,
-        role: 'Member',
-        team: 'Unassigned',
-        contributions: 0,
-        is_verified: Boolean(authUser.email_confirmed_at),
-      },
-      { onConflict: 'user_id' }
-    );
-
-    if (upsertError) {
-      throw upsertError;
-    }
+    await syncMemberProfile({
+      supabase,
+      user: authData.user,
+      displayName: displayName || targetEmail.split('@')[0] || 'Member',
+    });
   };
 
   useEffect(() => {
@@ -113,6 +152,8 @@ export default function Login() {
 
     const syncAndRoute = async () => {
       if (isAdmin || mode === 'admin') {
+        clearPendingOAuthState();
+        setSocialLoading(null);
         if (!cancelled) navigate(redirectTo || '/admin', { replace: true });
         return;
       }
@@ -120,10 +161,27 @@ export default function Login() {
       try {
         await ensureMemberProfile(user.email ?? '', String(user.user_metadata?.full_name ?? ''));
       } catch (err) {
+        const oauthPending = readPendingOAuthState();
+        clearPendingOAuthState();
+        setSocialLoading(null);
+
+        if (err instanceof MissingAuthEmailError) {
+          setError(t('login.errorOAuthMissingEmail'));
+          await supabase?.auth.signOut();
+          return;
+        }
+
         console.warn('Could not ensure member profile during redirect', err);
+        if (oauthPending) {
+          setError(err instanceof Error ? err.message : t('login.errorProfileSync'));
+          await supabase?.auth.signOut();
+          return;
+        }
       }
 
       if (!cancelled) {
+        clearPendingOAuthState();
+        setSocialLoading(null);
         navigate(redirectTo || '/portal', { replace: true });
       }
     };
@@ -133,7 +191,58 @@ export default function Login() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id, isAdmin, mode, navigate]);
+  }, [user, user?.id, isAdmin, location.state, mode, navigate, t]);
+
+  useEffect(() => {
+    const oauthError =
+      searchParams.get('error_description') ??
+      searchParams.get('error');
+
+    if (!oauthError) return;
+
+    clearPendingOAuthState();
+    setSocialLoading(null);
+    setNotice('');
+    setError(formatOAuthError(oauthError));
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('error');
+    nextParams.delete('error_code');
+    nextParams.delete('error_description');
+    window.history.replaceState(
+      {},
+      '',
+      `${location.pathname}${nextParams.toString() ? `?${nextParams.toString()}` : ''}`
+    );
+  }, [formatOAuthError, location.pathname, searchParams, t]);
+
+  useEffect(() => {
+    if (mode !== 'member' || user) {
+      clearPendingOAuthState();
+      if (user) setSocialLoading(null);
+      return;
+    }
+
+    const pendingOAuth = readPendingOAuthState();
+    if (!pendingOAuth) return;
+
+    setSocialLoading(pendingOAuth.provider);
+
+    if (searchParams.get('error') || searchParams.get('error_description')) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      const latestPendingOAuth = readPendingOAuthState();
+      if (!latestPendingOAuth) return;
+
+      clearPendingOAuthState();
+      setSocialLoading(null);
+      setError(t('login.errorOAuthCancelled'));
+    }, 8000);
+
+    return () => window.clearTimeout(timeout);
+  }, [mode, searchParams, t, user, user?.id]);
 
   const resetSignupVerification = () => {
     setSignupPending(false);
@@ -184,7 +293,7 @@ export default function Login() {
       message?.toLowerCase().includes('invalid login credentials');
 
     try {
-      const emailRedirectTo = `${window.location.origin}/login?mode=member`;
+      const emailRedirectTo = getAuthRedirectUrl();
 
       if (mode === 'admin') {
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -312,7 +421,7 @@ export default function Login() {
     setResendingCode(true);
     setError('');
     setNotice('');
-    const emailRedirectTo = `${window.location.origin}/login?mode=member`;
+    const emailRedirectTo = getAuthRedirectUrl();
     const { error: resendError } = await supabase.auth.resend({
       type: 'signup',
       email: pendingEmail,
@@ -335,28 +444,29 @@ export default function Login() {
     setError('');
     setNotice('');
     setSocialLoading(provider);
+    writePendingOAuthState(provider);
 
-    const redirectTo = `${window.location.origin}/login?mode=member`;
+    const redirectTo = getAuthRedirectUrl();
+    const providerConfig = SOCIAL_PROVIDERS.find((entry) => entry.key === provider);
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo,
-        scopes: 'email profile',
+        scopes: providerConfig?.scopes,
       },
     });
 
     if (oauthError) {
-      setError(oauthError.message);
+      clearPendingOAuthState();
+      setError(formatOAuthError(oauthError.message));
       setSocialLoading(null);
     }
   };
 
+  const socialProviders = useMemo(() => SOCIAL_PROVIDERS, []);
   const modeLabel = mode === 'admin' ? t('login.adminTab') : t('login.memberTab');
   const isMemberSignup = mode === 'member' && memberMode === 'signup';
   const showSignupVerify = isMemberSignup && signupPending;
-  const socialProviders: Array<{ key: SocialProvider; label: string; icon: ComponentType<{ className?: string }> }> = [
-    { key: 'google', label: t('login.continueWithGoogle'), icon: Mail },
-  ];
   const submitLabel = () => {
     if (loading) {
       if (isMemberSignup && showSignupVerify) return t('login.verifyingCode');
@@ -447,6 +557,7 @@ export default function Login() {
                       setMode(value);
                       setError('');
                       setNotice('');
+                      setSocialLoading(null);
                       resetSignupVerification();
                       if (value === 'admin') setMemberMode('signin');
                     }}
@@ -462,31 +573,6 @@ export default function Login() {
             </div>
 
             <div className="space-y-4">
-              {mode === 'member' && !showSignupVerify && (
-                <div className="space-y-3">
-                  <div className="grid gap-2">
-                    {socialProviders.map((provider) => (
-                      <button
-                        key={provider.key}
-                        type="button"
-                        onClick={() => handleSocialAuth(provider.key)}
-                        disabled={socialLoading !== null || loading}
-                        className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-card px-4 py-3 text-sm font-semibold text-foreground transition-all hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        <provider.icon className="size-4" />
-                        {socialLoading === provider.key ? t('login.redirecting') : provider.label}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="h-px flex-1 bg-border" />
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                      {t('login.orContinueWithEmail')}
-                    </span>
-                    <div className="h-px flex-1 bg-border" />
-                  </div>
-                </div>
-              )}
               {mode === 'member' && memberMode === 'signup' && !showSignupVerify && (
                 <div>
                   <label className="mb-1 block text-sm font-medium text-foreground">{t('login.name')}</label>
@@ -525,6 +611,16 @@ export default function Login() {
                   />
                 </div>
               )}
+              {mode === 'member' && !showSignupVerify && (
+                <OAuthProviderButtons
+                  providers={socialProviders}
+                  loadingProvider={socialLoading}
+                  disabled={socialLoading !== null || loading}
+                  dividerLabel={t('login.orContinueWithSocial')}
+                  onSelect={handleSocialAuth}
+                  resolveLabel={t}
+                />
+              )}
               {showSignupVerify && (
                 <div>
                   <label className="mb-2 block text-sm font-medium text-foreground">{t('login.oneTimeCode')}</label>
@@ -558,6 +654,7 @@ export default function Login() {
                       setMemberMode(memberMode === 'signin' ? 'signup' : 'signin');
                       setError('');
                       setNotice('');
+                      setSocialLoading(null);
                       resetSignupVerification();
                     }}
                     className="text-xs font-semibold text-foreground hover:text-[hsl(24,80%,50%)]"
