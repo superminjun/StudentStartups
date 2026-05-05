@@ -13,6 +13,7 @@ type SyncMemberProfileParams = {
   supabase: SupabaseClient;
   user: User;
   displayName?: string;
+  eagerProviderSync?: boolean;
 };
 
 const PROVIDER_NAME_MAP: Record<string, ProviderKey> = {
@@ -80,6 +81,7 @@ export async function syncMemberProfile({
   supabase,
   user,
   displayName = '',
+  eagerProviderSync = true,
 }: SyncMemberProfileParams) {
   const normalizedEmail = String(user.email ?? '').trim().toLowerCase();
   if (!normalizedEmail) {
@@ -139,6 +141,10 @@ export async function syncMemberProfile({
     if (insertFallbackError) {
       throw insertFallbackError;
     }
+    return;
+  }
+
+  if (!eagerProviderSync) {
     return;
   }
 

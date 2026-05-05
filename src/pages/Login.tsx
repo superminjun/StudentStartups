@@ -86,6 +86,12 @@ export default function Login() {
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const { user, isAdmin } = useAuth();
 
+  const getPreferredDisplayName = useCallback((targetEmail: string, fallbackName = '') => {
+    const trimmedFallback = fallbackName.trim();
+    if (trimmedFallback) return trimmedFallback;
+    return targetEmail.trim().split('@')[0] || 'Member';
+  }, []);
+
   const formatOAuthError = useCallback((rawMessage?: string) => {
     const normalized = String(rawMessage ?? '').toLowerCase();
     if (!normalized) return t('login.errorOAuthGeneric');
@@ -130,19 +136,39 @@ export default function Login() {
     }
   };
 
-  const ensureMemberProfile = async (targetEmail: string, displayName: string) => {
-    if (!supabase) return;
-    const { data: authData, error: authError } = await supabase.auth.getUser();
-    if (authError || !authData.user) {
-      throw new Error('Could not load your account after sign-in.');
-    }
+  const ensureMemberProfile = useCallback(
+    async (
+      targetEmail: string,
+      displayName: string,
+      options?: { authUser?: typeof user; eagerProviderSync?: boolean }
+    ) => {
+      if (!supabase) return;
 
-    await syncMemberProfile({
-      supabase,
-      user: authData.user,
-      displayName: displayName || targetEmail.split('@')[0] || 'Member',
-    });
-  };
+      const resolvedUser = options?.authUser ?? user;
+      if (resolvedUser) {
+        await syncMemberProfile({
+          supabase,
+          user: resolvedUser,
+          displayName: getPreferredDisplayName(targetEmail, displayName),
+          eagerProviderSync: options?.eagerProviderSync,
+        });
+        return;
+      }
+
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData.user) {
+        throw new Error('Could not load your account after sign-in.');
+      }
+
+      await syncMemberProfile({
+        supabase,
+        user: authData.user,
+        displayName: getPreferredDisplayName(targetEmail, displayName),
+        eagerProviderSync: options?.eagerProviderSync,
+      });
+    },
+    [getPreferredDisplayName, user]
+  );
 
   useEffect(() => {
     if (!user) return;
@@ -158,10 +184,15 @@ export default function Login() {
         return;
       }
 
+      const oauthPending = readPendingOAuthState();
+      const preferredDisplayName = String(user.user_metadata?.full_name ?? user.user_metadata?.name ?? '');
+
       try {
-        await ensureMemberProfile(user.email ?? '', String(user.user_metadata?.full_name ?? ''));
+        await ensureMemberProfile(user.email ?? '', preferredDisplayName, {
+          authUser: user,
+          eagerProviderSync: !oauthPending,
+        });
       } catch (err) {
-        const oauthPending = readPendingOAuthState();
         clearPendingOAuthState();
         setSocialLoading(null);
 
@@ -184,6 +215,15 @@ export default function Login() {
         setSocialLoading(null);
         navigate(redirectTo || '/portal', { replace: true });
       }
+
+      if (oauthPending) {
+        void ensureMemberProfile(user.email ?? '', preferredDisplayName, {
+          authUser: user,
+          eagerProviderSync: true,
+        }).catch((err) => {
+          console.warn('Deferred social profile sync failed', err);
+        });
+      }
     };
 
     void syncAndRoute();
@@ -191,7 +231,7 @@ export default function Login() {
     return () => {
       cancelled = true;
     };
-  }, [user, user?.id, isAdmin, location.state, mode, navigate, t]);
+  }, [ensureMemberProfile, user, user?.id, isAdmin, location.state, mode, navigate, t]);
 
   useEffect(() => {
     const oauthError =
@@ -390,14 +430,17 @@ export default function Login() {
 
         const verifiedUser = verifyData?.user ?? (await supabase.auth.getUser()).data.user;
         if (verifiedUser) {
-          await ensureMemberProfile(verifiedUser.email ?? normalizedEmail, trimmedName);
+          await ensureMemberProfile(verifiedUser.email ?? normalizedEmail, trimmedName, {
+            authUser: verifiedUser,
+            eagerProviderSync: true,
+          });
         }
 
         navigate(redirectTo || '/portal', { replace: true });
         return;
       }
 
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: normalizedEmail,
         password,
       });
@@ -409,7 +452,10 @@ export default function Login() {
         }
         return;
       }
-      await ensureMemberProfile(normalizedEmail, trimmedName);
+      await ensureMemberProfile(normalizedEmail, trimmedName, {
+        authUser: signInData.user ?? undefined,
+        eagerProviderSync: true,
+      });
       navigate(redirectTo || '/portal', { replace: true });
     } finally {
       setLoading(false);
