@@ -4,7 +4,7 @@ import { SITE_CONFIG } from '@/constants/config';
 import { Instagram, Mail } from 'lucide-react';
 
 export default function Footer() {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
 
   const navLinks = [
     { to: '/about', label: t('nav.about') },
@@ -17,6 +17,11 @@ export default function Footer() {
     { to: '/portal', label: t('nav.portal') },
     { to: '/login', label: t('nav.login') },
     { to: '/contact', label: t('nav.contact') },
+  ];
+
+  const legalLinks = [
+    { to: '/privacy', label: lang === 'ko' ? '개인정보 처리방침' : 'Privacy Policy' },
+    { to: '/terms', label: lang === 'ko' ? '서비스 이용약관' : 'Terms of Service' },
   ];
 
   return (
@@ -93,8 +98,21 @@ export default function Footer() {
           </a>
         </div>
       </div>
-      <div className="border-t border-border py-6 text-center">
-        <p className="text-xs text-muted-foreground">{t('footer.rights')}</p>
+      <div className="border-t border-border">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-6 py-6 text-center sm:flex-row sm:text-left">
+          <p className="text-xs text-muted-foreground">{t('footer.rights')}</p>
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-end">
+            {legalLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </footer>
   );
