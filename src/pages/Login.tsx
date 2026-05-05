@@ -281,7 +281,7 @@ export default function Login() {
       return;
     }
 
-    const clearIfReturnedWithoutAuth = async () => {
+    const clearIfReturnedWithoutAuth = async (showCancelledMessage = false) => {
       if (!supabase) return;
       const latestPendingOAuth = readPendingOAuthState();
       if (!latestPendingOAuth || hasOAuthCallbackParams(searchParams)) return;
@@ -291,28 +291,51 @@ export default function Login() {
 
       clearPendingOAuthState();
       setSocialLoading(null);
-      setError(t('login.errorOAuthCancelled'));
+      if (showCancelledMessage) {
+        setError(t('login.errorOAuthCancelled'));
+      }
     };
 
+    void clearIfReturnedWithoutAuth(false);
+
     const timeout = window.setTimeout(() => {
-      void clearIfReturnedWithoutAuth();
-    }, 1200);
+      void clearIfReturnedWithoutAuth(false);
+    }, 300);
+
+    const interval = window.setInterval(() => {
+      void clearIfReturnedWithoutAuth(false);
+    }, 600);
 
     const handlePageShow = () => {
-      void clearIfReturnedWithoutAuth();
+      void clearIfReturnedWithoutAuth(false);
     };
 
     const handleFocus = () => {
-      void clearIfReturnedWithoutAuth();
+      void clearIfReturnedWithoutAuth(false);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void clearIfReturnedWithoutAuth(false);
+      }
+    };
+
+    const handlePopState = () => {
+      void clearIfReturnedWithoutAuth(false);
     };
 
     window.addEventListener('pageshow', handlePageShow);
     window.addEventListener('focus', handleFocus);
+    window.addEventListener('popstate', handlePopState);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       window.clearTimeout(timeout);
+      window.clearInterval(interval);
       window.removeEventListener('pageshow', handlePageShow);
       window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('popstate', handlePopState);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [mode, searchParams, t, user, user?.id]);
 
