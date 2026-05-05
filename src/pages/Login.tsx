@@ -1,7 +1,7 @@
 import { useEffect, useState, type ComponentType } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Shield, User, LogIn, Apple, Mail } from 'lucide-react';
+import { Shield, User, LogIn, Mail } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
@@ -10,7 +10,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp
 
 type LoginMode = 'member' | 'admin';
 type MemberAuthMode = 'signin' | 'signup';
-type SocialProvider = 'google' | 'azure' | 'apple';
+type SocialProvider = 'google';
 type SignupEmailStatus = {
   ok: boolean;
   exists: boolean;
@@ -337,17 +337,11 @@ export default function Login() {
     setSocialLoading(provider);
 
     const redirectTo = `${window.location.origin}/login?mode=member`;
-    const scopesByProvider: Record<SocialProvider, string | undefined> = {
-      google: 'email profile',
-      azure: 'email openid profile',
-      apple: 'name email',
-    };
-
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo,
-        scopes: scopesByProvider[provider],
+        scopes: 'email profile',
       },
     });
 
@@ -362,8 +356,6 @@ export default function Login() {
   const showSignupVerify = isMemberSignup && signupPending;
   const socialProviders: Array<{ key: SocialProvider; label: string; icon: ComponentType<{ className?: string }> }> = [
     { key: 'google', label: t('login.continueWithGoogle'), icon: Mail },
-    { key: 'azure', label: t('login.continueWithMicrosoft'), icon: Shield },
-    { key: 'apple', label: t('login.continueWithApple'), icon: Apple },
   ];
   const submitLabel = () => {
     if (loading) {
