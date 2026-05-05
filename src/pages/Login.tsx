@@ -65,6 +65,15 @@ function clearPendingOAuthState() {
   window.sessionStorage.removeItem(OAUTH_PENDING_KEY);
 }
 
+function hasOAuthCallbackParams(searchParams: URLSearchParams) {
+  return (
+    searchParams.has('code') ||
+    searchParams.has('state') ||
+    searchParams.has('error') ||
+    searchParams.has('error_description')
+  );
+}
+
 export default function Login() {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -268,20 +277,43 @@ export default function Login() {
 
     setSocialLoading(pendingOAuth.provider);
 
-    if (searchParams.get('error') || searchParams.get('error_description')) {
+    if (hasOAuthCallbackParams(searchParams)) {
       return;
     }
 
-    const timeout = window.setTimeout(() => {
+    const clearIfReturnedWithoutAuth = async () => {
+      if (!supabase) return;
       const latestPendingOAuth = readPendingOAuthState();
-      if (!latestPendingOAuth) return;
+      if (!latestPendingOAuth || hasOAuthCallbackParams(searchParams)) return;
+
+      const { data } = await supabase.auth.getSession();
+      if (data.session) return;
 
       clearPendingOAuthState();
       setSocialLoading(null);
       setError(t('login.errorOAuthCancelled'));
-    }, 8000);
+    };
 
-    return () => window.clearTimeout(timeout);
+    const timeout = window.setTimeout(() => {
+      void clearIfReturnedWithoutAuth();
+    }, 1200);
+
+    const handlePageShow = () => {
+      void clearIfReturnedWithoutAuth();
+    };
+
+    const handleFocus = () => {
+      void clearIfReturnedWithoutAuth();
+    };
+
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.clearTimeout(timeout);
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [mode, searchParams, t, user, user?.id]);
 
   const resetSignupVerification = () => {

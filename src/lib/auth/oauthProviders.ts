@@ -1,6 +1,6 @@
 import type { Provider } from '@supabase/supabase-js';
 
-export type SocialProvider = Extract<Provider, 'google' | 'azure' | 'apple'>;
+export type SocialProvider = Extract<Provider, 'google'>;
 
 export type SocialProviderConfig = {
   key: SocialProvider;
@@ -19,21 +19,5 @@ export const SOCIAL_PROVIDERS: SocialProviderConfig[] = [
     tone: 'bg-white text-[#1f1a17]',
     logoSrc: '/brand/google.svg',
     logoAlt: 'Google',
-  },
-  {
-    key: 'azure',
-    labelKey: 'login.continueWithMicrosoft',
-    scopes: 'email openid profile',
-    tone: 'bg-white text-[#1f1a17]',
-    logoSrc: '/brand/microsoft.svg',
-    logoAlt: 'Microsoft',
-  },
-  {
-    key: 'apple',
-    labelKey: 'login.continueWithApple',
-    scopes: 'name email',
-    tone: 'bg-[#111111] text-white',
-    logoSrc: '/brand/apple.svg',
-    logoAlt: 'Apple',
   },
 ];
