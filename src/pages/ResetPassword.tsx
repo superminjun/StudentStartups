@@ -138,7 +138,7 @@ export default function ResetPassword() {
             )}
 
             {loadingSession || verifyingLink ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
+              <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
             ) : !session ? (
               <div className="space-y-3">
                 <p className="text-sm text-red-500">{t('resetPassword.errorInvalid')}</p>
@@ -155,7 +155,7 @@ export default function ResetPassword() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="input-base"
-                    placeholder="••••••••"
+                    placeholder={t('resetPassword.newPasswordPlaceholder')}
                   />
                 </div>
                 <div>
@@ -165,7 +165,7 @@ export default function ResetPassword() {
                     value={confirm}
                     onChange={(e) => setConfirm(e.target.value)}
                     className="input-base"
-                    placeholder="••••••••"
+                    placeholder={t('resetPassword.confirmPasswordPlaceholder')}
                   />
                 </div>
 

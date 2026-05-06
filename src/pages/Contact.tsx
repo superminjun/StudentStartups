@@ -144,10 +144,10 @@ export default function Contact() {
                         value={form.name}
                         onChange={(e) => { setForm({ ...form, name: e.target.value }); setErrors({ ...errors, name: false }); }}
                         className={inputClass('name')}
-                        placeholder="John Doe"
+                        placeholder={t('contact.namePlaceholder')}
                         maxLength={120}
                       />
-                      {errors.name && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="size-3" /> Required</p>}
+                      {errors.name && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="size-3" /> {t('contact.errorRequired')}</p>}
                     </div>
                     <div>
                       <label className="mb-1.5 block text-sm font-medium text-foreground">{t('contact.email')}</label>
@@ -156,10 +156,10 @@ export default function Contact() {
                         value={form.email}
                         onChange={(e) => { setForm({ ...form, email: e.target.value }); setErrors({ ...errors, email: false }); }}
                         className={inputClass('email')}
-                        placeholder="john@example.com"
+                        placeholder={t('contact.emailPlaceholder')}
                         maxLength={160}
                       />
-                      {errors.email && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="size-3" /> Valid email required</p>}
+                      {errors.email && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="size-3" /> {t('contact.errorValidEmail')}</p>}
                     </div>
                   </div>
                   <div className="mt-5">
@@ -169,10 +169,10 @@ export default function Contact() {
                       value={form.subject}
                       onChange={(e) => { setForm({ ...form, subject: e.target.value }); setErrors({ ...errors, subject: false }); }}
                       className={inputClass('subject')}
-                      placeholder="How can we help?"
+                      placeholder={t('contact.subjectPlaceholder')}
                       maxLength={160}
                     />
-                    {errors.subject && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="size-3" /> Required</p>}
+                    {errors.subject && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="size-3" /> {t('contact.errorRequired')}</p>}
                   </div>
                   <div className="mt-5">
                     <label className="mb-1.5 block text-sm font-medium text-foreground">{t('contact.message')}</label>
@@ -181,10 +181,10 @@ export default function Contact() {
                       value={form.message}
                       onChange={(e) => { setForm({ ...form, message: e.target.value }); setErrors({ ...errors, message: false }); }}
                       className={`${inputClass('message')} resize-none`}
-                      placeholder="Tell us more..."
+                      placeholder={t('contact.messagePlaceholder')}
                       maxLength={2000}
                     />
-                    {errors.message && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="size-3" /> Required</p>}
+                    {errors.message && <p className="mt-1 flex items-center gap-1 text-xs text-red-500"><AlertCircle className="size-3" /> {t('contact.errorRequired')}</p>}
                   </div>
 
                   {status === 'error' && (

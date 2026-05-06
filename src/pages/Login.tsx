@@ -682,7 +682,7 @@ export default function Login() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="input-base"
-                    placeholder="Your name"
+                    placeholder={t('login.namePlaceholder')}
                   />
                 </div>
               )}
@@ -697,7 +697,7 @@ export default function Login() {
                   }}
                   disabled={showSignupVerify}
                   className="input-base disabled:bg-muted disabled:text-muted-foreground"
-                  placeholder="you@school.edu"
+                  placeholder={t('login.emailPlaceholder')}
                 />
               </div>
               {!showSignupVerify && (
@@ -708,7 +708,7 @@ export default function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="input-base"
-                    placeholder="••••••••"
+                    placeholder={t('login.passwordPlaceholder')}
                   />
                 </div>
               )}

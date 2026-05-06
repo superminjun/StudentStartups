@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export default function RequireAuth({
   children,
@@ -10,6 +11,7 @@ export default function RequireAuth({
 }) {
   const location = useLocation();
   const { user, loading, isAdmin, isConfigured } = useAuth();
+  const { t } = useLanguage();
 
   if (!isConfigured) {
     return (
@@ -29,7 +31,7 @@ export default function RequireAuth({
       <div className="flex min-h-[60vh] items-center justify-center bg-beige">
         <div className="text-center">
           <div className="mx-auto size-8 animate-spin rounded-full border-2 border-border border-t-[hsl(24,80%,50%)]" />
-          <p className="mt-4 text-sm text-light">Loading...</p>
+          <p className="mt-4 text-sm text-light">{t('common.loading')}</p>
         </div>
       </div>
     );

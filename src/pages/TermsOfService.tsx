@@ -3,17 +3,17 @@ import { useLanguage } from '@/hooks/useLanguage';
 
 const TERMS_COPY = {
   en: {
-    eyebrow: 'Public Policy',
+    eyebrow: 'Legal',
     title: 'Terms of Service',
     subtitle:
-      'These terms explain the basic rules for using Student Startups, including account responsibilities, acceptable conduct, and platform limitations.',
+      'These terms cover the basic rules for using Student Startups, including account responsibility, acceptable use, and platform limits.',
     lastUpdatedLabel: 'Last updated',
-    lastUpdatedValue: 'May 5, 2026',
+    lastUpdatedValue: 'May 6, 2026',
     sections: [
       {
         heading: 'Using the Platform',
         paragraphs: [
-          'By using Student Startups, you agree to use the platform lawfully, respectfully, and only for its intended educational, operational, and community purposes.',
+          'By using Student Startups, you agree to use the platform lawfully, respectfully, and only for its intended product, collaboration, and operational purposes.',
         ],
       },
       {
@@ -66,17 +66,17 @@ const TERMS_COPY = {
     ],
   },
   ko: {
-    eyebrow: '공개 정책',
+    eyebrow: '법적 안내',
     title: '서비스 이용약관',
     subtitle:
-      '이 약관은 Student Startups 플랫폼 이용 시 적용되는 기본 규칙, 계정 책임, 허용되는 사용 방식, 그리고 플랫폼의 책임 제한을 설명합니다.',
+      'Student Startups를 사용할 때 적용되는 기본 규칙, 계정 책임, 허용되는 사용 방식, 책임 제한을 설명합니다.',
     lastUpdatedLabel: '마지막 업데이트',
-    lastUpdatedValue: '2026년 5월 5일',
+    lastUpdatedValue: '2026년 5월 6일',
     sections: [
       {
         heading: '플랫폼 이용',
         paragraphs: [
-          'Student Startups를 이용함으로써, 사용자는 이 플랫폼을 교육적 목적, 운영 목적, 커뮤니티 목적에 맞게 합법적이고 존중하는 방식으로 이용하는 데 동의합니다.',
+          'Student Startups를 이용하면, 이 플랫폼을 합법적이고 존중하는 방식으로 사용하고 원래 의도된 제품 제작, 협업, 운영 목적 안에서만 이용하는 데 동의하는 것으로 봅니다.',
         ],
       },
       {

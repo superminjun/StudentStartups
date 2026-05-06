@@ -136,7 +136,7 @@ export default function ForgotPassword() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={sent}
                 className="input-base disabled:bg-muted disabled:text-muted-foreground"
-                placeholder="you@school.edu"
+                placeholder={t('forgotPassword.emailPlaceholder')}
               />
             </div>
 
@@ -176,7 +176,7 @@ export default function ForgotPassword() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="input-base"
-                    placeholder="••••••••"
+                    placeholder={t('forgotPassword.newPasswordPlaceholder')}
                   />
                 </div>
                 <div>
@@ -186,7 +186,7 @@ export default function ForgotPassword() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="input-base"
-                    placeholder="••••••••"
+                    placeholder={t('forgotPassword.confirmPasswordPlaceholder')}
                   />
                 </div>
                 {resetNotice && <p className="text-xs text-emerald-500">{resetNotice}</p>}

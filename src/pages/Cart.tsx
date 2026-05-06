@@ -147,7 +147,7 @@ export default function Cart() {
       <div className="mx-auto max-w-4xl px-6">
         <Link to="/shop" className="mb-6 inline-flex items-center gap-1.5 text-sm text-mid hover:text-charcoal transition-colors">
           <ArrowLeft className="size-4" />
-          Back to Shop
+          {t('shop.backToShop')}
         </Link>
 
         <h1 className="text-2xl font-bold text-charcoal">{t('shop.cart')}</h1>

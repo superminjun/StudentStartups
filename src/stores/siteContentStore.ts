@@ -10,9 +10,9 @@ const SINGLETON_ID = 'global';
 
 const defaultContent = {
   heroTagline: 'Student Startups',
-  heroTitle: 'Where Students Build Real Businesses',
-  heroSubtitle: 'A student-led entrepreneurship program. Learn market research, production, finance, and design by creating and selling real products.',
-  heroCta: 'Explore Projects',
+  heroTitle: 'Build something real before graduation.',
+  heroSubtitle: 'Find teammates, test ideas, launch products, and learn how startups actually work while you are still in school.',
+  heroCta: 'Start Building',
   heroBackgroundUrl: '',
   shopTerms: TERMS.join(', '),
   totalRevenue: '24850',

@@ -45,8 +45,8 @@ export default function ProductDetailPage() {
     return (
       <div className="flex min-h-screen items-center justify-center pt-16">
         <div className="text-center">
-          <p className="text-base text-light">Product not found.</p>
-          <Link to="/shop" className="mt-4 inline-block text-sm font-medium text-charcoal underline">Back to Shop</Link>
+          <p className="text-base text-light">{t('shop.productNotFound')}</p>
+          <Link to="/shop" className="mt-4 inline-block text-sm font-medium text-charcoal underline">{t('shop.backToShop')}</Link>
         </div>
       </div>
     );
@@ -80,7 +80,7 @@ export default function ProductDetailPage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <Link to="/shop" className="mb-6 inline-flex items-center gap-1.5 text-sm text-mid hover:text-charcoal transition-colors">
             <ArrowLeft className="size-4" />
-            Back to Shop
+            {t('shop.backToShop')}
           </Link>
 
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">

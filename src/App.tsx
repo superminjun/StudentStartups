@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import RequireAuth from '@/components/auth/RequireAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { useSiteContentSync } from '@/stores/siteContentStore';
 import { useSiteThemeSync } from '@/stores/siteThemeStore';
 import { useSiteCopySync } from '@/stores/siteCopyStore';
@@ -24,18 +25,19 @@ const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const Admin = lazy(() => import('@/pages/Admin'));
 
-function LoadingFallback() {
+function LoadingFallback({ label }: { label: string }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-beige">
       <div className="text-center">
         <div className="mx-auto size-8 animate-spin rounded-full border-2 border-border border-t-[hsl(24,80%,50%)]" />
-        <p className="mt-4 text-sm text-light">Loading...</p>
+        <p className="mt-4 text-sm text-light">{label}</p>
       </div>
     </div>
   );
 }
 
 export default function App() {
+  const { t } = useLanguage();
   useSiteContentSync();
   useSiteThemeSync();
   useSiteCopySync();
@@ -52,7 +54,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Layout>
-        <Suspense fallback={<LoadingFallback />}>
+        <Suspense fallback={<LoadingFallback label={t('common.loading')} />}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />

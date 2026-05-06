@@ -54,7 +54,7 @@ export default function Shop() {
           {/* Term filter */}
           <ScrollReveal>
             <div className="mb-4">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-light sm:text-xs">Term / Rotation</p>
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-light sm:text-xs">{t('shop.termFilter')}</p>
               <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 scrollbar-thin">
                 <div className="flex min-w-max gap-2">
                 <button
@@ -118,7 +118,7 @@ export default function Shop() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="py-20 text-center">
-              <p className="text-base text-light">No products found.</p>
+              <p className="text-base text-light">{t('shop.noProducts')}</p>
             </div>
           ) : (
             <motion.div

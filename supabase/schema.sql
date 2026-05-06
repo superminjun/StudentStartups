@@ -339,8 +339,8 @@ create policy "Admins can delete orders"
 insert into public.site_content (id, hero_title, hero_subtitle, total_revenue, total_profit, total_donated, active_members)
 values (
   'global',
-  'Where Students Build Real Businesses',
-  'A student-led entrepreneurship program. Learn market research, production, finance, and design by creating and selling real products.',
+  'Build something real before graduation.',
+  'Find teammates, test ideas, launch products, and learn how startups actually work while you are still in school.',
   '24850',
   '12430',
   '6200',

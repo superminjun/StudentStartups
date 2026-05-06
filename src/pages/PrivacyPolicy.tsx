@@ -3,12 +3,12 @@ import { useLanguage } from '@/hooks/useLanguage';
 
 const PRIVACY_COPY = {
   en: {
-    eyebrow: 'Public Policy',
+    eyebrow: 'Legal',
     title: 'Privacy Policy',
     subtitle:
-      'This policy explains what information Student Startups collects, how we use it, and the choices members, customers, and visitors have when using the platform.',
+      'This explains what Student Startups collects, why we collect it, and what choices members, customers, and visitors have when using the platform.',
     lastUpdatedLabel: 'Last updated',
-    lastUpdatedValue: 'May 5, 2026',
+    lastUpdatedValue: 'May 6, 2026',
     sections: [
       {
         heading: 'Information We Collect',
@@ -63,12 +63,12 @@ const PRIVACY_COPY = {
     ],
   },
   ko: {
-    eyebrow: '공개 정책',
+    eyebrow: '법적 안내',
     title: '개인정보 처리방침',
     subtitle:
-      '이 문서는 Student Startups가 어떤 정보를 수집하고, 어떻게 사용하며, 멤버·고객·방문자가 자신의 정보에 대해 어떤 선택권을 가지는지 설명합니다.',
+      'Student Startups가 어떤 정보를 수집하고 왜 사용하는지, 그리고 멤버·고객·방문자가 어떤 선택권을 가지는지 설명합니다.',
     lastUpdatedLabel: '마지막 업데이트',
-    lastUpdatedValue: '2026년 5월 5일',
+    lastUpdatedValue: '2026년 5월 6일',
     sections: [
       {
         heading: '수집하는 정보',
