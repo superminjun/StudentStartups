@@ -89,4 +89,63 @@ export interface MemberProfile {
   joinDate: string;
 }
 
+export interface TeamProjectSummary {
+  id: string;
+  name: string;
+  stageName: string;
+  status?: string;
+  image?: string;
+  category?: string;
+  term?: string;
+}
+
+export interface TeamMilestone {
+  date: string;
+  titleEn: string;
+  titleKo: string;
+  detailEn?: string;
+  detailKo?: string;
+  type: 'joined' | 'project' | 'review' | 'achievement';
+}
+
+export interface TeamLink {
+  label: string;
+  href: string;
+}
+
+export interface TeamMemberShowcase {
+  id: string;
+  slug: string;
+  name: string;
+  role: string;
+  team: string;
+  joinDate: string;
+  photo: string;
+  bannerImage: string;
+  founder: boolean;
+  featured: boolean;
+  recentlyActive: boolean;
+  bioEn?: string;
+  bioKo?: string;
+  contributionSummaryEn?: string;
+  contributionSummaryKo?: string;
+  leadershipEn: string[];
+  leadershipKo: string[];
+  currentGoalsEn: string[];
+  currentGoalsKo: string[];
+  achievementsEn: string[];
+  achievementsKo: string[];
+  skills: string[];
+  interests: string[];
+  timeline: TeamMilestone[];
+  projects: TeamProjectSummary[];
+  links: TeamLink[];
+  stats: {
+    projects: number;
+    collaborations: number;
+    events: number;
+    contributions: number;
+  };
+}
+
 export type Language = 'en' | 'ko';

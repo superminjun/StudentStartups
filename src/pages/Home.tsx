@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -7,14 +7,23 @@ import HeroSection from '@/components/features/HeroSection';
 import WorkflowSteps from '@/components/features/WorkflowSteps';
 import ImpactCounters from '@/components/features/ImpactCounters';
 import ProjectCard from '@/components/features/ProjectCard';
+import TeamMemberCard from '@/components/features/TeamMemberCard';
+import TeamProfileModal from '@/components/features/TeamProfileModal';
 import ScrollReveal from '@/components/features/ScrollReveal';
 import { useSiteContentStore } from '@/stores/siteContentStore';
+import { useTeamStore, useTeamSync } from '@/stores/teamStore';
+import { teamPageCopy } from '@/constants/teamPageCopy';
 import { FolderOpen, DollarSign, Users, Heart, ArrowRight, Sparkles, Rocket, ShieldCheck } from 'lucide-react';
+import type { TeamMemberShowcase } from '@/types';
 
 export default function Home() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { content } = useSiteContentStore();
   const projects = useCMSStore((s) => s.projects);
+  const teamMembers = useTeamStore((s) => s.members);
+  useTeamSync();
+  const [selectedMember, setSelectedMember] = useState<TeamMemberShowcase | null>(null);
+  const teamCopy = teamPageCopy[lang];
   const featuredProjects = useMemo(() => {
     const visibleProjects = projects.filter((project) => (project.status ?? 'active').toLowerCase() !== 'archived');
     const launchReady = visibleProjects.filter((project) => project.stage >= 6).slice(0, 3);
@@ -24,6 +33,16 @@ export default function Home() {
       .sort((a, b) => (b.revenue + (b.fundraise ?? 0)) - (a.revenue + (a.fundraise ?? 0)))
       .slice(0, 3);
   }, [projects]);
+  const featuredMembers = useMemo(
+    () => [...teamMembers]
+      .filter((member) => member.featured)
+      .sort((a, b) => {
+        if (a.founder !== b.founder) return a.founder ? -1 : 1;
+        return b.stats.projects - a.stats.projects;
+      })
+      .slice(0, 3),
+    [teamMembers]
+  );
   const activeProjectCount = projects.filter((project) => (project.status ?? 'active').toLowerCase() === 'active').length;
 
   const formatCurrencyValue = (value: string) => {
@@ -112,6 +131,42 @@ export default function Home() {
 
       <WorkflowSteps />
 
+      <section className="section border-y border-border/60 bg-card/40">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,0.92fr),minmax(0,1.08fr)] lg:items-end">
+            <div>
+              <ScrollReveal>
+                <p className="section-kicker">{teamCopy.homeKicker}</p>
+                <h2 className="section-title mt-3">{teamCopy.homeTitle}</h2>
+                <p className="section-lead">{teamCopy.homeSubtitle}</p>
+              </ScrollReveal>
+              <ScrollReveal delay={0.08}>
+                <Link to="/team" className="btn btn-secondary mt-6">
+                  {teamCopy.homeCta} <ArrowRight className="size-4" />
+                </Link>
+              </ScrollReveal>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-3">
+              {featuredMembers.map((member, index) => (
+                <ScrollReveal key={member.id} delay={index * 0.06}>
+                  <TeamMemberCard
+                    member={member}
+                    lang={lang}
+                    joinedLabel={teamCopy.joinedPrefix}
+                    founderLabel={teamCopy.founderLabel}
+                    recentlyActiveLabel={teamCopy.recentlyActive}
+                    viewProfileLabel={teamCopy.viewProfile}
+                    onSelect={setSelectedMember}
+                    priority={index === 0}
+                  />
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Proof */}
       <section id="proof" className="section bg-beige scroll-mt-24">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -167,6 +222,15 @@ export default function Home() {
           </ScrollReveal>
         </div>
       </section>
+
+      <TeamProfileModal
+        member={selectedMember}
+        open={Boolean(selectedMember)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedMember(null);
+        }}
+        lang={lang}
+      />
     </div>
   );
 }
