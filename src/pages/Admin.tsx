@@ -12,6 +12,7 @@ import ProductImageCropDialog from '@/components/admin/ProductImageCropDialog';
 import { createProductImageFileFromUrl, cropProductImageToSquare, getFilePreviewUrl } from '@/lib/productImageUpload';
 import { TEAM_OPTIONS, STAGE_LABELS_EN, TERMS } from '@/constants/config';
 import { translations } from '@/constants/translations';
+import { useLanguage } from '@/hooks/useLanguage';
 import { normalizeHex } from '@/lib/color';
 import { Users as UsersIcon, FolderOpen, ShoppingBag, BarChart3, MessageSquare, CheckCircle, XCircle, Save, FileText, Trash2, Package, Palette, Type, Crop, Minus } from 'lucide-react';
 
@@ -124,6 +125,7 @@ type ProductCropSession = {
 
 export default function Admin() {
   const { user } = useAuth();
+  const { lang } = useLanguage();
   const [tab, setTab] = useState('members');
   const [members, setMembers] = useState<MemberRecord[]>([]);
   const [membersLoading, setMembersLoading] = useState(true);
@@ -1700,9 +1702,9 @@ export default function Admin() {
                 <span className="text-xs text-light">{meetings.length} total</span>
               </div>
               {meetingsLoading ? (
-                <p className="mt-3 text-xs text-light">Loading meetings...</p>
+                <p className="mt-3 text-xs text-light">{lang === 'ko' ? '미팅 불러오는 중...' : 'Loading meetings...'}</p>
               ) : meetings.length === 0 ? (
-                <p className="mt-3 text-xs text-light">No meetings yet.</p>
+                <p className="mt-3 text-xs text-light">{lang === 'ko' ? '아직 미팅이 없습니다.' : 'No meetings yet.'}</p>
               ) : (
                 <div className="mt-3 space-y-2">
                   {meetings.map((meeting) => (
@@ -1886,9 +1888,9 @@ export default function Admin() {
                 <span className="col-span-5 text-xs font-semibold text-mid">Admin Feedback</span>
               </div>
               {memberMeetingsLoading ? (
-                <div className="px-5 py-6 text-sm text-light">Loading meetings...</div>
+                <div className="px-5 py-6 text-sm text-light">{lang === 'ko' ? '미팅 불러오는 중...' : 'Loading meetings...'}</div>
               ) : memberMeetings.length === 0 ? (
-                <div className="px-5 py-6 text-sm text-light">No meetings yet.</div>
+                <div className="px-5 py-6 text-sm text-light">{lang === 'ko' ? '아직 미팅이 없습니다.' : 'No meetings yet.'}</div>
               ) : (
                 memberMeetings.map((meeting) => {
                   return (
@@ -3288,7 +3290,7 @@ export default function Admin() {
                           </span>
                         </div>
                       )) : (
-                        <p className="rounded-lg border border-dashed border-border px-3 py-2 text-xs text-light">No low-stock products right now.</p>
+                        <p className="rounded-lg border border-dashed border-border px-3 py-2 text-xs text-light">{lang === 'ko' ? '지금은 재고가 낮은 상품이 없습니다.' : 'No low-stock products right now.'}</p>
                       )}
                     </div>
                   </div>
@@ -3297,7 +3299,7 @@ export default function Admin() {
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Project Media</p>
                       <button onClick={() => setTab('projects')} className="text-xs font-medium text-charcoal underline-offset-4 hover:underline">
-                        Open Projects
+                        {lang === 'ko' ? '프로젝트 열기' : 'Open Projects'}
                       </button>
                     </div>
                     <div className="mt-2 space-y-2">
@@ -3306,7 +3308,7 @@ export default function Admin() {
                           <div>
                             <p className="text-sm font-medium text-charcoal">{project.name}</p>
                             <p className="text-[11px] text-light">
-                              {!project.image?.trim() ? 'Main image missing' : 'Banner image missing'}
+                              {!project.image?.trim() ? (lang === 'ko' ? '대표 이미지가 없습니다.' : 'Main image missing') : (lang === 'ko' ? '배너 이미지가 없습니다.' : 'Banner image missing')}
                             </p>
                           </div>
                           <span className="rounded-full bg-stone-100 px-2 py-1 text-[11px] font-semibold text-stone-700">

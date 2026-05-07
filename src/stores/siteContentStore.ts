@@ -10,9 +10,9 @@ const SINGLETON_ID = 'global';
 
 const defaultContent = {
   heroTagline: 'Student Startups',
-  heroTitle: 'Build something real before graduation.',
-  heroSubtitle: 'Find teammates, test ideas, launch products, and learn how startups actually work while you are still in school.',
-  heroCta: 'Start Building',
+  heroTitle: 'A serious place for early builders.',
+  heroSubtitle: 'Student Startups is a platform for students developing real products, operating disciplined teams, and building a record that can be examined.',
+  heroCta: 'Review the Work',
   heroBackgroundUrl: '',
   shopTerms: TERMS.join(', '),
   totalRevenue: '24850',

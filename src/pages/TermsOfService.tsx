@@ -27,7 +27,7 @@ const TERMS_COPY = {
       {
         heading: 'Acceptable Use',
         paragraphs: [
-          'You may use the site to participate in club activities, access member records, submit messages, place shop orders, and manage authorized content based on your role.',
+          'You may use the site to access member records, submit messages, place shop orders, and manage authorized content based on your role.',
         ],
       },
       {
@@ -42,7 +42,7 @@ const TERMS_COPY = {
       {
         heading: 'Content Ownership',
         paragraphs: [
-          'You retain ownership of content you create, but you grant Student Startups permission to store, display, and process that content as needed to operate the platform, showcase projects, and support club activities. Platform branding, site design, and organizational materials remain the property of Student Startups or their respective owners.',
+          'You retain ownership of content you create, but you grant Student Startups permission to store, display, and process that content as needed to operate the platform, present projects, and support platform operations. Platform branding, site design, and organizational materials remain the property of Student Startups or their respective owners.',
         ],
       },
       {
@@ -90,7 +90,7 @@ const TERMS_COPY = {
       {
         heading: '허용되는 사용',
         paragraphs: [
-          '사용자는 자신의 권한에 따라 클럽 활동 참여, 멤버 기록 확인, 메시지 전송, 샵 주문, 콘텐츠 관리 기능 등을 이용할 수 있습니다.',
+          '사용자는 자신의 권한에 따라 멤버 기록 확인, 메시지 전송, 샵 주문, 콘텐츠 관리 기능 등을 이용할 수 있습니다.',
         ],
       },
       {
@@ -105,7 +105,7 @@ const TERMS_COPY = {
       {
         heading: '콘텐츠 소유권',
         paragraphs: [
-          '사용자가 만든 콘텐츠의 소유권은 사용자에게 남아 있습니다. 다만 플랫폼 운영, 프로젝트 소개, 클럽 활동 지원을 위해 Student Startups가 해당 콘텐츠를 저장, 표시, 처리할 수 있도록 허용해야 합니다. 사이트 디자인, 브랜드 요소, 운영 자료는 Student Startups 또는 각 권리자에게 귀속됩니다.',
+          '사용자가 만든 콘텐츠의 소유권은 사용자에게 남아 있습니다. 다만 플랫폼 운영, 프로젝트 소개, 운영 지원을 위해 Student Startups가 해당 콘텐츠를 저장, 표시, 처리할 수 있도록 허용해야 합니다. 사이트 디자인, 브랜드 요소, 운영 자료는 Student Startups 또는 각 권리자에게 귀속됩니다.',
         ],
       },
       {
@@ -123,7 +123,7 @@ const TERMS_COPY = {
       {
         heading: '연락처',
         paragraphs: [
-          '이 약관에 관한 문의는 공개 Contact 페이지 또는 bnssstudentstartups@gmail.com 으로 보내주세요.',
+          '이 약관에 관한 문의는 공개 Contact 페이지 또는 bnssstudentstartups@gmail.com으로 보내주세요.',
         ],
       },
     ],

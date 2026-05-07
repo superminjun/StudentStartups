@@ -22,7 +22,7 @@ const PRIVACY_COPY = {
         bullets: [
           'To create and manage member, customer, and admin accounts.',
           'To authenticate sign-ins, including email/password and supported social sign-in providers such as Google.',
-          'To run the member portal, manage meetings, show contribution records, and support club operations.',
+          'To run the member portal, manage meetings, maintain contribution records, and support platform operations.',
           'To process orders, respond to messages, and provide customer support.',
           'To improve site reliability, security, and performance.',
         ],
@@ -43,7 +43,7 @@ const PRIVACY_COPY = {
       {
         heading: 'Retention and Security',
         paragraphs: [
-          'We keep information only as long as it is reasonably necessary for club operations, member history, support, legal compliance, or fraud prevention. We use reasonable administrative, technical, and organizational safeguards to protect account and platform data.',
+          'We keep information only as long as it is reasonably necessary for platform operations, account history, support, legal compliance, or fraud prevention. We use reasonable administrative, technical, and organizational safeguards to protect account and platform data.',
         ],
       },
       {
@@ -82,7 +82,7 @@ const PRIVACY_COPY = {
         bullets: [
           '멤버, 고객, 관리자 계정을 생성하고 관리하기 위해',
           '이메일/비밀번호 및 Google 등 지원되는 소셜 로그인을 포함한 인증을 처리하기 위해',
-          '멤버 포털, 미팅 관리, 기여 기록, 클럽 운영 기능을 제공하기 위해',
+          '멤버 포털, 미팅 관리, 기여 기록, 플랫폼 운영 기능을 제공하기 위해',
           '주문 처리, 메시지 응답, 고객 지원을 제공하기 위해',
           '사이트의 보안, 안정성, 성능을 개선하기 위해',
         ],
@@ -103,7 +103,7 @@ const PRIVACY_COPY = {
       {
         heading: '보관 및 보안',
         paragraphs: [
-          '정보는 클럽 운영, 멤버 이력 관리, 고객 지원, 법적 의무, 부정 사용 방지에 필요한 기간 동안만 보관합니다. 또한 계정과 플랫폼 데이터를 보호하기 위해 합리적인 관리적·기술적·조직적 보호 조치를 사용합니다.',
+          '정보는 플랫폼 운영, 멤버 이력 관리, 고객 지원, 법적 의무, 부정 사용 방지에 필요한 기간 동안만 보관합니다. 또한 계정과 플랫폼 데이터를 보호하기 위해 합리적인 관리적·기술적·조직적 보호 조치를 사용합니다.',
         ],
       },
       {
@@ -117,7 +117,7 @@ const PRIVACY_COPY = {
       {
         heading: '연락처',
         paragraphs: [
-          '개인정보 관련 문의는 공개 Contact 페이지 또는 bnssstudentstartups@gmail.com 으로 연락해 주세요.',
+          '개인정보 관련 문의는 공개 Contact 페이지 또는 bnssstudentstartups@gmail.com으로 보내주세요.',
         ],
       },
     ],
