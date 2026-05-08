@@ -17,7 +17,7 @@ export default function HeroSection() {
   const hasHeroImage = Boolean(heroBackgroundUrl && heroBackgroundUrl !== defaultHeroUrl);
 
   return (
-    <section ref={ref} id="intro" className="relative h-[92vh] min-h-[560px] overflow-hidden scroll-mt-24 sm:min-h-[640px]">
+    <section ref={ref} id="intro" className="relative h-[88vh] min-h-[540px] overflow-hidden scroll-mt-24 sm:min-h-[620px]">
       <motion.div className="absolute inset-0" style={{ y: bgY }}>
         {hasHeroImage ? (
           <div className="relative size-full">
@@ -56,7 +56,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.6 }}
-            className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
+            className="mt-6 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg"
           >
             {content.heroSubtitle || t('hero.subtitle')}
           </motion.p>
@@ -74,7 +74,7 @@ export default function HeroSection() {
               {content.heroCta || t('hero.cta')}
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
-            <Link to="/about" className="btn btn-secondary">
+            <Link to="/story" className="btn btn-secondary">
               {t('hero.secondaryCta')}
             </Link>
           </motion.div>

@@ -1,248 +1,154 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Globe, ShoppingBag, ChevronDown } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronDown, Globe, Menu, ShoppingBag, X } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCartStore } from '@/stores/cartStore';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/auth/AuthProvider';
 
-const siteLinks = [
-  { path: '/about', key: 'nav.about' },
-  { path: '/team', key: 'nav.team' },
+const primaryLinks = [
   { path: '/story', key: 'nav.story' },
-  { path: '/journal', key: 'nav.journal' },
   { path: '/projects', key: 'nav.projects' },
+  { path: '/team', key: 'nav.team' },
+  { path: '/journal', key: 'nav.journal' },
+];
+
+const secondaryLinks = [
   { path: '/impact', key: 'nav.impact' },
   { path: '/shop', key: 'nav.shop' },
   { path: '/contact', key: 'nav.contact' },
+  { path: '/about', key: 'nav.about' },
 ];
 
-const homeSections = [
-  { id: 'intro', key: 'nav.intro' },
-  { id: 'value', key: 'nav.value' },
-  { id: 'process', key: 'nav.process' },
-  { id: 'proof', key: 'nav.proof' },
-  { id: 'cta', key: 'nav.cta' },
-];
+const mobileLinks = [{ path: '/', label: 'Home' }, ...primaryLinks.map((link) => ({ path: link.path, key: link.key }))];
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('intro');
-  const [exploreOpen, setExploreOpen] = useState(false);
-  const [mobileExploreOpen, setMobileExploreOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
   const { lang, setLang, t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const cartItems = useCartStore((s) => s.items);
-  const cartCount = cartItems.reduce((sum, i) => sum + i.quantity, 0);
+  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const { user, isAdmin } = useAuth();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => setScrolled(window.scrollY > 12);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => {
     setMobileOpen(false);
-    setMobileExploreOpen(false);
-  }, [location.pathname]);
-
-  const handleSectionClick = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  useEffect(() => {
-    if (location.pathname !== '/') return;
-
-    const getSections = () =>
-      homeSections
-        .map((section) => document.getElementById(section.id))
-        .filter(Boolean) as HTMLElement[];
-
-    let sections = getSections();
-    let rafId: number | null = null;
-
-    const updateActive = () => {
-      if (!sections.length) sections = getSections();
-      if (!sections.length) return;
-
-      const focusLine = window.innerHeight * 0.35;
-      let currentId = sections[0].id;
-      for (const section of sections) {
-        const rect = section.getBoundingClientRect();
-        if (rect.top <= focusLine && rect.bottom > focusLine) {
-          currentId = section.id;
-          break;
-        }
-        if (rect.top <= focusLine) currentId = section.id;
-      }
-      setActiveSection(currentId);
-    };
-
-    const onScroll = () => {
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(updateActive);
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    updateActive();
-
-    return () => {
-      if (rafId) cancelAnimationFrame(rafId);
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-    };
-  }, [location.pathname]);
-
-  useEffect(() => {
-    if (location.pathname !== '/') return;
-    const shouldScrollIntro = sessionStorage.getItem('scrollToIntro');
-    if (!shouldScrollIntro) return;
-    sessionStorage.removeItem('scrollToIntro');
-    requestAnimationFrame(() => handleSectionClick('intro'));
+    setMoreOpen(false);
+    setMobileMoreOpen(false);
   }, [location.pathname]);
 
   const authTarget = isAdmin ? '/admin' : user ? '/portal' : '/login';
   const authLabel = isAdmin ? t('nav.admin') : user ? t('nav.portal') : t('nav.login');
 
-  const solid = true;
-  const elevated = scrolled;
-  const isHome = location.pathname === '/';
-  const navLinks = isHome ? homeSections : siteLinks;
-
-  const handleBrandClick = () => {
-    if (isHome) {
-      handleSectionClick('intro');
-      return;
-    }
-    sessionStorage.setItem('scrollToIntro', '1');
-    navigate('/');
-  };
+  const secondaryActive = useMemo(
+    () => secondaryLinks.some((link) => location.pathname === link.path),
+    [location.pathname]
+  );
 
   return (
     <>
       <nav className={cn(
-        'fixed top-0 left-0 right-0 z-nav overflow-x-clip transition-all duration-400',
-        'bg-card/90 backdrop-blur-xl border-b border-border',
-        elevated ? 'shadow-sm' : 'shadow-none'
+        'fixed inset-x-0 top-0 z-nav border-b border-border bg-card/92 backdrop-blur-xl transition-all duration-300',
+        scrolled ? 'shadow-[0_16px_42px_-34px_rgba(15,23,42,0.28)]' : 'shadow-none'
       )}>
-        <div className="mx-auto flex h-16 max-w-6xl min-w-0 items-center justify-between px-4 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <button
             type="button"
-            onClick={handleBrandClick}
-            className={cn('min-w-0 max-w-[11rem] truncate text-left text-base font-semibold tracking-tight transition-colors sm:max-w-none sm:text-lg', solid ? 'text-foreground' : 'text-white')}
-            aria-label="Go to overview"
+            onClick={() => navigate('/')}
+            className="min-w-0 max-w-[12rem] truncate text-left text-base font-semibold tracking-tight text-foreground sm:max-w-none sm:text-lg"
+            aria-label="Go to homepage"
           >
             Student Startups
           </button>
 
           <div className="hidden items-center gap-1 lg:flex">
-            {navLinks.map((link) => {
-              const active = isHome
-                ? activeSection === (link as { id: string }).id
-                : location.pathname === (link as { path: string }).path;
+            {primaryLinks.map((link) => {
+              const active = location.pathname === link.path;
               return (
-                isHome ? (
-                  <button
-                    key={link.id}
-                    type="button"
-                    onClick={() => handleSectionClick(link.id)}
-                    className={cn(
-                      'relative px-3 py-2 text-sm font-medium transition-colors duration-200',
-                      active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
-                    )}
-                  >
-                    {t(link.key)}
-                    {active && (
-                      <motion.span
-                        layoutId="nav-underline"
-                        className="absolute bottom-0 left-3 right-3 h-[1.5px] bg-foreground"
-                        transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.6 }}
-                      />
-                    )}
-                  </button>
-                ) : (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    className={cn(
-                      'relative px-3 py-2 text-sm font-medium transition-colors duration-200',
-                      solid
-                        ? active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
-                        : active ? 'text-white' : 'text-white/70 hover:text-white'
-                    )}
-                  >
-                    {t(link.key)}
-                    {active && (
-                      <motion.span
-                        layoutId="nav-underline"
-                        className={cn('absolute bottom-0 left-3 right-3 h-[1.5px]', solid ? 'bg-foreground' : 'bg-card')}
-                        transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.6 }}
-                      />
-                    )}
-                  </Link>
-                )
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={cn(
+                    'relative rounded-full px-3 py-2 text-sm font-medium transition-colors duration-200',
+                    active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {t(link.key)}
+                  {active && (
+                    <motion.span
+                      layoutId="nav-underline"
+                      className="absolute bottom-0 left-3 right-3 h-[1.5px] bg-foreground"
+                      transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.6 }}
+                    />
+                  )}
+                </Link>
               );
             })}
 
-            {isHome && (
-              <div
-                className="relative"
-                onMouseEnter={() => setExploreOpen(true)}
-                onMouseLeave={() => setExploreOpen(false)}
+            <div
+              className="relative"
+              onMouseEnter={() => setMoreOpen(true)}
+              onMouseLeave={() => setMoreOpen(false)}
+            >
+              <button
+                type="button"
+                onClick={() => setMoreOpen((prev) => !prev)}
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium transition-colors',
+                  secondaryActive || moreOpen ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                )}
+                aria-expanded={moreOpen}
+                aria-haspopup="menu"
               >
-                <button
-                  type="button"
-                  onClick={() => setExploreOpen((prev) => !prev)}
-                  className={cn(
-                    'relative px-3 py-2 text-sm font-medium transition-colors',
-                    exploreOpen ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
-                  )}
-                  aria-expanded={exploreOpen}
-                  aria-haspopup="menu"
-                >
-                  {t('nav.explore')}
-                </button>
-                <AnimatePresence>
-                  {exploreOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -8, height: 0 }}
-                      animate={{ opacity: 1, y: 0, height: 'auto' }}
-                      exit={{ opacity: 0, y: -6, height: 0 }}
-                      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute left-0 top-full mt-2 min-w-[190px] overflow-hidden rounded-xl border border-border bg-card/95 shadow-lg backdrop-blur-xl"
-                    >
-                      <div className="p-2">
-                        {siteLinks.map((link) => (
-                          <Link
-                            key={link.path}
-                            to={link.path}
-                            className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                          >
-                            {t(link.key)}
-                          </Link>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )}
+                {lang === 'ko' ? '더 보기' : 'More'}
+                <ChevronDown className={cn('size-4 transition-transform', moreOpen && 'rotate-180')} />
+              </button>
+
+              <AnimatePresence>
+                {moreOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute right-0 top-full mt-2 min-w-[210px] overflow-hidden rounded-2xl border border-border bg-card shadow-[0_26px_60px_-38px_rgba(15,23,42,0.28)]"
+                  >
+                    <div className="p-2">
+                      {secondaryLinks.map((link) => (
+                        <Link
+                          key={link.path}
+                          to={link.path}
+                          className={cn(
+                            'flex items-center justify-between rounded-xl px-3 py-2.5 text-sm transition-colors',
+                            location.pathname === link.path
+                              ? 'bg-muted text-foreground'
+                              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                          )}
+                        >
+                          {t(link.key)}
+                        </Link>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
-          <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => setLang(lang === 'en' ? 'ko' : 'en')}
-              className={cn(
-                'flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium transition-all',
-                solid ? 'text-muted-foreground hover:text-foreground hover:bg-muted' : 'text-white/70 hover:text-white hover:bg-card/10'
-              )}
+              className="flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               aria-label="Toggle language"
             >
               <Globe className="size-3.5" />
@@ -251,7 +157,7 @@ export default function Navbar() {
 
             <Link
               to="/cart"
-              className={cn('relative p-2 transition-colors', solid ? 'text-foreground' : 'text-white')}
+              className="relative p-2 text-foreground transition-colors"
               aria-label="Shopping cart"
             >
               <ShoppingBag className="size-5" />
@@ -268,19 +174,14 @@ export default function Navbar() {
 
             <Link
               to={authTarget}
-              className={cn(
-                'hidden rounded-full px-4 py-1.5 text-sm font-medium transition-all lg:inline-flex',
-                solid
-                  ? 'bg-foreground text-background hover:bg-foreground/90'
-                  : 'bg-card/15 text-white hover:bg-card/25 backdrop-blur-sm'
-              )}
+              className="hidden rounded-full bg-foreground px-4 py-1.5 text-sm font-medium text-background transition-all hover:bg-foreground/90 lg:inline-flex"
             >
               {authLabel}
             </Link>
 
             <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className={cn('p-2 lg:hidden', solid ? 'text-foreground' : 'text-white')}
+              onClick={() => setMobileOpen((prev) => !prev)}
+              className="p-2 text-foreground lg:hidden"
               aria-label="Toggle menu"
             >
               {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -295,84 +196,73 @@ export default function Navbar() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-x-0 top-16 z-dropdown bg-card/98 backdrop-blur-xl border-b border-border lg:hidden"
+            transition={{ duration: 0.18 }}
+            className="fixed inset-x-0 top-16 z-dropdown border-b border-border bg-card/98 backdrop-blur-xl lg:hidden"
           >
-            <div className="flex min-w-0 flex-col gap-1 px-4 py-6 sm:px-6">
-              {navLinks.map((link, i) => (
-                <motion.div
-                  key={isHome ? (link as { id: string }).id : (link as { path: string }).path}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.04 }}
-                >
-                  {isHome ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handleSectionClick((link as { id: string }).id);
-                        setMobileOpen(false);
-                      }}
-                      className={cn(
-                        'block w-full py-3 text-left text-base font-medium border-b border-border',
-                        activeSection === (link as { id: string }).id ? 'text-foreground' : 'text-muted-foreground'
-                      )}
-                    >
-                      {t(link.key)}
-                    </button>
-                  ) : (
-                    <Link
-                      to={(link as { path: string }).path}
-                      className={cn(
-                        'block py-3 text-base font-medium border-b border-border',
-                        location.pathname === (link as { path: string }).path ? 'text-foreground' : 'text-muted-foreground'
-                      )}
-                    >
-                      {t(link.key)}
-                    </Link>
-                  )}
-                </motion.div>
-              ))}
-
-              {isHome && (
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setMobileExploreOpen((prev) => !prev)}
-                    className="flex w-full items-center justify-between py-3 text-left text-base font-medium text-foreground border-b border-border"
+            <div className="px-4 py-5 sm:px-6">
+              <div className="flex flex-col gap-1">
+                {mobileLinks.map((link, index) => (
+                  <motion.div
+                    key={link.path}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.04 }}
                   >
-                    {t('nav.explore')}
-                    <ChevronDown className={cn('size-4 transition-transform', mobileExploreOpen && 'rotate-180')} />
-                  </button>
-                  <AnimatePresence initial={false}>
-                    {mobileExploreOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="flex flex-col gap-1 py-2">
-                          {siteLinks.map((link) => (
-                            <Link
-                              key={link.path}
-                              to={link.path}
-                              className="rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                            >
-                              {t(link.key)}
-                            </Link>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )}
+                    <Link
+                      to={link.path}
+                      className={cn(
+                        'block rounded-xl px-3 py-3 text-base font-medium transition-colors',
+                        location.pathname === link.path ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      )}
+                    >
+                      'label' in link ? link.label : t(link.key)
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="mt-3 border-t border-border pt-3">
+                <button
+                  type="button"
+                  onClick={() => setMobileMoreOpen((prev) => !prev)}
+                  className="flex w-full items-center justify-between rounded-xl px-3 py-3 text-left text-base font-medium text-foreground transition-colors hover:bg-muted"
+                >
+                  {lang === 'ko' ? '더 보기' : 'More'}
+                  <ChevronDown className={cn('size-4 transition-transform', mobileMoreOpen && 'rotate-180')} />
+                </button>
+                <AnimatePresence initial={false}>
+                  {mobileMoreOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-1 flex flex-col gap-1 px-1 pb-1">
+                        {secondaryLinks.map((link) => (
+                          <Link
+                            key={link.path}
+                            to={link.path}
+                            className={cn(
+                              'rounded-xl px-3 py-2.5 text-sm transition-colors',
+                              location.pathname === link.path
+                                ? 'bg-muted text-foreground'
+                                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                            )}
+                          >
+                            {t(link.key)}
+                          </Link>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
               <Link
                 to={authTarget}
-                className="mt-4 inline-block rounded-full bg-foreground px-6 py-2.5 text-center text-sm font-medium text-background"
+                className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-foreground px-6 py-2.5 text-center text-sm font-medium text-background"
               >
                 {authLabel}
               </Link>
