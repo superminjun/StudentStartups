@@ -215,7 +215,7 @@ export default function Navbar() {
                         location.pathname === link.path ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                       )}
                     >
-                      'label' in link ? link.label : t(link.key)
+                      {'label' in link ? link.label : t(link.key)}
                     </Link>
                   </motion.div>
                 ))}
