@@ -1,20 +1,26 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import type { Project, Product } from '@/types';
+import type { Project, Product, ProjectTimelineEntry, ProjectUpdateEntry } from '@/types';
 import { useCMSStore, type ImpactMetricRecord, type RevenuePoint, type DonationPoint, type MemberGrowthPoint } from '@/stores/cmsStore';
 import { useSiteContentStore, type SiteContent } from '@/stores/siteContentStore';
 import { useSiteThemeStore, type SiteTheme } from '@/stores/siteThemeStore';
 import { useSiteCopyStore } from '@/stores/siteCopyStore';
+import { useJournalStore, useJournalSync } from '@/stores/journalStore';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient';
 import { resolveStorageUrl, toPublicStorageUrl } from '@/lib/storage';
 import ProductImageCropDialog from '@/components/admin/ProductImageCropDialog';
+import HomepageContentPanel from '@/components/admin/HomepageContentPanel';
+import StoryContentPanel from '@/components/admin/StoryContentPanel';
+import JournalPostsPanel from '@/components/admin/JournalPostsPanel';
+import MemberShowcasesPanel from '@/components/admin/MemberShowcasesPanel';
+import MediaLibraryPanel from '@/components/admin/MediaLibraryPanel';
 import { createProductImageFileFromUrl, cropProductImageToSquare, getFilePreviewUrl } from '@/lib/productImageUpload';
-import { TEAM_OPTIONS, STAGE_LABELS_EN, TERMS } from '@/constants/config';
+import { SITE_CONFIG, TEAM_OPTIONS, STAGE_LABELS_EN, TERMS } from '@/constants/config';
 import { translations } from '@/constants/translations';
 import { useLanguage } from '@/hooks/useLanguage';
 import { normalizeHex } from '@/lib/color';
-import { Users as UsersIcon, FolderOpen, ShoppingBag, BarChart3, MessageSquare, CheckCircle, XCircle, Save, FileText, Trash2, Package, Palette, Type, Crop, Minus } from 'lucide-react';
+import { Users as UsersIcon, FolderOpen, ShoppingBag, BarChart3, MessageSquare, CheckCircle, XCircle, Save, FileText, Trash2, Package, Palette, Type, Crop, Minus, BookOpenText, Newspaper, Image as ImageIcon, LayoutPanelLeft, Settings2 } from 'lucide-react';
 
 type MemberRow = {
   id: string;
@@ -123,10 +129,87 @@ type ProductCropSession = {
   replaceUrl?: string;
 };
 
+const flattenTranslations = (source: Record<string, unknown>, prefix = ''): Record<string, string> => {
+  const output: Record<string, string> = {};
+  Object.entries(source).forEach(([key, value]) => {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (typeof value === 'string') {
+      output[path] = value;
+    } else if (value && typeof value === 'object') {
+      Object.assign(output, flattenTranslations(value as Record<string, unknown>, path));
+    }
+  });
+  return output;
+};
+
+const projectStatusOptions = [
+  { value: 'idea', label: 'Idea' },
+  { value: 'in-progress', label: 'In Progress' },
+  { value: 'prototype', label: 'Prototype' },
+  { value: 'launched', label: 'Launched' },
+  { value: 'paused', label: 'Paused' },
+  { value: 'completed', label: 'Completed' },
+] as const;
+
+const normalizeProjectStatus = (status?: string) => {
+  const normalized = (status ?? '').trim().toLowerCase();
+  if (!normalized || normalized === 'active') return 'in-progress';
+  if (normalized === 'archived') return 'paused';
+  if (projectStatusOptions.some((option) => option.value === normalized)) return normalized;
+  return normalized;
+};
+
+const isActiveProjectStatus = (status?: string) => {
+  const normalized = normalizeProjectStatus(status);
+  return normalized === 'in-progress' || normalized === 'prototype' || normalized === 'launched';
+};
+
+function normalizeProject(project: Project): Project {
+  const revenue = Number(project.revenue) || 0;
+  const expenses = Number(project.expenses) || 0;
+  const fundraise = Number(project.fundraise) || 0;
+  const donation = Number(project.donation) || 0;
+  const profit = revenue - expenses;
+  const donationPercent = revenue > 0 ? Math.round((donation / revenue) * 1000) / 10 : 0;
+  const stage = Math.min(Math.max(Number(project.stage) || 1, 1), 7);
+  const stageName = STAGE_LABELS_EN[stage] ?? project.stageName;
+  return {
+    ...project,
+    shortDescription: project.shortDescription ?? '',
+    slug: project.slug?.trim() || '',
+    problem: project.problem ?? '',
+    solution: project.solution ?? '',
+    revenue,
+    expenses,
+    donation,
+    fundraise,
+    profit,
+    donationPercent,
+    stage,
+    stageName,
+    image: toPublicStorageUrl(project.image),
+    bannerImage: toPublicStorageUrl(project.bannerImage ?? ''),
+    gallery: Array.from(new Set((project.gallery ?? []).map((image) => toPublicStorageUrl(image)).filter(Boolean))),
+    status: normalizeProjectStatus(project.status),
+    lead: project.lead ?? '',
+    contributors: Array.from(new Set((project.contributors ?? []).map((entry) => entry.trim()).filter(Boolean))),
+    skillsUsed: Array.from(new Set((project.skillsUsed ?? []).map((entry) => entry.trim()).filter(Boolean))),
+    timeline: project.timeline ?? [],
+    updates: project.updates ?? [],
+    impactSummary: project.impactSummary ?? '',
+    nextSteps: project.nextSteps ?? '',
+    lessons: project.lessons ?? '',
+    featured: Boolean(project.featured),
+    published: project.published !== false,
+    order: Number(project.order) || 0,
+  };
+}
+
 export default function Admin() {
   const { user } = useAuth();
   const { lang } = useLanguage();
-  const [tab, setTab] = useState('members');
+  useJournalSync();
+  const [tab, setTab] = useState('overview');
   const [members, setMembers] = useState<MemberRecord[]>([]);
   const [membersLoading, setMembersLoading] = useState(true);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
@@ -143,6 +226,15 @@ export default function Admin() {
   const [memberNotice, setMemberNotice] = useState('');
   const [memberError, setMemberError] = useState('');
   const [memberDeleting, setMemberDeleting] = useState(false);
+  const [memberJoinDateInput, setMemberJoinDateInput] = useState('');
+  const [newMemberForm, setNewMemberForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'Member',
+    team: 'Unassigned',
+  });
+  const [memberCreateLoading, setMemberCreateLoading] = useState(false);
   const [orphanEmailInput, setOrphanEmailInput] = useState('');
   const [orphanResetLoading, setOrphanResetLoading] = useState(false);
   const [orphanResetNotice, setOrphanResetNotice] = useState('');
@@ -175,6 +267,18 @@ export default function Admin() {
     () => members.map((m) => ({ id: m.id, label: m.name || m.email })),
     [members]
   );
+  const publicMemberOptions = useMemo(
+    () => members.map((member) => ({
+      id: member.id,
+      userId: member.user_id,
+      name: member.name || member.email,
+      email: member.email,
+      role: member.role || 'Member',
+      team: member.team || 'Unassigned',
+      joinedDate: member.join_date || '',
+    })),
+    [members]
+  );
   const cmsProjects = useCMSStore((s) => s.projects);
   const cmsProducts = useCMSStore((s) => s.products);
   const cmsImpactMetrics = useCMSStore((s) => s.impactMetrics);
@@ -201,8 +305,10 @@ export default function Admin() {
   const [projectBannerPreview, setProjectBannerPreview] = useState<Record<string, string>>({});
   const [productImagePreview, setProductImagePreview] = useState<Record<string, string>>({});
   const [productCropSession, setProductCropSession] = useState<ProductCropSession | null>(null);
+  const journalPosts = useJournalStore((state) => state.posts);
+  const [mediaCount, setMediaCount] = useState(0);
   const activeProjectCount = useMemo(
-    () => cmsProjects.filter((project) => (project.status ?? 'active').toLowerCase() === 'active').length,
+    () => cmsProjects.filter((project) => isActiveProjectStatus(project.status)).length,
     [cmsProjects]
   );
   const unreadMessagesCount = useMemo(
@@ -257,23 +363,34 @@ export default function Admin() {
       .sort((a, b) => a.timestamp - b.timestamp)[0] ?? null;
   }, [meetings]);
 
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     if (!supabase) return;
     const { data } = await supabase
       .from('orders')
       .select('*')
       .order('created_at', { ascending: false });
     setOrders((data as OrderRow[] | null) ?? []);
-  };
+  }, []);
 
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     if (!supabase) return;
     const { data } = await supabase
       .from('messages')
       .select('*')
       .order('created_at', { ascending: false });
     setMessages((data as MessageRow[] | null) ?? []);
-  };
+  }, []);
+
+  const loadMediaCount = useCallback(async () => {
+    if (!supabase) return;
+    const { count, error: countError } = await supabase
+      .from('media_items')
+      .select('*', { count: 'exact', head: true });
+
+    if (!countError) {
+      setMediaCount(count ?? 0);
+    }
+  }, []);
 
   useEffect(() => {
     if (isSupabaseConfigured && supabase) {
@@ -282,6 +399,7 @@ export default function Admin() {
 
       loadOrders();
       loadMessages();
+      loadMediaCount();
 
       ordersChannel = supabase
         .channel('orders-admin-feed')
@@ -318,8 +436,9 @@ export default function Admin() {
         ...message,
       }));
       setMessages(normalizedMessagesLocal);
+      setMediaCount(0);
     }
-  }, []);
+  }, [loadMediaCount, loadMessages, loadOrders]);
 
   const loadMembers = async () => {
     if (!supabase) return;
@@ -508,6 +627,67 @@ export default function Admin() {
     setMemberDeleting(false);
   };
 
+  const handleCreateMember = async () => {
+    if (!supabase) return;
+
+    const name = newMemberForm.name.trim();
+    const email = newMemberForm.email.trim().toLowerCase();
+    const password = newMemberForm.password;
+
+    if (!name || !email || !password) {
+      setMemberError('Name, email, and a temporary password are required.');
+      setMemberNotice('');
+      return;
+    }
+
+    setMemberCreateLoading(true);
+    setMemberNotice('');
+    setMemberError('');
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      if (!accessToken) {
+        throw new Error('Your admin session expired. Please sign in again.');
+      }
+
+      const response = await fetch('/api/admin-create-member', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          role: newMemberForm.role,
+          team: newMemberForm.team,
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error ?? 'Could not create the member account.');
+      }
+
+      setNewMemberForm({
+        name: '',
+        email: '',
+        password: '',
+        role: 'Member',
+        team: 'Unassigned',
+      });
+      setMemberNotice('Member account created. Share the temporary password with the student and ask them to change it after signing in.');
+      await loadMembers();
+    } catch (error) {
+      setMemberError(error instanceof Error ? error.message : 'Could not create the member account.');
+    } finally {
+      setMemberCreateLoading(false);
+    }
+  };
+
   const handleResetAuthEmail = async () => {
     if (!supabase) return;
 
@@ -669,8 +849,6 @@ export default function Admin() {
     Array.from(new Set(images.map((img) => toPublicStorageUrl(img.trim())).filter(Boolean)))
   );
 
-  const projectStatusOptions = ['active', 'paused', 'completed', 'archived'];
-
   const normalizeProductImages = (mainImage: string, images: string[] | undefined) => {
     const normalizedMain = toPublicStorageUrl(mainImage);
     const base = dedupeImages(images ?? []);
@@ -683,6 +861,10 @@ export default function Admin() {
     id: `project-${createId()}`,
     name: 'New Project',
     description: '',
+    shortDescription: '',
+    slug: '',
+    problem: '',
+    solution: '',
     stage: 1,
     stageName: STAGE_LABELS_EN[1],
     revenue: 0,
@@ -694,10 +876,22 @@ export default function Admin() {
     team: [],
     image: '',
     bannerImage: '',
+    gallery: [],
     startDate: new Date().toISOString().slice(0, 10),
     category: '',
     term: '',
-    status: 'active',
+    status: 'idea',
+    lead: '',
+    contributors: [],
+    skillsUsed: [],
+    timeline: [],
+    updates: [],
+    impactSummary: '',
+    nextSteps: '',
+    lessons: '',
+    featured: false,
+    published: true,
+    order: 0,
   });
 
   const createProductDraft = (): Product => ({
@@ -721,6 +915,10 @@ export default function Admin() {
       id: normalized.id,
       name: normalized.name,
       description: normalized.description,
+      short_description: normalized.shortDescription ?? '',
+      slug: normalized.slug ?? '',
+      problem: normalized.problem ?? '',
+      solution: normalized.solution ?? '',
       stage: Number(normalized.stage) || 1,
       stage_name: normalized.stageName,
       revenue: Number(normalized.revenue) || 0,
@@ -732,10 +930,22 @@ export default function Admin() {
       team: normalized.team ?? [],
       image_url: normalized.image,
       banner_image_url: normalized.bannerImage ?? '',
+      gallery_images: normalized.gallery ?? [],
       start_date: normalized.startDate,
       category: normalized.category,
       term: normalized.term,
-      status: normalized.status ?? 'active',
+      status: normalizeProjectStatus(normalized.status),
+      lead_name: normalized.lead ?? '',
+      contributors: normalized.contributors ?? [],
+      skills_used: normalized.skillsUsed ?? [],
+      timeline: normalized.timeline ?? [],
+      updates: normalized.updates ?? [],
+      impact_summary: normalized.impactSummary ?? '',
+      next_steps: normalized.nextSteps ?? '',
+      lessons: normalized.lessons ?? '',
+      is_featured: Boolean(normalized.featured),
+      is_published: normalized.published !== false,
+      sort_order: Number(normalized.order) || 0,
     });
   };
 
@@ -1140,6 +1350,46 @@ export default function Admin() {
     }, 1800);
   };
 
+  const handleProjectGalleryUpload = async (projectId: string, files: FileList | null) => {
+    if (!files?.length) return;
+    setProjectUploadState((prev) => ({ ...prev, [projectId]: { status: 'uploading' } }));
+
+    const uploadedUrls: string[] = [];
+    for (const file of Array.from(files)) {
+      const safeName = file.name.replace(/\s+/g, '-');
+      const path = `${projectId}/gallery-${Date.now()}-${safeName}`;
+      const { url, error } = await uploadToBucket('project-images', path, file);
+      if (!url) {
+        setProjectUploadState((prev) => ({ ...prev, [projectId]: { status: 'error', message: error ?? 'Upload failed' } }));
+        return;
+      }
+      uploadedUrls.push(url);
+    }
+
+    setProjectDrafts((prev) => prev.map((project) => (
+      project.id === projectId
+        ? {
+            ...project,
+            gallery: Array.from(new Set([...(project.gallery ?? []), ...uploadedUrls].map((image) => toPublicStorageUrl(image)).filter(Boolean))),
+          }
+        : project
+    )));
+    setProjectDirty((prev) => ({ ...prev, [projectId]: true }));
+    setProjectUploadState((prev) => ({ ...prev, [projectId]: { status: 'done' } }));
+    window.setTimeout(() => {
+      setProjectUploadState((prev) => ({ ...prev, [projectId]: { status: 'idle' } }));
+    }, 1800);
+  };
+
+  const removeProjectGalleryImage = (projectId: string, imageUrl: string) => {
+    const target = toPublicStorageUrl(imageUrl);
+    const project = projectDrafts.find((draft) => draft.id === projectId);
+    if (!project) return;
+    updateProjectDraft(projectId, {
+      gallery: (project.gallery ?? []).filter((image) => toPublicStorageUrl(image) !== target),
+    });
+  };
+
   const handleProductImageUpload = async (productId: string, file?: File | null) => {
     if (!file) return;
     await startProductCropSession(productId, 'main', [file]);
@@ -1178,6 +1428,9 @@ export default function Admin() {
       label_en: metric.labelEn,
       label_ko: metric.labelKo,
       value: Number(metric.value) || 0,
+      description_en: metric.descriptionEn ?? '',
+      description_ko: metric.descriptionKo ?? '',
+      is_visible: metric.visible !== false,
       prefix: metric.prefix ?? '',
       suffix: metric.suffix ?? '',
       sort_order: idx + 1,
@@ -1191,6 +1444,9 @@ export default function Admin() {
       ...metric,
       id: metric.id || `metric-${idx}`,
       value: Number(metric.value) || 0,
+      descriptionEn: metric.descriptionEn ?? '',
+      descriptionKo: metric.descriptionKo ?? '',
+      visible: metric.visible !== false,
       prefix: metric.prefix ?? '',
       suffix: metric.suffix ?? '',
       sortOrder: idx + 1,
@@ -1279,35 +1535,75 @@ export default function Admin() {
     await supabase.from(table).delete().eq('id', id);
   };
 
-  function normalizeProject(project: Project): Project {
-    const revenue = Number(project.revenue) || 0;
-    const expenses = Number(project.expenses) || 0;
-    const fundraise = Number(project.fundraise) || 0;
-    const donation = Number(project.donation) || 0;
-    const profit = revenue - expenses;
-    const donationPercent = revenue > 0 ? Math.round((donation / revenue) * 1000) / 10 : 0;
-    const stage = Math.min(Math.max(Number(project.stage) || 1, 1), 7);
-    const stageName = STAGE_LABELS_EN[stage] ?? project.stageName;
-    return {
-      ...project,
-      revenue,
-      expenses,
-      donation,
-      fundraise,
-      profit,
-      donationPercent,
-      stage,
-      stageName,
-      image: toPublicStorageUrl(project.image),
-      bannerImage: toPublicStorageUrl(project.bannerImage ?? ''),
-    };
-  }
-
   const updateProjectDraft = (projectId: string, patch: Partial<Project>) => {
     setProjectDrafts((prev) =>
       prev.map((p) => (p.id === projectId ? normalizeProject({ ...p, ...patch }) : p))
     );
     setProjectDirty((prev) => ({ ...prev, [projectId]: true }));
+  };
+
+  const createProjectTimelineEntry = () => ({
+    date: new Date().toISOString().slice(0, 10),
+    titleEn: '',
+    titleKo: '',
+    detailEn: '',
+    detailKo: '',
+  });
+
+  const createProjectUpdateEntry = () => ({
+    id: `update-${createId()}`,
+    date: new Date().toISOString().slice(0, 10),
+    titleEn: '',
+    titleKo: '',
+    summaryEn: '',
+    summaryKo: '',
+    learningEn: '',
+    learningKo: '',
+    tags: [] as string[],
+  });
+
+  const parseLineList = (value: string) => (
+    Array.from(new Set(value.split('\n').map((entry) => entry.trim()).filter(Boolean)))
+  );
+
+  const updateProjectTimelineEntry = (projectId: string, index: number, patch: Partial<ProjectTimelineEntry>) => {
+    const project = projectDrafts.find((draft) => draft.id === projectId);
+    if (!project) return;
+    const nextTimeline = [...(project.timeline ?? [])];
+    nextTimeline[index] = { ...nextTimeline[index], ...patch };
+    updateProjectDraft(projectId, { timeline: nextTimeline });
+  };
+
+  const addProjectTimelineEntry = (projectId: string) => {
+    const project = projectDrafts.find((draft) => draft.id === projectId);
+    if (!project) return;
+    updateProjectDraft(projectId, { timeline: [...(project.timeline ?? []), createProjectTimelineEntry()] });
+  };
+
+  const removeProjectTimelineEntry = (projectId: string, index: number) => {
+    const project = projectDrafts.find((draft) => draft.id === projectId);
+    if (!project) return;
+    updateProjectDraft(projectId, { timeline: (project.timeline ?? []).filter((_, currentIndex) => currentIndex !== index) });
+  };
+
+  const updateProjectUpdateEntry = (projectId: string, index: number, patch: Partial<ProjectUpdateEntry>) => {
+    const project = projectDrafts.find((draft) => draft.id === projectId);
+    if (!project) return;
+    const nextUpdates = [...(project.updates ?? [])];
+    nextUpdates[index] = { ...nextUpdates[index], ...patch };
+    updateProjectDraft(projectId, { updates: nextUpdates });
+  };
+
+  const addProjectUpdateEntry = (projectId: string) => {
+    const project = projectDrafts.find((draft) => draft.id === projectId);
+    if (!project) return;
+    updateProjectDraft(projectId, { updates: [...(project.updates ?? []), createProjectUpdateEntry()] });
+  };
+
+  const removeProjectUpdateEntry = (projectId: string, index: number) => {
+    const project = projectDrafts.find((draft) => draft.id === projectId);
+    if (!project) return;
+    updateProjectDraft(projectId, { updates: (project.updates ?? []).filter((_, currentIndex) => currentIndex !== index) });
   };
 
   const updateProductDraft = (productId: string, patch: Partial<Product>) => {
@@ -1337,7 +1633,8 @@ export default function Admin() {
     if (!activeMember) return;
     setMemberRoleInput(activeMember.role ?? '');
     setMemberTeamInput(activeMember.team ?? '');
-  }, [activeMember?.id]);
+    setMemberJoinDateInput(activeMember.join_date ?? '');
+  }, [activeMember]);
 
   useEffect(() => {
     const normalized = cmsProjects.map((project) => normalizeProject(project));
@@ -1495,30 +1792,23 @@ export default function Admin() {
   };
 
   const tabs = [
+    { key: 'overview', label: 'Dashboard', icon: LayoutPanelLeft },
     { key: 'members', label: 'Members', icon: UsersIcon },
+    { key: 'people', label: 'People', icon: UsersIcon },
     { key: 'projects', label: 'Projects', icon: FolderOpen },
+    { key: 'journal', label: 'Build Log', icon: Newspaper },
+    { key: 'media', label: 'Media', icon: ImageIcon },
+    { key: 'homepage', label: 'Homepage', icon: FileText },
+    { key: 'story', label: 'Story', icon: BookOpenText },
     { key: 'shop', label: 'Shop', icon: Package },
     { key: 'impact', label: 'Impact', icon: BarChart3 },
+    { key: 'settings', label: 'Settings', icon: Settings2 },
     { key: 'design', label: 'Design', icon: Palette },
     { key: 'copy', label: 'Copy', icon: Type },
     { key: 'content', label: 'Site Content', icon: FileText },
     { key: 'orders', label: 'Orders', icon: ShoppingBag },
     { key: 'messages', label: 'Messages', icon: MessageSquare },
-    { key: 'overview', label: 'Overview', icon: BarChart3 },
   ];
-
-  const flattenTranslations = (source: Record<string, unknown>, prefix = ''): Record<string, string> => {
-    const output: Record<string, string> = {};
-    Object.entries(source).forEach(([key, value]) => {
-      const path = prefix ? `${prefix}.${key}` : key;
-      if (typeof value === 'string') {
-        output[path] = value;
-      } else if (value && typeof value === 'object') {
-        Object.assign(output, flattenTranslations(value as Record<string, unknown>, path));
-      }
-    });
-    return output;
-  };
 
   const defaultCopyList = useMemo<CopyDraft[]>(() => {
     const enMap = flattenTranslations(translations.en as Record<string, unknown>);
@@ -1558,6 +1848,13 @@ export default function Admin() {
       }))
     );
   }, [copy, defaultCopyList]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) return;
+    if (tab === 'overview' || tab === 'media') {
+      loadMediaCount();
+    }
+  }, [loadMediaCount, tab]);
 
   const themeColorFields = [
     { key: 'colorBeige', label: 'Beige' },
@@ -1629,25 +1926,99 @@ export default function Admin() {
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-1 mb-6">
-          {tabs.map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              onClick={() => { setTab(key); setSelectedMember(null); if (key !== 'members') setSelectedMeetingId(null); }}
-              className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all whitespace-nowrap ${
-                tab === key ? 'bg-charcoal text-white' : 'bg-card text-mid hover:text-charcoal border border-border'
-              }`}
-            >
-              <Icon className="size-4" />
-              {label}
-            </button>
-          ))}
-        </div>
+        <div className="grid gap-6 xl:grid-cols-[240px,minmax(0,1fr)]">
+          <aside className="xl:sticky xl:top-24 xl:self-start">
+            <div className="rounded-2xl border border-border bg-card p-3 shadow-sm">
+              <div className="px-3 pb-3 pt-1">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-light">Admin</p>
+                <p className="mt-2 text-sm text-mid">
+                  Manage the public site, contributor records, projects, and internal operations from one place.
+                </p>
+              </div>
+              <div className="flex gap-1 overflow-x-auto pb-1 xl:flex-col xl:overflow-visible">
+                {tabs.map(({ key, label, icon: Icon }) => (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      setTab(key);
+                      setSelectedMember(null);
+                      if (key !== 'members') setSelectedMeetingId(null);
+                    }}
+                    className={`flex min-w-fit items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium transition-all xl:min-w-0 ${
+                      tab === key
+                        ? 'bg-charcoal text-white shadow-[0_18px_40px_-24px_rgba(17,24,39,0.7)]'
+                        : 'text-mid hover:bg-stone-50 hover:text-charcoal'
+                    }`}
+                  >
+                    <Icon className="size-4 shrink-0" />
+                    <span className="truncate">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </aside>
+
+          <div className="min-w-0">
 
         {/* Members */}
         {tab === 'members' && !selectedMember && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+            <div className="rounded-xl border border-border bg-card p-4">
+              <p className="text-sm font-semibold text-charcoal">Create Member Account</p>
+              <p className="mt-1 text-xs text-light">
+                Create a member login directly from admin. This is useful when you are setting up the first cohort or adding internal team members yourself.
+              </p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                <input
+                  type="text"
+                  value={newMemberForm.name}
+                  onChange={(e) => setNewMemberForm((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="Full name"
+                  className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                />
+                <input
+                  type="email"
+                  value={newMemberForm.email}
+                  onChange={(e) => setNewMemberForm((prev) => ({ ...prev, email: e.target.value }))}
+                  placeholder="student@email.com"
+                  className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                />
+                <input
+                  type="text"
+                  value={newMemberForm.password}
+                  onChange={(e) => setNewMemberForm((prev) => ({ ...prev, password: e.target.value }))}
+                  placeholder="Temporary password"
+                  className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                />
+                <input
+                  type="text"
+                  value={newMemberForm.role}
+                  onChange={(e) => setNewMemberForm((prev) => ({ ...prev, role: e.target.value }))}
+                  placeholder="Role"
+                  className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                />
+                <select
+                  value={newMemberForm.team}
+                  onChange={(e) => setNewMemberForm((prev) => ({ ...prev, team: e.target.value }))}
+                  className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                >
+                  {['Unassigned', ...TEAM_OPTIONS].map((team) => (
+                    <option key={team} value={team}>{team}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button
+                  onClick={handleCreateMember}
+                  disabled={memberCreateLoading}
+                  className="rounded-full bg-charcoal px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-[hsl(20,8%,28%)] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {memberCreateLoading ? 'Creating...' : 'Add Member'}
+                </button>
+                <p className="text-xs text-light">The member can sign in immediately with this email and temporary password, then change it later.</p>
+              </div>
+            </div>
+
             <div className="rounded-xl border border-border bg-card p-4">
               <p className="text-sm font-semibold text-charcoal">Reset Stuck Signup Email</p>
               <p className="mt-1 text-xs text-light">
@@ -1857,6 +2228,13 @@ export default function Admin() {
                     onBlur={() => updateMember({ role: memberRoleInput || 'Member' })}
                     placeholder="Role (ex: Team Lead)"
                     className="w-44 rounded-lg border border-border bg-card px-3 py-2 text-sm text-charcoal outline-none focus:border-charcoal"
+                  />
+                  <input
+                    type="date"
+                    value={memberJoinDateInput}
+                    onChange={(e) => setMemberJoinDateInput(e.target.value)}
+                    onBlur={() => updateMember({ join_date: memberJoinDateInput } as Partial<MemberRow>)}
+                    className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-charcoal outline-none focus:border-charcoal"
                   />
                   <div className="flex items-center rounded-lg border border-border bg-muted px-3 py-2 text-sm text-mid">
                     Contributions: <span className="ml-2 font-semibold text-charcoal">{contributionTotal}</span>
@@ -2141,12 +2519,12 @@ export default function Admin() {
                     <div>
                       <label className="text-xs font-semibold text-mid">Status</label>
                       <select
-                        value={project.status ?? 'active'}
+                        value={normalizeProjectStatus(project.status)}
                         onChange={(e) => updateProjectDraft(project.id, { status: e.target.value })}
                         className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                       >
                         {projectStatusOptions.map((status) => (
-                          <option key={status} value={status}>{status}</option>
+                          <option key={status.value} value={status.value}>{status.label}</option>
                         ))}
                       </select>
                     </div>
@@ -2284,6 +2662,322 @@ export default function Admin() {
                         className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
                         rows={3}
                       />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-mid">Slug</label>
+                      <input
+                        type="text"
+                        value={project.slug ?? ''}
+                        onChange={(e) => updateProjectDraft(project.id, { slug: e.target.value })}
+                        placeholder="project-slug"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-mid">Project Lead</label>
+                      <input
+                        type="text"
+                        value={project.lead ?? ''}
+                        onChange={(e) => updateProjectDraft(project.id, { lead: e.target.value })}
+                        placeholder="Who is leading this project?"
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-semibold text-mid">Short Description</label>
+                      <textarea
+                        value={project.shortDescription ?? ''}
+                        onChange={(e) => updateProjectDraft(project.id, { shortDescription: e.target.value })}
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        placeholder="One calm line for cards and previews."
+                        rows={2}
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-semibold text-mid">Problem</label>
+                      <textarea
+                        value={project.problem ?? ''}
+                        onChange={(e) => updateProjectDraft(project.id, { problem: e.target.value })}
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        rows={3}
+                        placeholder="What is the problem this project addresses?"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-semibold text-mid">Solution</label>
+                      <textarea
+                        value={project.solution ?? ''}
+                        onChange={(e) => updateProjectDraft(project.id, { solution: e.target.value })}
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        rows={3}
+                        placeholder="How is the team approaching the problem?"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-semibold text-mid">Contributors (one per line)</label>
+                      <textarea
+                        value={(project.contributors ?? []).join('\n')}
+                        onChange={(e) => updateProjectDraft(project.id, { contributors: parseLineList(e.target.value) })}
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        rows={3}
+                        placeholder="List named contributors if you want a public roster beyond role groups."
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-semibold text-mid">Skills Used (one per line)</label>
+                      <textarea
+                        value={(project.skillsUsed ?? []).join('\n')}
+                        onChange={(e) => updateProjectDraft(project.id, { skillsUsed: parseLineList(e.target.value) })}
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        rows={3}
+                        placeholder="Research, Product design, Pricing, Sourcing..."
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-semibold text-mid">Impact Summary</label>
+                      <textarea
+                        value={project.impactSummary ?? ''}
+                        onChange={(e) => updateProjectDraft(project.id, { impactSummary: e.target.value })}
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        rows={3}
+                        placeholder="What has this project changed, produced, tested, or proven so far?"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-semibold text-mid">Next Steps</label>
+                      <textarea
+                        value={project.nextSteps ?? ''}
+                        onChange={(e) => updateProjectDraft(project.id, { nextSteps: e.target.value })}
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        rows={3}
+                        placeholder="What happens next?"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-semibold text-mid">What We Learned</label>
+                      <textarea
+                        value={project.lessons ?? ''}
+                        onChange={(e) => updateProjectDraft(project.id, { lessons: e.target.value })}
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                        rows={3}
+                        placeholder="What did the team learn through this project?"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-mid">Featured on Homepage</label>
+                      <div className="mt-2 flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(project.featured)}
+                          onChange={(e) => updateProjectDraft(project.id, { featured: e.target.checked })}
+                        />
+                        <span>Show in featured project areas</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-mid">Published</label>
+                      <div className="mt-2 flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={project.published !== false}
+                          onChange={(e) => updateProjectDraft(project.id, { published: e.target.checked })}
+                        />
+                        <span>Visible on the public site</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-mid">Display Order</label>
+                      <input
+                        type="number"
+                        value={Number(project.order ?? 0)}
+                        onChange={(e) => updateProjectDraft(project.id, { order: Number(e.target.value) })}
+                        className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs font-semibold text-mid">Gallery</label>
+                      <div className="mt-2 rounded-lg border border-border p-3">
+                        {(project.gallery ?? []).length ? (
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            {(project.gallery ?? []).map((image) => (
+                              <div key={image} className="overflow-hidden rounded-lg border border-border bg-muted">
+                                <img src={image} alt="" className="aspect-[4/3] w-full object-cover" />
+                                <div className="flex items-center justify-between px-3 py-2">
+                                  <p className="truncate text-[11px] text-mid">{image}</p>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeProjectGalleryImage(project.id, image)}
+                                    className="text-xs text-red-500 hover:text-red-600"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-light">No gallery images yet.</p>
+                        )}
+                      </div>
+                      <label className="mt-3 block text-xs font-semibold text-mid">Upload Gallery Images</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={(e) => handleProjectGalleryUpload(project.id, e.target.files)}
+                        className="mt-1 w-full text-xs text-mid"
+                      />
+                    </div>
+                    <div className="sm:col-span-2 rounded-xl border border-border bg-muted/20 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-mid">Timeline</p>
+                          <p className="mt-1 text-xs text-light">Track the project over time.</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => addProjectTimelineEntry(project.id)}
+                          className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-charcoal"
+                        >
+                          Add Entry
+                        </button>
+                      </div>
+                      <div className="mt-4 space-y-3">
+                        {(project.timeline ?? []).map((entry, index) => (
+                          <div key={`${project.id}-timeline-${index}`} className="rounded-lg border border-border bg-card p-3">
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <input
+                                type="date"
+                                value={entry.date}
+                                onChange={(e) => updateProjectTimelineEntry(project.id, index, { date: e.target.value })}
+                                className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeProjectTimelineEntry(project.id, index)}
+                                className="justify-self-end text-xs text-red-500 hover:text-red-600"
+                              >
+                                Remove
+                              </button>
+                              <input
+                                type="text"
+                                value={entry.titleEn}
+                                onChange={(e) => updateProjectTimelineEntry(project.id, index, { titleEn: e.target.value })}
+                                placeholder="Title (EN)"
+                                className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                              />
+                              <input
+                                type="text"
+                                value={entry.titleKo}
+                                onChange={(e) => updateProjectTimelineEntry(project.id, index, { titleKo: e.target.value })}
+                                placeholder="Title (KO)"
+                                className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                              />
+                              <textarea
+                                value={entry.detailEn ?? ''}
+                                onChange={(e) => updateProjectTimelineEntry(project.id, index, { detailEn: e.target.value })}
+                                placeholder="Detail (EN)"
+                                rows={2}
+                                className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                              />
+                              <textarea
+                                value={entry.detailKo ?? ''}
+                                onChange={(e) => updateProjectTimelineEntry(project.id, index, { detailKo: e.target.value })}
+                                placeholder="Detail (KO)"
+                                rows={2}
+                                className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="sm:col-span-2 rounded-xl border border-border bg-muted/20 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-mid">Updates</p>
+                          <p className="mt-1 text-xs text-light">Record milestones, meeting outcomes, or version changes.</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => addProjectUpdateEntry(project.id)}
+                          className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-charcoal"
+                        >
+                          Add Update
+                        </button>
+                      </div>
+                      <div className="mt-4 space-y-3">
+                        {(project.updates ?? []).map((entry, index) => (
+                          <div key={entry.id} className="rounded-lg border border-border bg-card p-3">
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <input
+                                type="date"
+                                value={entry.date}
+                                onChange={(e) => updateProjectUpdateEntry(project.id, index, { date: e.target.value })}
+                                className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeProjectUpdateEntry(project.id, index)}
+                                className="justify-self-end text-xs text-red-500 hover:text-red-600"
+                              >
+                                Remove
+                              </button>
+                              <input
+                                type="text"
+                                value={entry.titleEn}
+                                onChange={(e) => updateProjectUpdateEntry(project.id, index, { titleEn: e.target.value })}
+                                placeholder="Title (EN)"
+                                className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                              />
+                              <input
+                                type="text"
+                                value={entry.titleKo}
+                                onChange={(e) => updateProjectUpdateEntry(project.id, index, { titleKo: e.target.value })}
+                                placeholder="Title (KO)"
+                                className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                              />
+                              <textarea
+                                value={entry.summaryEn}
+                                onChange={(e) => updateProjectUpdateEntry(project.id, index, { summaryEn: e.target.value })}
+                                placeholder="Summary (EN)"
+                                rows={2}
+                                className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                              />
+                              <textarea
+                                value={entry.summaryKo}
+                                onChange={(e) => updateProjectUpdateEntry(project.id, index, { summaryKo: e.target.value })}
+                                placeholder="Summary (KO)"
+                                rows={2}
+                                className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                              />
+                              <textarea
+                                value={entry.learningEn ?? ''}
+                                onChange={(e) => updateProjectUpdateEntry(project.id, index, { learningEn: e.target.value })}
+                                placeholder="Learning (EN)"
+                                rows={2}
+                                className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                              />
+                              <textarea
+                                value={entry.learningKo ?? ''}
+                                onChange={(e) => updateProjectUpdateEntry(project.id, index, { learningKo: e.target.value })}
+                                placeholder="Learning (KO)"
+                                rows={2}
+                                className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                              />
+                              <div className="sm:col-span-2">
+                                <label className="text-xs font-semibold text-mid">Tags (one per line)</label>
+                                <textarea
+                                  value={entry.tags.join('\n')}
+                                  onChange={(e) => updateProjectUpdateEntry(project.id, index, { tags: parseLineList(e.target.value) })}
+                                  rows={2}
+                                  className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2694,55 +3388,83 @@ export default function Admin() {
 
               <div className="mt-4 space-y-3">
                 {metricDrafts.map((metric, index) => (
-                  <div key={metric.id ?? index} className="grid gap-2 sm:grid-cols-[1fr,1fr,120px,100px,100px,auto] items-center">
-                    <input
-                      type="text"
-                      value={metric.labelEn}
-                      onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, labelEn: e.target.value } : m))}
-                      placeholder="Label (EN) ex: Total Revenue"
-                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
-                    />
-                    <input
-                      type="text"
-                      value={metric.labelKo}
-                      onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, labelKo: e.target.value } : m))}
-                      placeholder="Label (KO) ex: 총 매출"
-                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
-                    />
-                    <input
-                      type="text"
-                      value={metric.prefix ?? ''}
-                      onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, prefix: e.target.value } : m))}
-                      placeholder="Prefix ex: $"
-                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
-                    />
-                    <input
-                      type="number"
-                      value={metric.value}
-                      onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, value: Number(e.target.value) } : m))}
-                      placeholder="Value ex: 12000"
-                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
-                    />
-                    <input
-                      type="text"
-                      value={metric.suffix ?? ''}
-                      onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, suffix: e.target.value } : m))}
-                      placeholder="Suffix ex: +"
-                      className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
-                    />
-                    <button
-                      onClick={() => {
-                        handleDeleteImpactRow('impact_metrics', metric.id);
-                        setMetricDrafts((prev) => prev.filter((_, i) => i !== index));
-                      }}
-                      className="text-xs text-red-500 hover:text-red-600"
-                    >
-                      Delete
-                    </button>
+                  <div key={metric.id ?? index} className="rounded-xl border border-border/80 p-4">
+                    <div className="grid gap-2 sm:grid-cols-[1fr,1fr,120px,100px,100px] items-center">
+                      <input
+                        type="text"
+                        value={metric.labelEn}
+                        onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, labelEn: e.target.value } : m))}
+                        placeholder="Label (EN) ex: Members involved"
+                        className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      />
+                      <input
+                        type="text"
+                        value={metric.labelKo}
+                        onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, labelKo: e.target.value } : m))}
+                        placeholder="Label (KO)"
+                        className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      />
+                      <input
+                        type="text"
+                        value={metric.prefix ?? ''}
+                        onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, prefix: e.target.value } : m))}
+                        placeholder="Prefix"
+                        className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      />
+                      <input
+                        type="number"
+                        value={metric.value}
+                        onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, value: Number(e.target.value) } : m))}
+                        placeholder="Value"
+                        className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      />
+                      <input
+                        type="text"
+                        value={metric.suffix ?? ''}
+                        onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, suffix: e.target.value } : m))}
+                        placeholder="Suffix"
+                        className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      />
+                    </div>
+                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                      <textarea
+                        value={metric.descriptionEn ?? ''}
+                        onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, descriptionEn: e.target.value } : m))}
+                        placeholder="Description (EN)"
+                        rows={3}
+                        className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      />
+                      <textarea
+                        value={metric.descriptionKo ?? ''}
+                        onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, descriptionKo: e.target.value } : m))}
+                        placeholder="Description (KO)"
+                        rows={3}
+                        className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-charcoal"
+                      />
+                    </div>
+                    <div className="mt-3 flex items-center justify-between gap-3">
+                      <label className="inline-flex items-center gap-2 text-sm text-charcoal">
+                        <input
+                          type="checkbox"
+                          checked={metric.visible !== false}
+                          onChange={(e) => setMetricDrafts((prev) => prev.map((m, i) => i === index ? { ...m, visible: e.target.checked } : m))}
+                        />
+                        Visible on public site
+                      </label>
+                      <button
+                        onClick={() => {
+                          handleDeleteImpactRow('impact_metrics', metric.id);
+                          setMetricDrafts((prev) => prev.filter((_, i) => i !== index));
+                        }}
+                        className="text-xs text-red-500 hover:text-red-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 ))}
                 <button
-                  onClick={() => setMetricDrafts((prev) => [...prev, { id: createId(), labelEn: '', labelKo: '', value: 0, prefix: '', suffix: '', sortOrder: prev.length + 1 }])}
+                  onClick={() => setMetricDrafts((prev) => [...prev, { id: createId(), labelEn: '', labelKo: '', value: 0, descriptionEn: '', descriptionKo: '', visible: true, prefix: '', suffix: '', sortOrder: prev.length + 1 }])}
                   className="text-xs text-mid hover:text-charcoal"
                 >
                   + Add metric
@@ -2882,6 +3604,41 @@ export default function Admin() {
                 </button>
               </div>
             </div>
+          </motion.div>
+        )}
+
+        {/* People */}
+        {tab === 'people' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <MemberShowcasesPanel members={publicMemberOptions} projects={projectDrafts} />
+          </motion.div>
+        )}
+
+        {/* Build Log */}
+        {tab === 'journal' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <JournalPostsPanel memberOptions={memberOptions} />
+          </motion.div>
+        )}
+
+        {/* Media */}
+        {tab === 'media' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <MediaLibraryPanel />
+          </motion.div>
+        )}
+
+        {/* Homepage */}
+        {tab === 'homepage' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <HomepageContentPanel />
+          </motion.div>
+        )}
+
+        {/* Story */}
+        {tab === 'story' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <StoryContentPanel />
           </motion.div>
         )}
 
@@ -3240,15 +3997,108 @@ export default function Admin() {
           </motion.div>
         )}
 
+        {/* Settings */}
+        {tab === 'settings' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+            <div className="rounded-xl border border-border bg-card p-5">
+              <h3 className="text-lg font-bold text-charcoal">Settings</h3>
+              <p className="mt-1 text-xs text-light">
+                Core project references for admins: domain, authentication state, storage usage, and the public routes the team should keep current.
+              </p>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-3">
+              <div className="rounded-xl border border-border bg-card p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Public Site</p>
+                <div className="mt-4 space-y-3 text-sm text-charcoal">
+                  <div>
+                    <p className="font-medium">Domain</p>
+                    <p className="mt-1 text-mid">{SITE_CONFIG.domain}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">Contact</p>
+                    <p className="mt-1 text-mid">{SITE_CONFIG.email}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">Key pages</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {['/', '/projects', '/team', '/story', '/journal', '/impact', '/privacy', '/terms'].map((route) => (
+                        <span key={route} className="rounded-full border border-border px-2.5 py-1 text-[11px] font-medium text-mid">
+                          {route}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border bg-card p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Authentication</p>
+                <div className="mt-4 space-y-3 text-sm text-charcoal">
+                  <div className="flex items-center justify-between rounded-lg border border-border/70 px-3 py-2">
+                    <span className="text-mid">Supabase</span>
+                    <span className={`rounded-full px-2 py-1 text-[11px] font-semibold ${isSupabaseConfigured ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+                      {isSupabaseConfigured ? 'Connected' : 'Fallback'}
+                    </span>
+                  </div>
+                  <div className="rounded-lg border border-border/70 px-3 py-3">
+                    <p className="font-medium">Admin access</p>
+                    <p className="mt-1 text-mid">
+                      Protected by login and `admin_users`. Member accounts can be created from the Members tab.
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border/70 px-3 py-3">
+                    <p className="font-medium">OAuth</p>
+                    <p className="mt-1 text-mid">
+                      Google sign-in stays enabled. Public member records are created or synced after authentication.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border bg-card p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Content System</p>
+                <div className="mt-4 space-y-3 text-sm text-charcoal">
+                  <div className="rounded-lg border border-border/70 px-3 py-3">
+                    <p className="font-medium">Storage buckets</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {['site-images', 'project-images', 'product-images'].map((bucket) => (
+                        <span key={bucket} className="rounded-full border border-border px-2.5 py-1 text-[11px] font-medium text-mid">
+                          {bucket}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-border/70 px-3 py-3">
+                    <p className="font-medium">Publishing flow</p>
+                    <p className="mt-1 text-mid">
+                      People profiles, projects, and build log posts support draft and published states before they appear on the public site.
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border/70 px-3 py-3">
+                    <p className="font-medium">Recommended order</p>
+                    <ol className="mt-2 list-decimal space-y-1 pl-4 text-mid">
+                      <li>Create a member account.</li>
+                      <li>Complete the public People profile.</li>
+                      <li>Create projects and assign contributors.</li>
+                      <li>Publish story and build log updates.</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Overview */}
         {tab === 'overview' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {[
-                { label: 'Active Projects', value: activeProjectCount, icon: FolderOpen },
-                { label: 'Unread Messages', value: unreadMessagesCount, icon: MessageSquare },
-                { label: 'Pending Orders', value: pendingOrdersCount, icon: ShoppingBag },
-                { label: 'Attendance Avg', value: averageAttendanceRate === null ? '—' : `${averageAttendanceRate}%`, icon: BarChart3 },
+                { label: 'Members', value: members.length, icon: UsersIcon },
+                { label: 'Projects', value: cmsProjects.length, icon: FolderOpen },
+                { label: 'Build Log Posts', value: journalPosts.length, icon: Newspaper },
+                { label: 'Media Items', value: mediaCount, icon: ImageIcon },
               ].map((item) => (
                 <div key={item.label} className="rounded-xl border border-border bg-card p-5">
                   <item.icon className="size-5 text-[hsl(24,80%,50%)]" />
@@ -3271,6 +4121,32 @@ export default function Admin() {
                 </div>
 
                 <div className="mt-5 space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Quick Actions</p>
+                      <span className="text-[11px] text-light">Publish and maintain the public site</span>
+                    </div>
+                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                      {[
+                        { label: 'Add Member Profile', tabKey: 'people' },
+                        { label: 'Add Project', tabKey: 'projects' },
+                        { label: 'Add Journal Post', tabKey: 'journal' },
+                        { label: 'Upload Media', tabKey: 'media' },
+                        { label: 'Edit Homepage', tabKey: 'homepage' },
+                        { label: 'Edit Story Page', tabKey: 'story' },
+                        { label: 'Manage Impact Stats', tabKey: 'impact' },
+                      ].map((action) => (
+                        <button
+                          key={action.label}
+                          onClick={() => setTab(action.tabKey)}
+                          className="rounded-lg border border-border/70 px-3 py-2 text-left text-xs font-medium text-charcoal transition-colors hover:border-charcoal hover:bg-stone-50"
+                        >
+                          {action.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div>
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Low Stock</p>
@@ -3360,8 +4236,8 @@ export default function Admin() {
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Projects</p>
                     <div className="mt-2 grid grid-cols-2 gap-3 text-sm">
                       <div>
-                        <p className="font-semibold text-charcoal">{cmsProjects.length}</p>
-                        <p className="text-light">Total tracked</p>
+                        <p className="font-semibold text-charcoal">{activeProjectCount}</p>
+                        <p className="text-light">Active</p>
                       </div>
                       <div>
                         <p className="font-semibold text-charcoal">{cmsProjects.filter((project) => (project.status ?? '').toLowerCase() === 'completed').length}</p>
@@ -3386,13 +4262,15 @@ export default function Admin() {
               </div>
 
               <div className="rounded-xl border border-border bg-card p-5">
-                <h3 className="text-sm font-semibold text-charcoal">Quick Actions</h3>
+                <h3 className="text-sm font-semibold text-charcoal">Operations</h3>
                 <div className="mt-4 grid gap-2">
                   {[
                     { label: 'Review unread messages', tabKey: 'messages' },
                     { label: 'Update low-stock products', tabKey: 'shop' },
                     { label: 'Assign member teams', tabKey: 'members' },
-                    { label: 'Check project media', tabKey: 'projects' },
+                    { label: 'Edit public profiles', tabKey: 'people' },
+                    { label: 'Publish a build log entry', tabKey: 'journal' },
+                    { label: 'Refresh the story page', tabKey: 'story' },
                   ].map((action) => (
                     <button
                       key={action.label}
@@ -3407,6 +4285,8 @@ export default function Admin() {
             </div>
           </motion.div>
         )}
+          </div>
+        </div>
       </div>
 
       <ProductImageCropDialog

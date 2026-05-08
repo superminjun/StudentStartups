@@ -180,6 +180,15 @@ export default function TeamProfileModal({
   const skills = getSkills(member, lang);
   const timeline = getTimeline(member, lang);
   const joined = formatJoinDate(member.joinDate, lang);
+  const whyJoined = lang === 'ko'
+    ? (member.whyJoinedKo || member.whyJoinedEn || '')
+    : (member.whyJoinedEn || member.whyJoinedKo || '');
+  const whatBuilt = lang === 'ko'
+    ? (member.whatBuiltKo || member.whatBuiltEn || '')
+    : (member.whatBuiltEn || member.whatBuiltKo || '');
+  const quote = lang === 'ko'
+    ? (member.quote?.ko || member.quote?.en || '')
+    : (member.quote?.en || member.quote?.ko || '');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -238,10 +247,32 @@ export default function TeamProfileModal({
                 <p className="mt-4 text-sm leading-7 text-foreground/80">{bio}</p>
               </section>
 
+              {quote && (
+                <section className="rounded-[24px] border border-border bg-charcoal px-5 py-6 text-white">
+                  <p className="text-lg leading-8 text-white/88">“{quote}”</p>
+                </section>
+              )}
+
+              {whyJoined && (
+                <section className="rounded-[24px] border border-border bg-card p-5">
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                    {lang === 'ko' ? '왜 합류했는가' : 'Why they joined'}
+                  </h3>
+                  <p className="mt-4 text-sm leading-7 text-foreground/80">{whyJoined}</p>
+                </section>
+              )}
+
               <section className="rounded-[24px] border border-border bg-muted/30 p-5">
                 <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">{copy.contributions}</h3>
                 <p className="mt-4 text-sm leading-7 text-foreground/80">{contributionSummary}</p>
               </section>
+
+              {whatBuilt && (
+                <section className="rounded-[24px] border border-border bg-card p-5">
+                  <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">{copy.built}</h3>
+                  <p className="mt-4 text-sm leading-7 text-foreground/80">{whatBuilt}</p>
+                </section>
+              )}
 
               <section>
                 <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">{copy.projects}</h3>

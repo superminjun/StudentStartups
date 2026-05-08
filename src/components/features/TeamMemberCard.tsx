@@ -64,6 +64,9 @@ export default function TeamMemberCard({
     year: 'numeric',
     month: 'long',
   })}`;
+  const shortDescription = lang === 'ko'
+    ? (member.shortDescriptionKo || member.shortDescriptionEn || '')
+    : (member.shortDescriptionEn || member.shortDescriptionKo || '');
 
   return (
     <motion.button
@@ -122,7 +125,19 @@ export default function TeamMemberCard({
               </div>
               <span className="hidden text-xs font-medium text-white/70 sm:block">{viewProfileLabel}</span>
             </div>
+            {shortDescription && (
+              <p className="text-xs leading-5 text-white/74 line-clamp-2">{shortDescription}</p>
+            )}
             <p className="text-xs text-white/68">{joinedText}</p>
+            {member.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {member.tags.slice(0, 3).map((tag) => (
+                  <span key={tag} className="rounded-full border border-white/16 bg-black/12 px-2 py-0.5 text-[10px] font-medium text-white/76">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </motion.div>
       </div>

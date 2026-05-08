@@ -13,6 +13,15 @@ const defaultContent = {
   heroTitle: 'A serious place for early builders.',
   heroSubtitle: 'Student Startups is a platform for students developing real products, operating disciplined teams, and building a record that can be examined.',
   heroCta: 'Review the Work',
+  introKicker: 'Why this exists',
+  introTitle: 'Students are often taught how products work long before they are trusted to build one.',
+  introBody: 'Student Startups was started to create that missing environment: a place where students can work with real teammates, operate under visible standards, and document what they make over time.',
+  journalKicker: 'Build log',
+  journalTitle: 'A public record of progress.',
+  journalBody: 'We keep notes on meetings, design changes, working prototypes, and the parts that did not work. That record matters as much as the polished outcome.',
+  joinTitle: 'Open to serious contributors.',
+  joinBody: 'Some members lead projects. Some support operations. Some are still finding their role. The point is that the work is real, shared, and documented.',
+  joinCta: 'Contact the Team',
   heroBackgroundUrl: '',
   shopTerms: TERMS.join(', '),
   totalRevenue: '24850',
@@ -29,6 +38,15 @@ type SiteContentRow = {
   hero_title: string | null;
   hero_subtitle: string | null;
   hero_cta: string | null;
+  intro_kicker: string | null;
+  intro_title: string | null;
+  intro_body: string | null;
+  journal_kicker: string | null;
+  journal_title: string | null;
+  journal_body: string | null;
+  join_title: string | null;
+  join_body: string | null;
+  join_cta: string | null;
   hero_background_url: string | null;
   shop_terms: string | null;
   total_revenue: string | null;
@@ -44,6 +62,15 @@ const mapRowToContent = (row: SiteContentRow | null): SiteContent => ({
   heroTitle: row?.hero_title ?? defaultContent.heroTitle,
   heroSubtitle: row?.hero_subtitle ?? defaultContent.heroSubtitle,
   heroCta: row?.hero_cta ?? defaultContent.heroCta,
+  introKicker: row?.intro_kicker ?? defaultContent.introKicker,
+  introTitle: row?.intro_title ?? defaultContent.introTitle,
+  introBody: row?.intro_body ?? defaultContent.introBody,
+  journalKicker: row?.journal_kicker ?? defaultContent.journalKicker,
+  journalTitle: row?.journal_title ?? defaultContent.journalTitle,
+  journalBody: row?.journal_body ?? defaultContent.journalBody,
+  joinTitle: row?.join_title ?? defaultContent.joinTitle,
+  joinBody: row?.join_body ?? defaultContent.joinBody,
+  joinCta: row?.join_cta ?? defaultContent.joinCta,
   heroBackgroundUrl: row?.hero_background_url ?? defaultContent.heroBackgroundUrl,
   shopTerms: row?.shop_terms ?? defaultContent.shopTerms,
   totalRevenue: row?.total_revenue ?? defaultContent.totalRevenue,
@@ -58,6 +85,15 @@ const mapContentToRow = (content: SiteContent): SiteContentRow => ({
   hero_title: content.heroTitle,
   hero_subtitle: content.heroSubtitle,
   hero_cta: content.heroCta,
+  intro_kicker: content.introKicker,
+  intro_title: content.introTitle,
+  intro_body: content.introBody,
+  journal_kicker: content.journalKicker,
+  journal_title: content.journalTitle,
+  journal_body: content.journalBody,
+  join_title: content.joinTitle,
+  join_body: content.joinBody,
+  join_cta: content.joinCta,
   hero_background_url: content.heroBackgroundUrl,
   shop_terms: content.shopTerms,
   total_revenue: content.totalRevenue,

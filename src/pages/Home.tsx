@@ -12,16 +12,19 @@ import TeamProfileModal from '@/components/features/TeamProfileModal';
 import ScrollReveal from '@/components/features/ScrollReveal';
 import { useSiteContentStore } from '@/stores/siteContentStore';
 import { useTeamStore, useTeamSync } from '@/stores/teamStore';
+import { useJournalStore, useJournalSync } from '@/stores/journalStore';
 import { teamPageCopy } from '@/constants/teamPageCopy';
-import { FolderOpen, DollarSign, Users, Heart, ArrowRight, Sparkles, Rocket, ShieldCheck } from 'lucide-react';
+import { FolderOpen, DollarSign, Users, Heart, ArrowRight, Sparkles, Rocket, ShieldCheck, NotebookTabs } from 'lucide-react';
 import type { TeamMemberShowcase } from '@/types';
 
 export default function Home() {
   const { t, lang } = useLanguage();
   const { content } = useSiteContentStore();
-  const projects = useCMSStore((s) => s.projects);
+  const projects = useCMSStore((s) => s.projects).filter((project) => project.published !== false);
   const teamMembers = useTeamStore((s) => s.members);
+  const journalPosts = useJournalStore((s) => s.posts);
   useTeamSync();
+  useJournalSync();
   const [selectedMember, setSelectedMember] = useState<TeamMemberShowcase | null>(null);
   const teamCopy = teamPageCopy[lang];
   const featuredProjects = useMemo(() => {
@@ -42,6 +45,16 @@ export default function Home() {
       })
       .slice(0, 3),
     [teamMembers]
+  );
+  const featuredJournalPosts = useMemo(
+    () => [...journalPosts]
+      .filter((post) => post.published)
+      .sort((a, b) => {
+        if (a.featured !== b.featured) return a.featured ? -1 : 1;
+        return b.date.localeCompare(a.date);
+      })
+      .slice(0, 3),
+    [journalPosts]
   );
   const activeProjectCount = projects.filter((project) => (project.status ?? 'active').toLowerCase() === 'active').length;
 
@@ -74,6 +87,51 @@ export default function Home() {
   return (
     <div>
       <HeroSection />
+
+      <section className="section border-b border-border/60 bg-card/50">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,0.92fr),minmax(0,1.08fr)] lg:items-start">
+            <div>
+              <ScrollReveal>
+                <p className="section-kicker">{content.introKicker}</p>
+                <h2 className="section-title mt-3">
+                  {content.introTitle}
+                </h2>
+                <p className="section-lead">{content.introBody}</p>
+              </ScrollReveal>
+              <ScrollReveal delay={0.08}>
+                <Link to="/story" className="btn btn-secondary mt-6">
+                  {lang === 'ko' ? '스토리 보기' : 'Read Our Story'} <ArrowRight className="size-4" />
+                </Link>
+              </ScrollReveal>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {[
+                {
+                  label: lang === 'ko' ? '문제' : 'The problem',
+                  body: lang === 'ko'
+                    ? '아이디어를 실제로 만들고, 운영하고, 기록으로 남길 수 있는 학생 환경은 많지 않습니다.'
+                    : 'Students are often asked to think ambitiously before they are given a place to operate seriously.',
+                },
+                {
+                  label: lang === 'ko' ? '방식' : 'The method',
+                  body: lang === 'ko'
+                    ? '프로젝트, 역할, 리뷰, 숫자, 기록이 모두 같은 시스템 안에서 이어지도록 설계했습니다.'
+                    : 'Projects, roles, reviews, numbers, and documentation sit inside the same visible system.',
+                },
+              ].map((card, index) => (
+                <ScrollReveal key={card.label} delay={index * 0.08}>
+                  <div className="card p-5">
+                    <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">{card.label}</p>
+                    <p className="mt-4 text-sm leading-7 text-foreground/82">{card.body}</p>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Value */}
       <section id="value" className="section bg-beige scroll-mt-24">
@@ -167,6 +225,51 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="section border-b border-border/60 bg-beige/70">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,0.88fr),minmax(0,1.12fr)] lg:items-end">
+            <div>
+              <ScrollReveal>
+                <p className="section-kicker">{content.journalKicker}</p>
+                <h2 className="section-title mt-3">{content.journalTitle}</h2>
+                <p className="section-lead">{content.journalBody}</p>
+              </ScrollReveal>
+              <ScrollReveal delay={0.08}>
+                <Link to="/journal" className="btn btn-secondary mt-6">
+                  {lang === 'ko' ? '빌드 로그 보기' : 'Review the Build Log'} <ArrowRight className="size-4" />
+                </Link>
+              </ScrollReveal>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {featuredJournalPosts.map((post, index) => (
+                <ScrollReveal key={post.id} delay={index * 0.06}>
+                  <Link to={`/journal/${post.slug}`} className="group block rounded-[26px] border border-border bg-card p-5 shadow-[0_20px_52px_-36px_rgba(15,23,42,0.18)] transition-transform duration-300 hover:-translate-y-1">
+                    <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                      <span>{post.category}</span>
+                      <NotebookTabs className="size-4" />
+                    </div>
+                    <h3 className="mt-4 text-lg font-semibold tracking-tight text-foreground line-clamp-2">
+                      {lang === 'ko' ? post.titleKo : post.titleEn}
+                    </h3>
+                    <p className="mt-3 text-sm leading-7 text-muted-foreground line-clamp-4">
+                      {lang === 'ko' ? post.summaryKo : post.summaryEn}
+                    </p>
+                    <p className="mt-4 text-xs text-muted-foreground">
+                      {new Date(`${post.date}T00:00:00`).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  </Link>
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Proof */}
       <section id="proof" className="section bg-beige scroll-mt-24">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -206,18 +309,18 @@ export default function Home() {
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <ScrollReveal>
             <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
-              {t('cta.title')}
+              {content.joinTitle || t('cta.title')}
             </h2>
           </ScrollReveal>
           <ScrollReveal delay={0.1}>
-            <p className="mt-4 text-base text-white/50">{t('cta.subtitle')}</p>
+            <p className="mt-4 text-base text-white/50">{content.joinBody || t('cta.subtitle')}</p>
           </ScrollReveal>
           <ScrollReveal delay={0.2}>
             <Link
               to="/contact"
               className="btn btn-primary mt-8"
             >
-              {t('cta.button')}
+              {content.joinCta || t('cta.button')}
             </Link>
           </ScrollReveal>
         </div>

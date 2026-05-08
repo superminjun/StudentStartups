@@ -35,8 +35,8 @@ function CounterCard({ metric, index }: { metric: Metric; index: number }) {
 }
 
 export default function ImpactCounters({ className }: { className?: string }) {
-  const metrics = useCMSStore((s) => s.impactMetrics);
-  const projects = useCMSStore((s) => s.projects);
+  const metrics = useCMSStore((s) => s.impactMetrics).filter((metric) => metric.visible !== false);
+  const projects = useCMSStore((s) => s.projects).filter((project) => project.published !== false);
   const activeProjectCount = projects.filter((project) => (project.status ?? 'active').toLowerCase() === 'active').length;
 
   const normalizeMetric = (metric: Metric): Metric => {

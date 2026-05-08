@@ -54,6 +54,43 @@ type ContributionRow = {
   contribution_date: string;
 };
 
+type ShowcaseRow = {
+  id: string;
+  member_id: string | null;
+  user_id: string | null;
+  email: string | null;
+  slug: string | null;
+  short_description_en: string | null;
+  short_description_ko: string | null;
+  bio_en: string | null;
+  bio_ko: string | null;
+  why_joined_en: string | null;
+  why_joined_ko: string | null;
+  what_built_en: string | null;
+  what_built_ko: string | null;
+  quote_en: string | null;
+  quote_ko: string | null;
+  contribution_summary_en: string | null;
+  contribution_summary_ko: string | null;
+  leadership_en: string[] | null;
+  leadership_ko: string[] | null;
+  current_goals_en: string[] | null;
+  current_goals_ko: string[] | null;
+  achievements_en: string[] | null;
+  achievements_ko: string[] | null;
+  skills: string[] | null;
+  interests: string[] | null;
+  tags: string[] | null;
+  links: unknown;
+  timeline: unknown;
+  profile_image_url: string | null;
+  banner_image_url: string | null;
+  is_founder: boolean | null;
+  is_featured: boolean | null;
+  is_published: boolean | null;
+  display_order: number | null;
+};
+
 type TeamAssignmentRow = {
   role?: string;
   members?: string[];
@@ -166,6 +203,49 @@ function getTeamAssignmentRows(value: unknown) {
   return value.filter((item): item is TeamAssignmentRow => Boolean(item) && typeof item === 'object');
 }
 
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string');
+}
+
+function getLinkRows(value: unknown) {
+  if (!Array.isArray(value)) return [] as { label: string; href: string }[];
+  return value
+    .filter((item) => item && typeof item === 'object')
+    .map((item) => {
+      const row = item as Record<string, unknown>;
+      return {
+        label: String(row.label ?? ''),
+        href: String(row.href ?? ''),
+      };
+    })
+    .filter((item) => item.label && item.href);
+}
+
+function getTimelineRows(value: unknown) {
+  if (!Array.isArray(value)) return [] as {
+    date: string;
+    titleEn: string;
+    titleKo: string;
+    detailEn?: string;
+    detailKo?: string;
+    type?: 'joined' | 'project' | 'review' | 'achievement';
+  }[];
+  return value
+    .filter((item) => item && typeof item === 'object')
+    .map((item) => {
+      const row = item as Record<string, unknown>;
+      return {
+        date: String(row.date ?? '').slice(0, 10),
+        titleEn: String(row.titleEn ?? row.title_en ?? ''),
+        titleKo: String(row.titleKo ?? row.title_ko ?? ''),
+        detailEn: typeof row.detailEn === 'string' ? row.detailEn : typeof row.detail_en === 'string' ? row.detail_en : undefined,
+        detailKo: typeof row.detailKo === 'string' ? row.detailKo : typeof row.detail_ko === 'string' ? row.detail_ko : undefined,
+        type: typeof row.type === 'string' ? row.type as 'joined' | 'project' | 'review' | 'achievement' : 'achievement',
+      };
+    })
+    .filter((row) => row.date && row.titleEn);
+}
+
 function buildMemberProjectMaps(projects: ProjectRow[]) {
   const projectMap = new Map<string, ProjectRow[]>();
   const collaboratorMap = new Map<string, Set<string>>();
@@ -253,6 +333,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       attendanceResult,
       meetingsResult,
       contributionsResult,
+      showcaseResult,
     ] = await Promise.all([
       supabase
         .from('members')
@@ -278,6 +359,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         .from('contributions')
         .select('member_id,title,points,notes,contribution_date')
         .order('contribution_date', { ascending: false }),
+      supabase
+        .from('member_showcases')
+        .select('*'),
     ]);
 
     if (membersResult.error) throw membersResult.error;
@@ -286,6 +370,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     if (attendanceResult.error) throw attendanceResult.error;
     if (meetingsResult.error) throw meetingsResult.error;
     if (contributionsResult.error) throw contributionsResult.error;
+    if (showcaseResult.error && showcaseResult.error.code !== '42P01') throw showcaseResult.error;
 
     const memberRows = (membersResult.data ?? []) as MemberRow[];
     const adminRows = (adminsResult.data ?? []) as AdminRow[];
@@ -293,6 +378,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     const attendanceRows = (attendanceResult.data ?? []) as AttendanceRow[];
     const meetingRows = (meetingsResult.data ?? []) as MeetingRow[];
     const contributionRows = (contributionsResult.data ?? []) as ContributionRow[];
+    const showcaseRows = (showcaseResult.data ?? []) as ShowcaseRow[];
 
     const targetIds = new Set<string>([
       ...memberRows.map((row) => row.user_id),
@@ -348,6 +434,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     });
 
     const adminMemberIds = new Set(adminRows.map((row) => row.id));
+    const showcaseByMemberId = new Map(showcaseRows.filter((row) => row.member_id).map((row) => [row.member_id as string, row]));
+    const showcaseByUserId = new Map(showcaseRows.filter((row) => row.user_id).map((row) => [row.user_id as string, row]));
+    const showcaseByEmail = new Map(showcaseRows.filter((row) => row.email).map((row) => [normalize(row.email), row]));
     const founderCandidate = allMembers.find((row) => /founder/i.test(row.role))
       ?? allMembers.find((row) => /minjun|founder|creator/i.test(`${row.name} ${row.email}`))
       ?? allMembers.find((row) => adminMemberIds.has(row.user_id))
@@ -381,11 +470,14 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         ? new Date(`${presentDates[presentDates.length - 1]}T00:00:00`).getTime()
         : 0;
       const avatar = getAuthAvatar(authUser);
-      const founder = founderCandidate ? founderCandidate.user_id === row.user_id : false;
+      const showcase = showcaseByMemberId.get(row.id)
+        ?? showcaseByUserId.get(row.user_id)
+        ?? showcaseByEmail.get(normalize(row.email));
+      const founder = showcase?.is_founder ?? (founderCandidate ? founderCandidate.user_id === row.user_id : false);
       const activeSignal = Math.max(latestContributionTime, latestMeetingTime);
       const recentlyActive = Boolean(activeSignal && now - activeSignal < ninetyDaysMs);
 
-      const timeline = [
+      const fallbackTimeline = [
         {
           date: getSafeDate(row.join_date ?? row.created_at),
           titleEn: founder ? 'Began building Student Startups' : 'Joined Student Startups',
@@ -422,12 +514,13 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         .sort((a, b) => b.date.localeCompare(a.date));
 
       const roleIsLead = /founder|lead|director|owner|head/i.test(row.role);
-      const photo = avatar;
-      const bannerImage = toPublicStorageUrl(memberProjects[0]?.image) || photo;
+      const photo = toPublicStorageUrl(showcase?.profile_image_url) || avatar;
+      const bannerImage = toPublicStorageUrl(showcase?.banner_image_url) || toPublicStorageUrl(memberProjects[0]?.image) || photo;
+      const showcaseTimeline = getTimelineRows(showcase?.timeline);
 
       return {
         id: row.id,
-        slug: slugify(displayName),
+        slug: showcase?.slug || slugify(displayName),
         name: displayName,
         role: row.role || (founder ? 'Founder' : 'Member'),
         team: row.team || (founder ? 'Platform' : 'Unassigned'),
@@ -435,19 +528,40 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         photo,
         bannerImage,
         founder,
-        featured: founder || roleIsLead || memberProjects.length >= 2 || contributionScore >= 10,
+        featured: showcase?.is_featured ?? founder || roleIsLead || memberProjects.length >= 2 || contributionScore >= 10,
+        published: showcase?.is_published ?? true,
+        order: showcase?.display_order ?? 0,
         recentlyActive,
-        leadershipEn: [],
-        leadershipKo: [],
-        currentGoalsEn: [],
-        currentGoalsKo: [],
-        achievementsEn: [],
-        achievementsKo: [],
-        skills: [],
-        interests: [],
-        timeline,
+        shortDescriptionEn: showcase?.short_description_en ?? undefined,
+        shortDescriptionKo: showcase?.short_description_ko ?? undefined,
+        bioEn: showcase?.bio_en ?? undefined,
+        bioKo: showcase?.bio_ko ?? undefined,
+        whyJoinedEn: showcase?.why_joined_en ?? undefined,
+        whyJoinedKo: showcase?.why_joined_ko ?? undefined,
+        whatBuiltEn: showcase?.what_built_en ?? undefined,
+        whatBuiltKo: showcase?.what_built_ko ?? undefined,
+        quote: {
+          en: showcase?.quote_en ?? undefined,
+          ko: showcase?.quote_ko ?? undefined,
+        },
+        contributionSummaryEn: showcase?.contribution_summary_en ?? undefined,
+        contributionSummaryKo: showcase?.contribution_summary_ko ?? undefined,
+        leadershipEn: isStringArray(showcase?.leadership_en) ? showcase.leadership_en : [],
+        leadershipKo: isStringArray(showcase?.leadership_ko) ? showcase.leadership_ko : [],
+        currentGoalsEn: isStringArray(showcase?.current_goals_en) ? showcase.current_goals_en : [],
+        currentGoalsKo: isStringArray(showcase?.current_goals_ko) ? showcase.current_goals_ko : [],
+        achievementsEn: isStringArray(showcase?.achievements_en) ? showcase.achievements_en : [],
+        achievementsKo: isStringArray(showcase?.achievements_ko) ? showcase.achievements_ko : [],
+        skills: isStringArray(showcase?.skills) ? showcase.skills : [],
+        interests: isStringArray(showcase?.interests) ? showcase.interests : [],
+        tags: isStringArray(showcase?.tags) ? showcase.tags : [],
+        timeline: showcaseTimeline.length ? showcaseTimeline : fallbackTimeline,
         projects: memberProjects,
-        links: founder ? [{ label: 'Email', href: 'mailto:bnssstudentstartups@gmail.com' }] : [],
+        links: getLinkRows(showcase?.links).length
+          ? getLinkRows(showcase?.links)
+          : founder
+            ? [{ label: 'Email', href: 'mailto:bnssstudentstartups@gmail.com' }]
+            : [],
         stats: {
           projects: memberProjects.length,
           collaborations: collaborations.size,
@@ -456,9 +570,11 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         },
       };
     })
+      .filter((member) => member.published !== false)
       .sort((a, b) => {
         if (a.founder !== b.founder) return a.founder ? -1 : 1;
         if (a.featured !== b.featured) return a.featured ? -1 : 1;
+        if ((a.order ?? 0) !== (b.order ?? 0)) return (a.order ?? 0) - (b.order ?? 0);
         if (a.stats.projects !== b.stats.projects) return b.stats.projects - a.stats.projects;
         if (a.stats.contributions !== b.stats.contributions) return b.stats.contributions - a.stats.contributions;
         return a.joinDate.localeCompare(b.joinDate);

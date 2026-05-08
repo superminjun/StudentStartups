@@ -2,6 +2,10 @@ export interface Project {
   id: string;
   name: string;
   description: string;
+  shortDescription?: string;
+  slug?: string;
+  problem?: string;
+  solution?: string;
   stage: number;
   stageName: string;
   revenue: number;
@@ -13,15 +17,47 @@ export interface Project {
   team: TeamAssignment[];
   image: string;
   bannerImage?: string;
+  gallery?: string[];
   startDate: string;
   category: string;
   term: string;
   status?: string;
+  lead?: string;
+  contributors?: string[];
+  skillsUsed?: string[];
+  timeline?: ProjectTimelineEntry[];
+  updates?: ProjectUpdateEntry[];
+  impactSummary?: string;
+  nextSteps?: string;
+  lessons?: string;
+  featured?: boolean;
+  published?: boolean;
+  order?: number;
 }
 
 export interface TeamAssignment {
   role: string;
   members: string[];
+}
+
+export interface ProjectTimelineEntry {
+  date: string;
+  titleEn: string;
+  titleKo: string;
+  detailEn?: string;
+  detailKo?: string;
+}
+
+export interface ProjectUpdateEntry {
+  id: string;
+  date: string;
+  titleEn: string;
+  titleKo: string;
+  summaryEn: string;
+  summaryKo: string;
+  learningEn?: string;
+  learningKo?: string;
+  tags: string[];
 }
 
 export interface Product {
@@ -113,6 +149,11 @@ export interface TeamLink {
   href: string;
 }
 
+export interface TeamQuote {
+  en?: string;
+  ko?: string;
+}
+
 export interface TeamMemberShowcase {
   id: string;
   slug: string;
@@ -124,9 +165,18 @@ export interface TeamMemberShowcase {
   bannerImage: string;
   founder: boolean;
   featured: boolean;
+  published?: boolean;
+  order?: number;
   recentlyActive: boolean;
+  shortDescriptionEn?: string;
+  shortDescriptionKo?: string;
   bioEn?: string;
   bioKo?: string;
+  whyJoinedEn?: string;
+  whyJoinedKo?: string;
+  whatBuiltEn?: string;
+  whatBuiltKo?: string;
+  quote?: TeamQuote;
   contributionSummaryEn?: string;
   contributionSummaryKo?: string;
   leadershipEn: string[];
@@ -137,6 +187,7 @@ export interface TeamMemberShowcase {
   achievementsKo: string[];
   skills: string[];
   interests: string[];
+  tags: string[];
   timeline: TeamMilestone[];
   projects: TeamProjectSummary[];
   links: TeamLink[];
@@ -146,6 +197,72 @@ export interface TeamMemberShowcase {
     events: number;
     contributions: number;
   };
+}
+
+export interface StoryMilestone {
+  date: string;
+  titleEn: string;
+  titleKo: string;
+  detailEn?: string;
+  detailKo?: string;
+}
+
+export interface StoryContent {
+  id: string;
+  eyebrowEn: string;
+  eyebrowKo: string;
+  titleEn: string;
+  titleKo: string;
+  introEn: string;
+  introKo: string;
+  problemEn: string;
+  problemKo: string;
+  whyStartedEn: string;
+  whyStartedKo: string;
+  whatBuildingEn: string;
+  whatBuildingKo: string;
+  howWeWorkEn: string;
+  howWeWorkKo: string;
+  whereGoingEn: string;
+  whereGoingKo: string;
+  quoteEn?: string;
+  quoteKo?: string;
+  images: string[];
+  timeline: StoryMilestone[];
+}
+
+export interface JournalPost {
+  id: string;
+  slug: string;
+  titleEn: string;
+  titleKo: string;
+  date: string;
+  author: string;
+  authorId?: string;
+  category: string;
+  summaryEn: string;
+  summaryKo: string;
+  contentEn: string;
+  contentKo: string;
+  lessonsEn?: string;
+  lessonsKo?: string;
+  coverImage?: string;
+  tags: string[];
+  published: boolean;
+  featured: boolean;
+  order?: number;
+}
+
+export interface MediaItem {
+  id: string;
+  title: string;
+  fileUrl: string;
+  storagePath?: string;
+  altText?: string;
+  category: string;
+  linkedType?: 'member' | 'project' | 'journal' | 'story' | 'homepage' | 'general';
+  linkedId?: string;
+  createdAt?: string;
 }
 
 export type Language = 'en' | 'ko';

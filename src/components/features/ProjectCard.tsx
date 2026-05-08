@@ -9,6 +9,7 @@ export default function ProjectCard({ project, priority = false }: { project: Pr
   const { lang, t } = useLanguage();
   const stageLabel = lang === 'en' ? (STAGE_LABELS_EN[project.stage] || project.stageName) : (STAGE_LABELS_KO[project.stage] || project.stageName);
   const hasImage = Boolean(project.image);
+  const summary = project.shortDescription || project.description;
 
   return (
     <Link to={`/projects/${project.id}`}>
@@ -41,7 +42,7 @@ export default function ProjectCard({ project, priority = false }: { project: Pr
           <h3 className="text-base font-semibold text-foreground group-hover:text-accent transition-colors">
             {project.name}
           </h3>
-          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground line-clamp-2">{project.description}</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground line-clamp-2">{summary}</p>
 
           <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border pt-4 sm:grid-cols-3">
             <div>

@@ -11,6 +11,9 @@ import { useCMSDataSync } from '@/stores/cmsStore';
 const Home = lazy(() => import('@/pages/Home'));
 const About = lazy(() => import('@/pages/About'));
 const Team = lazy(() => import('@/pages/Team'));
+const Story = lazy(() => import('@/pages/Story'));
+const Journal = lazy(() => import('@/pages/Journal'));
+const JournalPost = lazy(() => import('@/pages/JournalPost'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
 const Impact = lazy(() => import('@/pages/Impact'));
@@ -49,6 +52,8 @@ export default function App() {
     void import('@/pages/ProjectDetail');
     void import('@/pages/Impact');
     void import('@/pages/Team');
+    void import('@/pages/Story');
+    void import('@/pages/Journal');
     void import('@/pages/Shop');
     void import('@/pages/ProductDetailPage');
   }, []);
@@ -60,7 +65,11 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
-            <Route path="/team" element={<Team />} />
+          <Route path="/team" element={<Team />} />
+          <Route path="/people" element={<Team />} />
+          <Route path="/story" element={<Story />} />
+            <Route path="/journal" element={<Journal />} />
+            <Route path="/journal/:slug" element={<JournalPost />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/projects/:id" element={<ProjectDetail />} />
             <Route path="/impact" element={<Impact />} />

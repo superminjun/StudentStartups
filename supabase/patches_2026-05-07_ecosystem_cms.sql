@@ -1,165 +1,19 @@
--- CMS tables for Projects, Shop, and Impact
 create extension if not exists "pgcrypto";
 
--- Projects
-create table if not exists public.projects (
-  id text primary key,
-  name text not null,
-  description text not null,
-  stage integer not null default 1,
-  stage_name text not null default 'Planning',
-  revenue numeric not null default 0,
-  expenses numeric not null default 0,
-  profit numeric not null default 0,
-  fundraise numeric not null default 0,
-  donation numeric not null default 0,
-  donation_percent numeric not null default 0,
-  team jsonb not null default '[]'::jsonb,
-  image_url text not null default '',
-  banner_image_url text not null default '',
-  start_date date not null default current_date,
-  category text not null default '',
-  term text not null default '',
-  status text not null default 'active',
-  created_at timestamptz default now()
-);
+alter table public.site_content add column if not exists intro_kicker text;
+alter table public.site_content add column if not exists intro_title text;
+alter table public.site_content add column if not exists intro_body text;
+alter table public.site_content add column if not exists journal_kicker text;
+alter table public.site_content add column if not exists journal_title text;
+alter table public.site_content add column if not exists journal_body text;
+alter table public.site_content add column if not exists join_title text;
+alter table public.site_content add column if not exists join_body text;
+alter table public.site_content add column if not exists join_cta text;
 
-alter table public.projects enable row level security;
-alter table public.projects replica identity full;
+alter table public.impact_metrics add column if not exists description_en text;
+alter table public.impact_metrics add column if not exists description_ko text;
+alter table public.impact_metrics add column if not exists is_visible boolean not null default true;
 
-create policy "Public read projects"
-  on public.projects
-  for select
-  using (true);
-
-create policy "Admins manage projects"
-  on public.projects
-  for all
-  using (exists (select 1 from public.admin_users where id = auth.uid()))
-  with check (exists (select 1 from public.admin_users where id = auth.uid()));
-
--- Products
-create table if not exists public.products (
-  id text primary key,
-  name text not null,
-  description text not null,
-  price numeric not null default 0,
-  image_url text not null default '',
-  images jsonb not null default '[]'::jsonb,
-  category text not null default '',
-  inventory integer not null default 0,
-  is_preorder boolean not null default false,
-  project_id text,
-  term text not null default '',
-  status text not null default 'available' check (status in ('available', 'sold-out', 'in-production')),
-  created_at timestamptz default now()
-);
-
-alter table public.products enable row level security;
-alter table public.products replica identity full;
-
-create policy "Public read products"
-  on public.products
-  for select
-  using (true);
-
-create policy "Admins manage products"
-  on public.products
-  for all
-  using (exists (select 1 from public.admin_users where id = auth.uid()))
-  with check (exists (select 1 from public.admin_users where id = auth.uid()));
-
--- Impact metrics
-create table if not exists public.impact_metrics (
-  id text primary key,
-  label_en text not null,
-  label_ko text not null,
-  value numeric not null default 0,
-  prefix text,
-  suffix text,
-  sort_order integer not null default 0
-);
-
-alter table public.impact_metrics enable row level security;
-alter table public.impact_metrics replica identity full;
-
-create policy "Public read impact metrics"
-  on public.impact_metrics
-  for select
-  using (true);
-
-create policy "Admins manage impact metrics"
-  on public.impact_metrics
-  for all
-  using (exists (select 1 from public.admin_users where id = auth.uid()))
-  with check (exists (select 1 from public.admin_users where id = auth.uid()));
-
--- Impact charts
-create table if not exists public.impact_revenue (
-  id uuid primary key default gen_random_uuid(),
-  month text not null,
-  revenue numeric not null default 0,
-  expenses numeric not null default 0,
-  sort_order integer not null default 0
-);
-
-alter table public.impact_revenue enable row level security;
-alter table public.impact_revenue replica identity full;
-
-create policy "Public read impact revenue"
-  on public.impact_revenue
-  for select
-  using (true);
-
-create policy "Admins manage impact revenue"
-  on public.impact_revenue
-  for all
-  using (exists (select 1 from public.admin_users where id = auth.uid()))
-  with check (exists (select 1 from public.admin_users where id = auth.uid()));
-
-create table if not exists public.impact_donations (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,
-  value numeric not null default 0,
-  sort_order integer not null default 0
-);
-
-alter table public.impact_donations enable row level security;
-alter table public.impact_donations replica identity full;
-
-create policy "Public read impact donations"
-  on public.impact_donations
-  for select
-  using (true);
-
-create policy "Admins manage impact donations"
-  on public.impact_donations
-  for all
-  using (exists (select 1 from public.admin_users where id = auth.uid()))
-  with check (exists (select 1 from public.admin_users where id = auth.uid()));
-
-create table if not exists public.impact_member_growth (
-  id uuid primary key default gen_random_uuid(),
-  month text not null,
-  members integer not null default 0,
-  sort_order integer not null default 0
-);
-
-alter table public.impact_member_growth enable row level security;
-alter table public.impact_member_growth replica identity full;
-
-create policy "Public read impact growth"
-  on public.impact_member_growth
-  for select
-  using (true);
-
-create policy "Admins manage impact growth"
-  on public.impact_member_growth
-  for all
-  using (exists (select 1 from public.admin_users where id = auth.uid()))
-  with check (exists (select 1 from public.admin_users where id = auth.uid()));
-
--- Extended project CMS fields
 alter table public.projects add column if not exists short_description text not null default '';
 alter table public.projects add column if not exists slug text not null default '';
 alter table public.projects add column if not exists problem text not null default '';
@@ -177,11 +31,8 @@ alter table public.projects add column if not exists is_featured boolean not nul
 alter table public.projects add column if not exists is_published boolean not null default true;
 alter table public.projects add column if not exists sort_order integer not null default 0;
 
-alter table public.impact_metrics add column if not exists description_en text;
-alter table public.impact_metrics add column if not exists description_ko text;
-alter table public.impact_metrics add column if not exists is_visible boolean not null default true;
+create unique index if not exists projects_slug_key on public.projects (slug) where slug <> '';
 
--- Public member profiles layered on top of signed-in members
 create table if not exists public.member_showcases (
   id uuid primary key default gen_random_uuid(),
   member_id uuid unique references public.members(id) on delete cascade,
@@ -221,6 +72,9 @@ create table if not exists public.member_showcases (
   updated_at timestamptz not null default now()
 );
 
+create unique index if not exists member_showcases_slug_key on public.member_showcases (slug) where slug <> '';
+create index if not exists member_showcases_email_idx on public.member_showcases (lower(email));
+
 alter table public.member_showcases enable row level security;
 alter table public.member_showcases replica identity full;
 
@@ -237,7 +91,6 @@ create policy "Admins manage member showcases"
   using (exists (select 1 from public.admin_users where id = auth.uid()))
   with check (exists (select 1 from public.admin_users where id = auth.uid()));
 
--- Story page singleton
 create table if not exists public.story_content (
   id text primary key,
   eyebrow_en text,
@@ -279,7 +132,50 @@ create policy "Admins manage story content"
   using (exists (select 1 from public.admin_users where id = auth.uid()))
   with check (exists (select 1 from public.admin_users where id = auth.uid()));
 
--- Build log / journal
+insert into public.story_content (
+  id,
+  eyebrow_en,
+  eyebrow_ko,
+  title_en,
+  title_ko,
+  intro_en,
+  intro_ko,
+  problem_en,
+  problem_ko,
+  why_started_en,
+  why_started_ko,
+  what_building_en,
+  what_building_ko,
+  how_we_work_en,
+  how_we_work_ko,
+  where_going_en,
+  where_going_ko,
+  quote_en,
+  quote_ko
+)
+values (
+  'global',
+  'Our Story',
+  '우리의 이야기',
+  'Why Student Startups exists.',
+  '왜 Student Startups를 만들었는가',
+  'Student Startups began as a response to a simple gap: students were surrounded by ideas, but rarely had a place to develop them into work that could survive real scrutiny.',
+  'Student Startups는 단순한 문제의식에서 시작됐습니다. 아이디어는 많았지만, 그것을 실제 결과물로 끝까지 밀어붙일 구조는 거의 없었습니다.',
+  'Students are often taught the language of product, design, and business long before they are given the chance to test those ideas in the open.',
+  '학생들은 제품, 디자인, 비즈니스의 언어를 배웁니다. 하지만 그것을 실제로 검증해볼 기회는 드뭅니다.',
+  'The platform was started to make that experience available earlier, with real teammates, documented work, and visible standards.',
+  '이 플랫폼은 그 경험을 더 이른 시기에 가능하게 하기 위해 시작됐습니다. 실제 팀, 기록되는 작업, 분명한 기준이 핵심입니다.',
+  'We are building a student-led system for projects, products, and documented progress, so that contributors leave with more than a list of intentions.',
+  '우리는 프로젝트, 제품, 그리고 누적되는 실행 기록을 갖춘 학생 주도 시스템을 만들고 있습니다. 남는 것이 계획이 아니라 결과가 되도록 하기 위해서입니다.',
+  'Meetings, design reviews, project updates, and post-mortems all matter. The process is part of the portfolio.',
+  '미팅, 디자인 리뷰, 프로젝트 업데이트, 회고까지 모두 중요합니다. 과정 자체가 포트폴리오의 일부이기 때문입니다.',
+  'The next phase is a stronger network of contributors, better tools for documenting work, and a more durable system for future teams.',
+  '다음 단계는 더 강한 기여자 네트워크, 더 나은 기록 도구, 그리고 다음 팀에게도 남는 구조를 만드는 것입니다.',
+  'Some of the work is polished. Some of it is still provisional. That is part of the point.',
+  '완성된 것도 있고 아직 거친 것도 있습니다. 그 과정 자체가 이 플랫폼의 일부입니다.'
+)
+on conflict (id) do nothing;
+
 create table if not exists public.journal_posts (
   id text primary key,
   slug text not null,
@@ -304,6 +200,8 @@ create table if not exists public.journal_posts (
   updated_at timestamptz not null default now()
 );
 
+create unique index if not exists journal_posts_slug_key on public.journal_posts (slug);
+
 alter table public.journal_posts enable row level security;
 alter table public.journal_posts replica identity full;
 
@@ -320,7 +218,6 @@ create policy "Admins manage journal posts"
   using (exists (select 1 from public.admin_users where id = auth.uid()))
   with check (exists (select 1 from public.admin_users where id = auth.uid()));
 
--- Media library
 create table if not exists public.media_items (
   id text primary key,
   title text,
