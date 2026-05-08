@@ -1,55 +1,64 @@
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useSiteContentStore } from '@/stores/siteContentStore';
 
 export default function HeroSection() {
-  const { lang } = useLanguage();
-  const copy = lang === 'ko'
-    ? {
-        kicker: 'Student Startups',
-        title: '현실에 닿는 학생 주도 벤처.',
-        subtitle: 'Student Startups는 학생들이 교실 밖에서 실제 프로젝트를 설계하고, 만들고, 출시하는 벤처 스튜디오입니다.',
-        primary: '작업 보기',
-        secondary: '팀 합류',
-      }
-    : {
-        kicker: 'Student Startups',
-        title: 'Student-led ventures, built for the real world.',
-        subtitle: 'Student Startups helps students design, build, and launch real projects beyond the classroom.',
-        primary: 'Explore Our Work',
-        secondary: 'Join the Team',
-      };
+  const { t } = useLanguage();
+  const { content } = useSiteContentStore();
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
+  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '25%']);
+  const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+  const defaultHeroUrl = 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1400&h=900&fit=crop';
+  const heroBackgroundUrl = content.heroBackgroundUrl?.trim();
+  const hasHeroImage = Boolean(heroBackgroundUrl && heroBackgroundUrl !== defaultHeroUrl);
 
   return (
-    <section id="intro" className="relative flex min-h-[86vh] items-center overflow-hidden border-b border-border bg-background px-4 pt-16 sm:px-6">
-      <motion.div className="w-full">
+    <section ref={ref} id="intro" className="relative h-[92vh] min-h-[560px] overflow-hidden scroll-mt-24 sm:min-h-[640px]">
+      <motion.div className="absolute inset-0" style={{ y: bgY }}>
+        {hasHeroImage ? (
+          <div className="relative size-full">
+            <img src={heroBackgroundUrl} alt="" loading="eager" decoding="async" className="size-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--color-warm-white))] via-[hsl(var(--color-beige))] to-[hsl(var(--color-beige-dark))] opacity-85" />
+          </div>
+        ) : (
+          <div className="size-full bg-gradient-to-br from-[hsl(var(--color-warm-white))] via-[hsl(var(--color-beige))] to-[hsl(var(--color-beige-dark))]" />
+        )}
+        <div className="pointer-events-none absolute -top-24 right-[-10%] h-80 w-80 rounded-full bg-accent-soft blur-3xl opacity-45 animate-drift" />
+        <div className="pointer-events-none absolute bottom-[-20%] left-[-8%] h-72 w-72 rounded-full bg-beige-dark blur-3xl opacity-60 animate-drift-slow" />
+        <div className="pointer-events-none absolute left-[20%] top-[30%] h-56 w-56 rounded-full bg-accent/15 blur-3xl opacity-60 animate-drift-slow" />
+      </motion.div>
+
+      <motion.div className="relative z-10 flex h-full flex-col items-start justify-center px-4 sm:px-6" style={{ opacity }}>
         <div className="mx-auto w-full max-w-6xl">
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="text-xs font-semibold uppercase tracking-[0.24em] text-accent"
+            className="text-xs font-semibold tracking-[0.3em] text-mid uppercase"
           >
-            {copy.kicker}
+            {content.heroTagline || t('hero.tagline')}
           </motion.p>
 
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-6 max-w-5xl text-5xl font-semibold leading-[1.02] text-foreground sm:text-6xl lg:text-7xl"
+            className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-6xl whitespace-pre-line"
           >
-            {copy.title}
+            {content.heroTitle || t('hero.title')}
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.6 }}
-            className="mt-8 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl"
+            className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
           >
-            {copy.subtitle}
+            {content.heroSubtitle || t('hero.subtitle')}
           </motion.p>
 
           <motion.div
@@ -62,11 +71,11 @@ export default function HeroSection() {
               to="/projects"
               className="btn btn-primary group"
             >
-              {copy.primary}
+              {content.heroCta || t('hero.cta')}
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
-            <Link to="/contact" className="btn btn-secondary">
-              {copy.secondary}
+            <Link to="/about" className="btn btn-secondary">
+              {t('hero.secondaryCta')}
             </Link>
           </motion.div>
         </div>

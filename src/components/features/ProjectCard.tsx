@@ -1,21 +1,21 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/hooks/useLanguage';
-import { STAGE_LABELS_EN, STAGE_LABELS_KO } from '@/constants/config';
+import { formatCurrency } from '@/lib/utils';
+import { STAGE_LABELS_EN, STAGE_LABELS_KO, STAGE_COLORS } from '@/constants/config';
 import type { Project } from '@/types';
 
 export default function ProjectCard({ project, priority = false }: { project: Project; priority?: boolean }) {
   const { lang, t } = useLanguage();
   const stageLabel = lang === 'en' ? (STAGE_LABELS_EN[project.stage] || project.stageName) : (STAGE_LABELS_KO[project.stage] || project.stageName);
   const hasImage = Boolean(project.image);
-  const summary = project.shortDescription || project.description;
 
   return (
     <Link to={`/projects/${project.id}`}>
       <motion.article
-        whileHover={{ y: -2 }}
+        whileHover={{ y: -4 }}
         transition={{ duration: 0.25 }}
-        className="group overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-md"
+        className="group card card-hover overflow-hidden"
       >
         <div className="relative aspect-[4/3] overflow-hidden">
           {hasImage ? (
@@ -32,17 +32,31 @@ export default function ProjectCard({ project, priority = false }: { project: Pr
               {t('common.comingSoon')}
             </div>
           )}
+          <span className={`absolute left-3 top-3 rounded-full border px-2.5 py-1 text-xs font-medium ${STAGE_COLORS[project.stage] || ''}`}>
+            {stageLabel}
+          </span>
         </div>
 
         <div className="p-5">
-          <p className="inline-flex border-b border-accent/30 pb-1 text-xs font-semibold uppercase tracking-[0.14em] text-accent">
-            {stageLabel}
-          </p>
-          <h3 className="mt-4 text-lg font-semibold leading-tight text-foreground transition-colors group-hover:text-accent">
+          <h3 className="text-base font-semibold text-foreground group-hover:text-accent transition-colors">
             {project.name}
           </h3>
-          <p className="mt-3 text-sm leading-7 text-muted-foreground line-clamp-3">{summary}</p>
-          <p className="mt-5 text-sm font-medium text-foreground">{t('projects.viewDetails')}</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground line-clamp-2">{project.description}</p>
+
+          <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border pt-4 sm:grid-cols-3">
+            <div>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t('projects.revenue')}</p>
+              <p className="mt-0.5 text-sm font-semibold text-foreground tabular-nums">{formatCurrency(project.revenue)}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t('projects.profit')}</p>
+              <p className="mt-0.5 text-sm font-semibold text-emerald-500 tabular-nums">{formatCurrency(project.profit)}</p>
+            </div>
+            <div className="col-span-2 sm:col-span-1">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t('projects.donation')}</p>
+              <p className="mt-0.5 text-sm font-semibold text-accent tabular-nums">{formatCurrency(project.donation)}</p>
+            </div>
+          </div>
         </div>
       </motion.article>
     </Link>

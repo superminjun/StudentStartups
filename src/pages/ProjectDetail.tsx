@@ -37,7 +37,7 @@ export default function ProjectDetail() {
   const { lang, t } = useLanguage();
   const projects = useCMSStore((s) => s.projects);
   const status = useCMSStore((s) => s.status);
-  const project = projects.find((p) => p.id === id && p.published !== false);
+  const project = projects.find((p) => p.id === id);
   const stageLabels = lang === 'en' ? STAGE_LABELS_EN : STAGE_LABELS_KO;
   const bannerImage = project?.bannerImage || project?.image;
   const hasBanner = Boolean(bannerImage);
@@ -92,14 +92,6 @@ export default function ProjectDetail() {
   const uniqueMembers = Array.from(new Set(project.team.flatMap((assignment) => assignment.members))).length;
   const marginPercent = project.revenue > 0 ? Math.round((project.profit / project.revenue) * 100) : 0;
   const totalCapital = project.revenue + (project.fundraise ?? 0);
-  const lifecycleLabel = lang === 'ko' ? (STAGE_LABELS_KO[project.stage] || project.stageName) : (STAGE_LABELS_EN[project.stage] || project.stageName);
-  const projectTimeline = project.timeline ?? [];
-  const projectUpdates = project.updates ?? [];
-  const projectSkills = project.skillsUsed ?? [];
-  const projectContributors = project.contributors?.length
-    ? project.contributors
-    : Array.from(new Set(project.team.flatMap((assignment) => assignment.members)));
-  const galleryImages = (project.gallery ?? []).filter(Boolean);
 
   const donationData = [
     { name: t('projects.donation'), value: project.donation },
@@ -161,33 +153,6 @@ export default function ProjectDetail() {
                 <p className="whitespace-pre-line break-words text-base leading-relaxed text-mid">{project.description}</p>
               </ScrollReveal>
 
-              <div className="grid gap-5 lg:grid-cols-2">
-                <ScrollReveal>
-                  <div className="rounded-2xl border border-border bg-card p-5">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                      {lang === 'ko' ? '문제' : 'Problem'}
-                    </p>
-                    <p className="mt-4 text-sm leading-7 text-foreground/82">
-                      {project.problem || (lang === 'ko'
-                        ? '이 프로젝트가 다루는 문제를 정리 중입니다.'
-                        : 'The team is still documenting the problem this project is addressing.')}
-                    </p>
-                  </div>
-                </ScrollReveal>
-                <ScrollReveal delay={0.06}>
-                  <div className="rounded-2xl border border-border bg-card p-5">
-                    <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                      {lang === 'ko' ? '해결 방식' : 'Solution'}
-                    </p>
-                    <p className="mt-4 text-sm leading-7 text-foreground/82">
-                      {project.solution || (lang === 'ko'
-                        ? '현재 제안한 해결 방식을 정리 중입니다.'
-                        : 'The public explanation of the solution is still being refined.')}
-                    </p>
-                  </div>
-                </ScrollReveal>
-              </div>
-
               <ScrollReveal>
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   {[
@@ -203,66 +168,6 @@ export default function ProjectDetail() {
                   ))}
                 </div>
               </ScrollReveal>
-
-              {(project.lead || projectContributors.length > 0 || projectSkills.length > 0) && (
-                <ScrollReveal>
-                  <div className="rounded-xl border border-border bg-card p-6">
-                    <div className="grid gap-6 lg:grid-cols-3">
-                      <div>
-                        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                          {lang === 'ko' ? '프로젝트 리드' : 'Project lead'}
-                        </p>
-                        <p className="mt-3 text-sm font-semibold text-foreground">
-                          {project.lead || (lang === 'ko' ? '지정 중' : 'Being assigned')}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                          {lang === 'ko' ? '기여자' : 'Contributors'}
-                        </p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {projectContributors.length ? projectContributors.map((name) => (
-                            <span key={name} className="rounded-full bg-muted px-3 py-1 text-xs text-foreground/78">
-                              {name}
-                            </span>
-                          )) : (
-                            <span className="text-sm text-muted-foreground">{lang === 'ko' ? '기록 준비 중' : 'Record in progress'}</span>
-                          )}
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                          {lang === 'ko' ? '사용한 역량' : 'Skills used'}
-                        </p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {projectSkills.length ? projectSkills.map((skill) => (
-                            <span key={skill} className="rounded-full border border-border px-3 py-1 text-xs font-medium text-foreground/78">
-                              {skill}
-                            </span>
-                          )) : (
-                            <span className="text-sm text-muted-foreground">{lang === 'ko' ? '기록 준비 중' : 'Record in progress'}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </ScrollReveal>
-              )}
-
-              {galleryImages.length > 0 && (
-                <ScrollReveal>
-                  <div className="rounded-xl border border-border bg-card p-6">
-                    <h3 className="text-lg font-semibold text-charcoal">{lang === 'ko' ? '프로젝트 갤러리' : 'Project gallery'}</h3>
-                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                      {galleryImages.map((image, index) => (
-                        <div key={`${image}-${index}`} className="overflow-hidden rounded-2xl border border-border bg-muted/30">
-                          <img src={image} alt={`${project.name} ${index + 1}`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </ScrollReveal>
-              )}
 
               {/* Progress stages */}
               <ScrollReveal>
@@ -342,117 +247,6 @@ export default function ProjectDetail() {
                   </div>
                 </ScrollReveal>
               )}
-
-              {(projectTimeline.length > 0 || projectUpdates.length > 0) && (
-                <div className="grid gap-6 xl:grid-cols-[minmax(0,0.92fr),minmax(0,1.08fr)]">
-                  <ScrollReveal>
-                    <div className="rounded-xl border border-border bg-card p-6">
-                      <h3 className="text-lg font-semibold text-charcoal">{lang === 'ko' ? '프로젝트 타임라인' : 'Project timeline'}</h3>
-                      <div className="mt-5 space-y-4">
-                        {projectTimeline.length ? projectTimeline.map((entry) => (
-                          <div key={`${entry.date}-${entry.titleEn}`} className="rounded-2xl border border-border bg-muted/20 px-4 py-4">
-                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                              <div>
-                                <p className="text-sm font-semibold text-foreground">
-                                  {lang === 'ko' ? entry.titleKo : entry.titleEn}
-                                </p>
-                                {(lang === 'ko' ? entry.detailKo : entry.detailEn) && (
-                                  <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                                    {lang === 'ko' ? entry.detailKo : entry.detailEn}
-                                  </p>
-                                )}
-                              </div>
-                              <span className="shrink-0 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                                {new Date(`${entry.date}T00:00:00`).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', {
-                                  year: 'numeric',
-                                  month: 'short',
-                                })}
-                              </span>
-                            </div>
-                          </div>
-                        )) : (
-                          <p className="text-sm text-muted-foreground">{lang === 'ko' ? '타임라인이 곧 추가됩니다.' : 'Timeline entries will appear here.'}</p>
-                        )}
-                      </div>
-                    </div>
-                  </ScrollReveal>
-
-                  <ScrollReveal delay={0.06}>
-                    <div className="rounded-xl border border-border bg-card p-6">
-                      <h3 className="text-lg font-semibold text-charcoal">{lang === 'ko' ? '최근 업데이트' : 'Recent updates'}</h3>
-                      <div className="mt-5 space-y-4">
-                        {projectUpdates.length ? projectUpdates.map((entry) => (
-                          <div key={entry.id} className="rounded-2xl border border-border bg-muted/20 px-4 py-4">
-                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                              <div>
-                                <p className="text-sm font-semibold text-foreground">
-                                  {lang === 'ko' ? entry.titleKo : entry.titleEn}
-                                </p>
-                                <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                                  {lang === 'ko' ? entry.summaryKo : entry.summaryEn}
-                                </p>
-                                {(lang === 'ko' ? entry.learningKo : entry.learningEn) && (
-                                  <p className="mt-3 text-sm leading-7 text-foreground/80">
-                                    <span className="font-medium">{lang === 'ko' ? '배운 점:' : 'What we learned:'}</span>{' '}
-                                    {lang === 'ko' ? entry.learningKo : entry.learningEn}
-                                  </p>
-                                )}
-                              </div>
-                              <span className="shrink-0 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                                {new Date(`${entry.date}T00:00:00`).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
-                                })}
-                              </span>
-                            </div>
-                            {entry.tags.length > 0 && (
-                              <div className="mt-3 flex flex-wrap gap-2">
-                                {entry.tags.map((tag) => (
-                                  <span key={tag} className="rounded-full border border-border px-2.5 py-0.5 text-[11px] text-foreground/76">
-                                    {tag}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )) : (
-                          <p className="text-sm text-muted-foreground">{lang === 'ko' ? '업데이트가 곧 추가됩니다.' : 'Updates will appear here.'}</p>
-                        )}
-                      </div>
-                    </div>
-                  </ScrollReveal>
-                </div>
-              )}
-
-              {(project.impactSummary || project.nextSteps || project.lessons) && (
-                <div className="grid gap-6 lg:grid-cols-3">
-                  {project.impactSummary && (
-                    <ScrollReveal>
-                      <div className="rounded-xl border border-border bg-card p-6">
-                        <h3 className="text-lg font-semibold text-charcoal">{lang === 'ko' ? '영향' : 'Impact'}</h3>
-                        <p className="mt-4 text-sm leading-7 text-muted-foreground">{project.impactSummary}</p>
-                      </div>
-                    </ScrollReveal>
-                  )}
-                  {project.nextSteps && (
-                    <ScrollReveal delay={0.04}>
-                      <div className="rounded-xl border border-border bg-card p-6">
-                        <h3 className="text-lg font-semibold text-charcoal">{lang === 'ko' ? '다음 단계' : 'Next steps'}</h3>
-                        <p className="mt-4 text-sm leading-7 text-muted-foreground">{project.nextSteps}</p>
-                      </div>
-                    </ScrollReveal>
-                  )}
-                  {project.lessons && (
-                    <ScrollReveal delay={0.08}>
-                      <div className="rounded-xl border border-border bg-card p-6">
-                        <h3 className="text-lg font-semibold text-charcoal">{lang === 'ko' ? '배운 점' : 'What we learned'}</h3>
-                        <p className="mt-4 text-sm leading-7 text-muted-foreground">{project.lessons}</p>
-                      </div>
-                    </ScrollReveal>
-                  )}
-                </div>
-              )}
             </div>
 
             {/* Sidebar */}
@@ -462,8 +256,6 @@ export default function ProjectDetail() {
                   <h3 className="text-lg font-semibold text-charcoal">{t('projectDetail.financial')}</h3>
                   <div className="mt-5 grid grid-cols-2 gap-4">
                     {[
-                      { label: lang === 'ko' ? '현재 상태' : 'Current status', value: lifecycleLabel, color: 'text-charcoal' },
-                      { label: lang === 'ko' ? '프로젝트 리드' : 'Project lead', value: project.lead || '—', color: 'text-charcoal' },
                       { label: t('projects.revenue'), value: formatCurrency(project.revenue), color: 'text-charcoal' },
                       { label: t('projectDetail.expenses'), value: formatCurrency(project.expenses), color: 'text-red-500' },
                       { label: t('projectDetail.fundraise'), value: formatCurrency(project.fundraise ?? 0), color: 'text-teal-600' },

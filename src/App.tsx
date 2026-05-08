@@ -2,20 +2,14 @@ import { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import RequireAuth from '@/components/auth/RequireAuth';
-import { useAuth } from '@/components/auth/AuthProvider';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useSiteContentSync } from '@/stores/siteContentStore';
 import { useSiteThemeSync } from '@/stores/siteThemeStore';
 import { useSiteCopySync } from '@/stores/siteCopyStore';
 import { useCMSDataSync } from '@/stores/cmsStore';
-import { MAINTENANCE_MODE } from '@/constants/config';
 
 const Home = lazy(() => import('@/pages/Home'));
 const About = lazy(() => import('@/pages/About'));
-const Team = lazy(() => import('@/pages/Team'));
-const Story = lazy(() => import('@/pages/Story'));
-const Journal = lazy(() => import('@/pages/Journal'));
-const JournalPost = lazy(() => import('@/pages/JournalPost'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
 const Impact = lazy(() => import('@/pages/Impact'));
@@ -30,7 +24,6 @@ const Login = lazy(() => import('@/pages/Login'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const Admin = lazy(() => import('@/pages/Admin'));
-const Maintenance = lazy(() => import('@/pages/Maintenance'));
 
 function LoadingFallback({ label }: { label: string }) {
   return (
@@ -54,46 +47,17 @@ export default function App() {
     void import('@/pages/Projects');
     void import('@/pages/ProjectDetail');
     void import('@/pages/Impact');
-    void import('@/pages/Team');
-    void import('@/pages/Story');
-    void import('@/pages/Journal');
     void import('@/pages/Shop');
     void import('@/pages/ProductDetailPage');
   }, []);
 
   return (
     <BrowserRouter>
-      <AppRoutes loadingLabel={t('common.loading')} />
-    </BrowserRouter>
-  );
-}
-
-function AppRoutes({ loadingLabel }: { loadingLabel: string }) {
-  const { isAdmin, loading } = useAuth();
-  const maintenanceBlocked = MAINTENANCE_MODE.enabled && !isAdmin;
-
-  if (MAINTENANCE_MODE.enabled && loading) {
-    return (
       <Layout>
-        <LoadingFallback label={loadingLabel} />
-      </Layout>
-    );
-  }
-
-  return (
-    <Layout>
-      <Suspense fallback={<LoadingFallback label={loadingLabel} />}>
-        {maintenanceBlocked ? (
-          <Maintenance />
-        ) : (
+        <Suspense fallback={<LoadingFallback label={t('common.loading')} />}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
-            <Route path="/team" element={<Team />} />
-            <Route path="/people" element={<Team />} />
-            <Route path="/story" element={<Story />} />
-            <Route path="/journal" element={<Journal />} />
-            <Route path="/journal/:slug" element={<JournalPost />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/projects/:id" element={<ProjectDetail />} />
             <Route path="/impact" element={<Impact />} />
@@ -124,8 +88,8 @@ function AppRoutes({ loadingLabel }: { loadingLabel: string }) {
             />
             <Route path="*" element={<Home />} />
           </Routes>
-        )}
-      </Suspense>
-    </Layout>
+        </Suspense>
+      </Layout>
+    </BrowserRouter>
   );
 }

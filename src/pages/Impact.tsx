@@ -87,11 +87,11 @@ function DonationBarChart({ data, emptyLabel }: { data: { name: string; value: n
 export default function Impact() {
   const { lang, t } = useLanguage();
   const [activePanel, setActivePanel] = useState<'revenue' | 'donations' | 'members' | 'stages'>('revenue');
-  const impactMetricsRaw = useCMSStore((s) => s.impactMetrics).filter((metric) => metric.visible !== false);
+  const impactMetricsRaw = useCMSStore((s) => s.impactMetrics);
   const revenueChartData = useCMSStore((s) => s.revenueData);
   const donationByProject = useCMSStore((s) => s.donationData);
   const memberGrowth = useCMSStore((s) => s.memberGrowthData);
-  const projects = useCMSStore((s) => s.projects).filter((project) => project.published !== false);
+  const projects = useCMSStore((s) => s.projects);
 
   const getChartWidth = (count: number, base = 560, per = 90) => Math.max(base, count * per);
   const stageLabels = lang === 'en' ? STAGE_LABELS_EN : STAGE_LABELS_KO;

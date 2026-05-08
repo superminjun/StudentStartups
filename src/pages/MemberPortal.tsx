@@ -54,9 +54,6 @@ export default function MemberPortal() {
   const [contributionsLoading, setContributionsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member';
-  const userId = user?.id ?? null;
-  const userEmail = user?.email ?? '';
-  const memberId = member?.id ?? null;
 
   const formatMeetingDate = (date: string) => {
     if (!date) return '—';
@@ -70,7 +67,7 @@ export default function MemberPortal() {
   }, [displayName]);
 
   useEffect(() => {
-    if (!userId || !supabase) {
+    if (!user || !supabase) {
       setLoading(false);
       return;
     }
@@ -81,7 +78,7 @@ export default function MemberPortal() {
       const { data: memberRow } = await supabase
         .from('members')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .maybeSingle();
 
       let resolvedMember = memberRow as MemberRow | null;
@@ -89,9 +86,9 @@ export default function MemberPortal() {
         const { data: inserted } = await supabase
           .from('members')
           .insert({
-            user_id: userId,
+            user_id: user.id,
             name: displayName,
-            email: userEmail,
+            email: user.email ?? '',
             role: 'Member',
             team: 'Unassigned',
             contributions: 0,
@@ -115,17 +112,17 @@ export default function MemberPortal() {
     return () => {
       cancelled = true;
     };
-  }, [displayName, userEmail, userId]);
+  }, [user?.id]);
 
   useEffect(() => {
-    if (!memberId || !supabase) return;
+    if (!member || !supabase) return;
     let cancelled = false;
 
     const loadAttendance = async () => {
       const { data } = await supabase
         .from('attendance')
         .select('id,status,feedback,meeting_role, meeting:meetings(id, meeting_date)')
-        .eq('member_id', memberId)
+        .eq('member_id', member.id)
         .order('meeting_date', { foreignTable: 'meeting', ascending: false });
 
       if (cancelled) return;
@@ -144,7 +141,7 @@ export default function MemberPortal() {
       const { data } = await supabase
         .from('contributions')
         .select('id,title,points,notes,contribution_date')
-        .eq('member_id', memberId)
+        .eq('member_id', member.id)
         .order('contribution_date', { ascending: false });
       if (cancelled) return;
       setContributions((data as ContributionRow[] | null) ?? []);
@@ -157,28 +154,28 @@ export default function MemberPortal() {
     if (!isSupabaseConfigured) return () => {};
 
     const attendanceChannel = supabase
-      .channel(`attendance-member-${memberId}`)
+      .channel(`attendance-member-${member.id}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'attendance', filter: `member_id=eq.${memberId}` },
+        { event: '*', schema: 'public', table: 'attendance', filter: `member_id=eq.${member.id}` },
         () => loadAttendance()
       )
       .subscribe();
 
     const contributionsChannel = supabase
-      .channel(`contributions-member-${memberId}`)
+      .channel(`contributions-member-${member.id}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'contributions', filter: `member_id=eq.${memberId}` },
+        { event: '*', schema: 'public', table: 'contributions', filter: `member_id=eq.${member.id}` },
         () => loadContributions()
       )
       .subscribe();
 
     const memberChannel = supabase
-      .channel(`member-profile-${memberId}`)
+      .channel(`member-profile-${member.id}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'members', filter: `id=eq.${memberId}` },
+        { event: '*', schema: 'public', table: 'members', filter: `id=eq.${member.id}` },
         (payload) => {
           const next = payload.new as MemberRow;
           setMember(next);
@@ -192,7 +189,7 @@ export default function MemberPortal() {
       supabase.removeChannel(contributionsChannel);
       supabase.removeChannel(memberChannel);
     };
-  }, [memberId]);
+  }, [member?.id]);
 
   const handleLogout = () => {
     supabase?.auth.signOut();

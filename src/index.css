@@ -19,47 +19,47 @@
     --font-heading: 'Inter', system-ui, -apple-system, sans-serif;
     --font-size-base: 16px;
 
-    /* Apple-clean neutrals with a Harvard-inspired crimson accent */
-    --color-beige: 0 0% 97%;
-    --color-beige-dark: 220 12% 92%;
-    --color-warm-white: 0 0% 100%;
-    --color-charcoal: 220 12% 10%;
-    --color-dark: 220 10% 18%;
-    --color-mid: 220 7% 38%;
-    --color-light: 220 6% 56%;
-    --color-accent: 348 75% 31%;
-    --color-accent-soft: 348 28% 94%;
+    /* Warm beige palette */
+    --color-beige: 30 25% 95%;
+    --color-beige-dark: 30 15% 90%;
+    --color-warm-white: 30 30% 98%;
+    --color-charcoal: 20 10% 15%;
+    --color-dark: 20 8% 22%;
+    --color-mid: 20 5% 45%;
+    --color-light: 20 5% 62%;
+    --color-accent: 24 80% 50%;
+    --color-accent-soft: 24 60% 95%;
 
     /* shadcn tokens */
-    --background: 0 0% 98%;
-    --foreground: 220 12% 10%;
+    --background: 30 25% 95%;
+    --foreground: 20 10% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 220 12% 10%;
+    --card-foreground: 20 10% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 12% 10%;
-    --primary: 220 12% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 220 12% 93%;
-    --secondary-foreground: 220 12% 10%;
-    --muted: 220 12% 93%;
-    --muted-foreground: 220 7% 38%;
-    --accent: 348 75% 31%;
+    --popover-foreground: 20 10% 15%;
+    --primary: 20 10% 15%;
+    --primary-foreground: 30 25% 95%;
+    --secondary: 30 15% 90%;
+    --secondary-foreground: 20 10% 15%;
+    --muted: 30 15% 90%;
+    --muted-foreground: 20 5% 45%;
+    --accent: 24 80% 50%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 12% 88%;
-    --input: 220 12% 88%;
-    --ring: 348 75% 31%;
+    --border: 30 12% 87%;
+    --input: 30 12% 87%;
+    --ring: 24 80% 50%;
     --radius: 0.5rem;
 
-    --sidebar-background: 220 12% 10%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 348 75% 31%;
+    --sidebar-background: 20 10% 15%;
+    --sidebar-foreground: 30 25% 95%;
+    --sidebar-primary: 24 80% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 10% 18%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 220 10% 18%;
-    --sidebar-ring: 348 75% 31%;
+    --sidebar-accent: 20 8% 22%;
+    --sidebar-accent-foreground: 30 25% 95%;
+    --sidebar-border: 20 8% 22%;
+    --sidebar-ring: 24 80% 50%;
   }
 }
 
@@ -99,17 +99,17 @@
 
 @layer components {
   .section { @apply py-20 lg:py-28; }
-  .section-tight { @apply py-14 lg:py-20; }
-  .section-title { @apply text-3xl font-semibold leading-tight text-foreground sm:text-4xl; }
-  .section-kicker { @apply text-[11px] font-semibold uppercase tracking-[0.18em] text-accent; }
-  .section-lead { @apply mt-4 max-w-2xl text-[15px] leading-8 text-muted-foreground sm:text-base; }
+  .section-tight { @apply py-16 lg:py-20; }
+  .section-title { @apply text-3xl font-semibold tracking-tight text-foreground sm:text-4xl; }
+  .section-kicker { @apply text-xs uppercase tracking-[0.24em] text-muted-foreground; }
+  .section-lead { @apply mt-3 text-base text-muted-foreground; }
 
-  .card { @apply rounded-lg border border-border bg-card shadow-sm; }
-  .card-hover { @apply transition-all hover:-translate-y-0.5 hover:shadow-md; }
+  .card { @apply rounded-2xl border border-border bg-card/90 shadow-sm backdrop-blur; }
+  .card-hover { @apply transition-all hover:-translate-y-1 hover:shadow-lg; }
 
-  .btn { @apply inline-flex items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-semibold transition-all duration-200; }
-  .btn-primary { @apply bg-foreground text-background shadow-sm hover:bg-accent active:scale-[0.98]; }
-  .btn-secondary { @apply border border-border bg-card text-foreground hover:border-foreground/30 hover:bg-muted active:scale-[0.98]; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-all duration-200; }
+  .btn-primary { @apply bg-foreground text-background shadow-sm hover:-translate-y-0.5 hover:shadow-md hover:bg-foreground/90 active:scale-[0.98]; }
+  .btn-secondary { @apply border border-border text-foreground hover:bg-muted active:scale-[0.98]; }
   .btn-ghost { @apply text-foreground/80 hover:text-foreground hover:bg-muted active:scale-[0.98]; }
   .btn-pill { @apply rounded-full; }
   .btn-sm { @apply px-3 py-1.5 text-xs; }

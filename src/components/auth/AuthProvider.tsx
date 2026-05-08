@@ -16,7 +16,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const userId = session?.user?.id ?? null;
 
   useEffect(() => {
     if (!supabase) {
@@ -40,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!supabase || !userId) {
+    if (!supabase || !session?.user) {
       setIsAdmin(false);
       return;
     }
@@ -50,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase
       .from('admin_users')
       .select('id')
-      .eq('id', userId)
+      .eq('id', session.user.id)
       .maybeSingle()
       .then(({ data, error }) => {
         if (cancelled) return;
@@ -64,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [session?.user?.id]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

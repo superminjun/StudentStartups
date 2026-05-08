@@ -10,12 +10,7 @@ import {
   donationByProject as mockDonationByProject,
   memberGrowth as mockMemberGrowth,
 } from '@/constants/mockData';
-import type {
-  Project,
-  Product,
-  ProjectTimelineEntry,
-  ProjectUpdateEntry,
-} from '@/types';
+import type { Project, Product } from '@/types';
 
 const isBrowser = typeof window !== 'undefined';
 
@@ -55,9 +50,6 @@ export type ImpactMetricRecord = {
   value: number;
   prefix?: string;
   suffix?: string;
-  descriptionEn?: string;
-  descriptionKo?: string;
-  visible?: boolean;
   sortOrder: number;
 };
 
@@ -95,10 +87,6 @@ type ProjectRow = {
   id: string;
   name: string;
   description: string;
-  short_description?: string | null;
-  slug?: string | null;
-  problem?: string | null;
-  solution?: string | null;
   stage: number;
   stage_name: string;
   revenue: number;
@@ -110,22 +98,10 @@ type ProjectRow = {
   team: unknown;
   image_url: string;
   banner_image_url?: string | null;
-  gallery_images?: unknown;
   start_date: string;
   category: string;
   term: string;
   status: string | null;
-  lead_name?: string | null;
-  contributors?: unknown;
-  skills_used?: unknown;
-  timeline?: unknown;
-  updates?: unknown;
-  impact_summary?: string | null;
-  next_steps?: string | null;
-  lessons?: string | null;
-  is_featured?: boolean | null;
-  is_published?: boolean | null;
-  sort_order?: number | null;
 };
 
 type ProductRow = {
@@ -150,9 +126,6 @@ type ImpactMetricRow = {
   value: number;
   prefix: string | null;
   suffix: string | null;
-  description_en?: string | null;
-  description_ko?: string | null;
-  is_visible?: boolean | null;
   sort_order: number;
 };
 
@@ -178,70 +151,10 @@ type GrowthRow = {
   sort_order: number;
 };
 
-const isStringArray = (value: unknown): value is string[] => Array.isArray(value) && value.every((item) => typeof item === 'string');
-
-const mapProjectTimeline = (value: unknown): ProjectTimelineEntry[] => {
-  if (!Array.isArray(value)) return [];
-  return value
-    .filter((item) => item && typeof item === 'object')
-    .map((item, index) => {
-      const row = item as Record<string, unknown>;
-      return {
-        date: String(row.date ?? '').slice(0, 10),
-        titleEn: String(row.titleEn ?? row.title_en ?? row.title ?? `Timeline ${index + 1}`),
-        titleKo: String(row.titleKo ?? row.title_ko ?? row.title ?? `타임라인 ${index + 1}`),
-        detailEn: typeof row.detailEn === 'string'
-          ? row.detailEn
-          : typeof row.detail_en === 'string'
-            ? row.detail_en
-            : undefined,
-        detailKo: typeof row.detailKo === 'string'
-          ? row.detailKo
-          : typeof row.detail_ko === 'string'
-            ? row.detail_ko
-            : undefined,
-      };
-    })
-    .filter((entry) => entry.date && entry.titleEn);
-};
-
-const mapProjectUpdates = (value: unknown): ProjectUpdateEntry[] => {
-  if (!Array.isArray(value)) return [];
-  return value
-    .filter((item) => item && typeof item === 'object')
-    .map((item, index) => {
-      const row = item as Record<string, unknown>;
-      return {
-        id: String(row.id ?? `update-${index + 1}`),
-        date: String(row.date ?? '').slice(0, 10),
-        titleEn: String(row.titleEn ?? row.title_en ?? row.title ?? `Update ${index + 1}`),
-        titleKo: String(row.titleKo ?? row.title_ko ?? row.title ?? `업데이트 ${index + 1}`),
-        summaryEn: String(row.summaryEn ?? row.summary_en ?? row.summary ?? ''),
-        summaryKo: String(row.summaryKo ?? row.summary_ko ?? row.summary ?? ''),
-        learningEn: typeof row.learningEn === 'string'
-          ? row.learningEn
-          : typeof row.learning_en === 'string'
-            ? row.learning_en
-            : undefined,
-        learningKo: typeof row.learningKo === 'string'
-          ? row.learningKo
-          : typeof row.learning_ko === 'string'
-            ? row.learning_ko
-            : undefined,
-        tags: isStringArray(row.tags) ? row.tags : [],
-      };
-    })
-    .filter((entry) => entry.date && entry.titleEn);
-};
-
 const mapProjectRow = (row: ProjectRow): Project => ({
   id: row.id,
   name: row.name,
   description: row.description,
-  shortDescription: row.short_description ?? undefined,
-  slug: row.slug ?? undefined,
-  problem: row.problem ?? undefined,
-  solution: row.solution ?? undefined,
   stage: Number(row.stage) || 1,
   stageName: row.stage_name,
   revenue: Number(row.revenue) || 0,
@@ -253,22 +166,10 @@ const mapProjectRow = (row: ProjectRow): Project => ({
   team: Array.isArray(row.team) ? (row.team as Project['team']) : [],
   image: toPublicStorageUrl(row.image_url),
   bannerImage: toPublicStorageUrl(row.banner_image_url ?? ''),
-  gallery: Array.isArray(row.gallery_images) ? (row.gallery_images as string[]).map((image) => toPublicStorageUrl(image)) : [],
   startDate: row.start_date,
   category: row.category,
   term: row.term,
   status: row.status ?? undefined,
-  lead: row.lead_name ?? undefined,
-  contributors: isStringArray(row.contributors) ? row.contributors : [],
-  skillsUsed: isStringArray(row.skills_used) ? row.skills_used : [],
-  timeline: mapProjectTimeline(row.timeline),
-  updates: mapProjectUpdates(row.updates),
-  impactSummary: row.impact_summary ?? undefined,
-  nextSteps: row.next_steps ?? undefined,
-  lessons: row.lessons ?? undefined,
-  featured: Boolean(row.is_featured),
-  published: row.is_published == null ? true : Boolean(row.is_published),
-  order: Number(row.sort_order) || 0,
 });
 
 const mapProductRow = (row: ProductRow): Product => ({
@@ -293,9 +194,6 @@ const mapMetricRow = (row: ImpactMetricRow): ImpactMetricRecord => ({
   value: Number(row.value) || 0,
   prefix: row.prefix ?? undefined,
   suffix: row.suffix ?? undefined,
-  descriptionEn: row.description_en ?? undefined,
-  descriptionKo: row.description_ko ?? undefined,
-  visible: row.is_visible == null ? true : Boolean(row.is_visible),
   sortOrder: Number(row.sort_order) || 0,
 });
 
@@ -328,7 +226,6 @@ const mockMetricRecords: ImpactMetricRecord[] = mockImpactMetrics.map((m, idx) =
   value: m.value,
   prefix: m.prefix,
   suffix: m.suffix,
-  visible: true,
   sortOrder: idx + 1,
 }));
 
@@ -505,6 +402,24 @@ export function useCMSDataSync() {
   const hydrate = useCMSStore((s) => s.hydrate);
 
   useEffect(() => {
+    let channel: ReturnType<NonNullable<typeof supabase>['channel']> | null = null;
+
     hydrate();
+
+    if (!isSupabaseConfigured || !supabase) return () => {};
+
+    channel = supabase
+      .channel('cms-content-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => hydrate())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => hydrate())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'impact_metrics' }, () => hydrate())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'impact_revenue' }, () => hydrate())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'impact_donations' }, () => hydrate())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'impact_member_growth' }, () => hydrate())
+      .subscribe();
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
   }, [hydrate]);
 }

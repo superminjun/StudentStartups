@@ -2,16 +2,12 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUp } from 'lucide-react';
-import { MAINTENANCE_MODE } from '@/constants/config';
-import { useAuth } from '@/components/auth/AuthProvider';
 import Navbar from './Navbar';
 import Footer from './Footer';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
   const [showTop, setShowTop] = useState(false);
-  const { isAdmin } = useAuth();
-  const hideChrome = MAINTENANCE_MODE.enabled && !isAdmin;
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
@@ -25,11 +21,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen overflow-x-clip">
-      {!hideChrome && <Navbar />}
+      <Navbar />
       <main className="min-w-0 overflow-x-clip">{children}</main>
-      {!hideChrome && <Footer />}
+      <Footer />
       <AnimatePresence>
-        {!hideChrome && showTop && (
+        {showTop && (
           <motion.button
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}

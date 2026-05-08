@@ -15,18 +15,6 @@ export const SITE_CONFIG = {
   },
 };
 
-export const MAINTENANCE_MODE = {
-  enabled: true,
-  titleEn: 'Student Startups is temporarily offline.',
-  titleKo: 'Student Startups 사이트를 잠시 점검하고 있습니다.',
-  bodyEn:
-    'We are updating the site and checking a few systems before reopening it publicly. Please check back shortly.',
-  bodyKo:
-    '현재 사이트를 업데이트하고 주요 기능을 점검하는 중입니다. 잠시 후 다시 방문해주세요.',
-  footnoteEn: 'Admin and internal access remain available during maintenance.',
-  footnoteKo: '점검 중에도 관리자 및 내부 접근은 계속 가능합니다.',
-} as const;
-
 export const STAGE_LABELS_EN: Record<number, string> = {
   1: 'Planning',
   2: 'Research',

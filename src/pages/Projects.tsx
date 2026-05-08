@@ -10,7 +10,7 @@ export default function Projects() {
   const { lang, t } = useLanguage();
   const [activeStage, setActiveStage] = useState(0);
   const stageLabels = lang === 'en' ? STAGE_LABELS_EN : STAGE_LABELS_KO;
-  const projects = useCMSStore((s) => s.projects).filter((project) => project.published !== false);
+  const projects = useCMSStore((s) => s.projects);
   const status = useCMSStore((s) => s.status);
 
   const filtered = useMemo(
@@ -35,19 +35,9 @@ export default function Projects() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="mt-3 max-w-2xl text-base text-white/55"
+            className="mt-3 max-w-xl text-base text-white/55"
           >
             {t('projects.subtitle')}
-          </motion.p>
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mt-4 max-w-2xl text-sm leading-7 text-white/42"
-          >
-            {lang === 'ko'
-              ? '각 프로젝트는 카드 하나로 끝나지 않습니다. 문제, 해결 방식, 기여자, 과정, 업데이트가 함께 남도록 정리하고 있습니다.'
-              : 'Each project is being documented as more than a card: problem, solution, contributors, updates, and the record of how the work evolved.'}
           </motion.p>
         </div>
       </section>

@@ -95,6 +95,19 @@ export function useSiteCopySync() {
   const hydrate = useSiteCopyStore((s) => s.hydrate);
 
   useEffect(() => {
+    let channel: ReturnType<NonNullable<typeof supabase>['channel']> | null = null;
+
     hydrate();
+
+    if (!isSupabaseConfigured || !supabase) return () => {};
+
+    channel = supabase
+      .channel('site-copy-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: TABLE_NAME }, () => hydrate())
+      .subscribe();
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
   }, [hydrate]);
 }

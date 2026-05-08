@@ -21,9 +21,9 @@ function CounterCard({ metric, index }: { metric: Metric; index: number }) {
   const count = useCounter(metric.value, isInView, 2000);
 
   return (
-    <ScrollReveal delay={index * 0.08} direction="up">
-      <div ref={ref} className="border-b border-border pb-6">
-        <p className="text-3xl font-semibold text-foreground tabular-nums sm:text-4xl">
+    <ScrollReveal delay={index * 0.1} direction="up">
+      <div ref={ref} className="card card-hover p-6">
+        <p className="text-3xl font-semibold tracking-tight text-foreground tabular-nums sm:text-4xl">
           {metric.prefix}{count.toLocaleString()}{metric.suffix}
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -35,8 +35,8 @@ function CounterCard({ metric, index }: { metric: Metric; index: number }) {
 }
 
 export default function ImpactCounters({ className }: { className?: string }) {
-  const metrics = useCMSStore((s) => s.impactMetrics).filter((metric) => metric.visible !== false);
-  const projects = useCMSStore((s) => s.projects).filter((project) => project.published !== false);
+  const metrics = useCMSStore((s) => s.impactMetrics);
+  const projects = useCMSStore((s) => s.projects);
   const activeProjectCount = projects.filter((project) => (project.status ?? 'active').toLowerCase() === 'active').length;
 
   const normalizeMetric = (metric: Metric): Metric => {
@@ -52,7 +52,7 @@ export default function ImpactCounters({ className }: { className?: string }) {
   };
 
   return (
-    <div className={cn('grid grid-cols-2 gap-x-10 gap-y-8 lg:grid-cols-4', className)}>
+    <div className={cn('grid grid-cols-2 gap-6 lg:grid-cols-4', className)}>
       {metrics.map((metric, i) => (
         <CounterCard
           key={`${metric.labelEn}-${i}`}
