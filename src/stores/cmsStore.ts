@@ -505,24 +505,6 @@ export function useCMSDataSync() {
   const hydrate = useCMSStore((s) => s.hydrate);
 
   useEffect(() => {
-    let channel: ReturnType<NonNullable<typeof supabase>['channel']> | null = null;
-
     hydrate();
-
-    if (!isSupabaseConfigured || !supabase) return () => {};
-
-    channel = supabase
-      .channel('cms-content-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => hydrate())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => hydrate())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'impact_metrics' }, () => hydrate())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'impact_revenue' }, () => hydrate())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'impact_donations' }, () => hydrate())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'impact_member_growth' }, () => hydrate())
-      .subscribe();
-
-    return () => {
-      if (channel) supabase.removeChannel(channel);
-    };
   }, [hydrate]);
 }

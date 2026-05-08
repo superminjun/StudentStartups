@@ -196,27 +196,6 @@ export function useSiteContentSync() {
   const hydrate = useSiteContentStore((s) => s.hydrate);
 
   useEffect(() => {
-    let channel: ReturnType<NonNullable<typeof supabase>['channel']> | null = null;
-
     hydrate();
-
-    if (!isSupabaseConfigured || !supabase) return () => {};
-
-    channel = supabase
-      .channel('site-content-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: TABLE_NAME, filter: `id=eq.${SINGLETON_ID}` },
-        (payload) => {
-          const next = mapRowToContent(payload.new as SiteContentRow);
-          writeCache(next);
-          useSiteContentStore.setState({ content: next, status: 'ready', error: null });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      if (channel) supabase.removeChannel(channel);
-    };
   }, [hydrate]);
 }

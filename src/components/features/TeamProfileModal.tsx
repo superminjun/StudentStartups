@@ -64,16 +64,19 @@ function getDefaultBio(member: TeamMemberShowcase, lang: 'en' | 'ko') {
 function getContributionSummary(member: TeamMemberShowcase, lang: 'en' | 'ko') {
   const explicit = lang === 'ko' ? member.contributionSummaryKo : member.contributionSummaryEn;
   if (explicit?.trim()) return explicit;
+  const stats = member.stats ?? { projects: 0, events: 0, contributions: 0, collaborations: 0 };
 
   if (lang === 'ko') {
-    return `${member.stats.projects}개 프로젝트, ${member.stats.events}회 기록, ${member.stats.contributions} 포인트를 중심으로 역할과 결과를 꾸준히 쌓아가고 있습니다.`;
+    return `${Number(stats.projects) || 0}개 프로젝트, ${Number(stats.events) || 0}회 기록, ${Number(stats.contributions) || 0} 포인트를 중심으로 역할과 결과를 꾸준히 쌓아가고 있습니다.`;
   }
 
-  return `${member.stats.projects} project contributions, ${member.stats.events} recorded events, and ${member.stats.contributions} contribution points form the current record.`;
+  return `${Number(stats.projects) || 0} project contributions, ${Number(stats.events) || 0} recorded events, and ${Number(stats.contributions) || 0} contribution points form the current record.`;
 }
 
 function getLeadership(member: TeamMemberShowcase, lang: 'en' | 'ko') {
-  const values = lang === 'ko' ? member.leadershipKo : member.leadershipEn;
+  const values = lang === 'ko'
+    ? (Array.isArray(member.leadershipKo) ? member.leadershipKo : [])
+    : (Array.isArray(member.leadershipEn) ? member.leadershipEn : []);
   if (values.length) return values;
 
   if (lang === 'ko') {
@@ -88,7 +91,9 @@ function getLeadership(member: TeamMemberShowcase, lang: 'en' | 'ko') {
 }
 
 function getCurrentGoals(member: TeamMemberShowcase, lang: 'en' | 'ko') {
-  const values = lang === 'ko' ? member.currentGoalsKo : member.currentGoalsEn;
+  const values = lang === 'ko'
+    ? (Array.isArray(member.currentGoalsKo) ? member.currentGoalsKo : [])
+    : (Array.isArray(member.currentGoalsEn) ? member.currentGoalsEn : []);
   if (values.length) return values;
 
   if (lang === 'ko') {
@@ -105,24 +110,28 @@ function getCurrentGoals(member: TeamMemberShowcase, lang: 'en' | 'ko') {
 }
 
 function getAchievements(member: TeamMemberShowcase, lang: 'en' | 'ko') {
-  const values = lang === 'ko' ? member.achievementsKo : member.achievementsEn;
+  const values = lang === 'ko'
+    ? (Array.isArray(member.achievementsKo) ? member.achievementsKo : [])
+    : (Array.isArray(member.achievementsEn) ? member.achievementsEn : []);
   if (values.length) return values;
+  const stats = member.stats ?? { projects: 0, collaborations: 0, events: 0, contributions: 0 };
 
   if (lang === 'ko') {
     return [
-      `${member.stats.projects}개 프로젝트에 기여했습니다.`,
-      `${member.stats.collaborations}회의 협업 흐름에 참여했습니다.`,
+      `${Number(stats.projects) || 0}개 프로젝트에 기여했습니다.`,
+      `${Number(stats.collaborations) || 0}회의 협업 흐름에 참여했습니다.`,
     ];
   }
 
   return [
-    `Contributed to ${member.stats.projects} projects.`,
-    `Worked across ${member.stats.collaborations} collaboration paths.`,
+    `Contributed to ${Number(stats.projects) || 0} projects.`,
+    `Worked across ${Number(stats.collaborations) || 0} collaboration paths.`,
   ];
 }
 
 function getSkills(member: TeamMemberShowcase, lang: 'en' | 'ko') {
-  if (member.skills.length) return member.skills;
+  const skills = Array.isArray(member.skills) ? member.skills : [];
+  if (skills.length) return skills;
   const mapped = skillMap[getTeamKey(member.team)];
   if (mapped) return lang === 'ko' ? mapped.ko : mapped.en;
   return lang === 'ko'
@@ -131,7 +140,11 @@ function getSkills(member: TeamMemberShowcase, lang: 'en' | 'ko') {
 }
 
 function getTimeline(member: TeamMemberShowcase, lang: 'en' | 'ko') {
-  if (member.timeline.length) return member.timeline;
+  const timeline = Array.isArray(member.timeline) ? member.timeline : [];
+  const projects = Array.isArray(member.projects) ? member.projects : [];
+  const stats = member.stats ?? { events: 0, projects: 0, collaborations: 0, contributions: 0 };
+
+  if (timeline.length) return timeline;
   return [
     {
       date: member.joinDate,
@@ -141,11 +154,11 @@ function getTimeline(member: TeamMemberShowcase, lang: 'en' | 'ko') {
       detailKo: `${member.team !== 'Unassigned' ? member.team : '핵심 운영'} 영역에서 활동을 시작했습니다.`,
       type: 'joined',
     },
-    ...(member.projects[0]
+    ...(projects[0]
       ? [{
           date: member.joinDate,
-          titleEn: `Contributed to ${member.projects[0].name}`,
-          titleKo: `${member.projects[0].name}에 참여`,
+          titleEn: `Contributed to ${projects[0].name}`,
+          titleKo: `${projects[0].name}에 참여`,
           detailEn: 'Contributed to public project execution and review.',
           detailKo: '공개 프로젝트의 실행과 검토에 참여했습니다.',
           type: 'project' as const,
@@ -155,8 +168,8 @@ function getTimeline(member: TeamMemberShowcase, lang: 'en' | 'ko') {
       date: member.joinDate,
       titleEn: 'Recorded platform activity',
       titleKo: '플랫폼 활동 기록',
-      detailEn: `${member.stats.events} events and reviews currently recorded.`,
-      detailKo: `${member.stats.events}회의 미팅과 검토 기록이 남아 있습니다.`,
+      detailEn: `${Number(stats.events) || 0} events and reviews currently recorded.`,
+      detailKo: `${Number(stats.events) || 0}회의 미팅과 검토 기록이 남아 있습니다.`,
       type: 'review',
     },
   ];
@@ -171,6 +184,16 @@ export default function TeamProfileModal({
   const copy = teamPageCopy[lang].modal;
 
   if (!member) return null;
+
+  const projects = Array.isArray(member.projects) ? member.projects : [];
+  const interests = Array.isArray(member.interests) ? member.interests : [];
+  const links = Array.isArray(member.links) ? member.links : [];
+  const stats = {
+    projects: Number(member.stats?.projects) || projects.length,
+    collaborations: Number(member.stats?.collaborations) || 0,
+    events: Number(member.stats?.events) || 0,
+    contributions: Number(member.stats?.contributions) || 0,
+  };
 
   const bio = (lang === 'ko' ? member.bioKo : member.bioEn) || getDefaultBio(member, lang);
   const contributionSummary = getContributionSummary(member, lang);
@@ -277,7 +300,7 @@ export default function TeamProfileModal({
               <section>
                 <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">{copy.projects}</h3>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {member.projects.length ? member.projects.map((project) => (
+                  {projects.length ? projects.map((project) => (
                     <Link
                       key={project.id}
                       to={`/projects/${project.id}`}
@@ -359,10 +382,10 @@ export default function TeamProfileModal({
             <div className="space-y-6">
               <section className="grid grid-cols-2 gap-3">
                 {[
-                  { label: teamPageCopy[lang].projectsStat, value: member.stats.projects },
-                  { label: teamPageCopy[lang].collaborationsStat, value: member.stats.collaborations },
-                  { label: teamPageCopy[lang].eventsStat, value: member.stats.events },
-                  { label: teamPageCopy[lang].contributionsStat, value: member.stats.contributions },
+                  { label: teamPageCopy[lang].projectsStat, value: stats.projects },
+                  { label: teamPageCopy[lang].collaborationsStat, value: stats.collaborations },
+                  { label: teamPageCopy[lang].eventsStat, value: stats.events },
+                  { label: teamPageCopy[lang].contributionsStat, value: stats.contributions },
                 ].map((item) => (
                   <div key={item.label} className="rounded-[22px] border border-border bg-card p-4 shadow-sm">
                     <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{item.label}</p>
@@ -383,7 +406,7 @@ export default function TeamProfileModal({
               <section className="rounded-[24px] border border-border bg-card p-5">
                 <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">{copy.built}</h3>
                 <div className="mt-4 space-y-3">
-                  {member.projects.length ? member.projects.map((project) => (
+                  {projects.length ? projects.map((project) => (
                     <div key={`built-${project.id}`} className="rounded-[18px] bg-muted/30 px-4 py-3">
                       <p className="text-sm font-semibold text-foreground">{project.name}</p>
                       <p className="mt-1 text-xs text-muted-foreground">
@@ -407,11 +430,11 @@ export default function TeamProfileModal({
                 </div>
               </section>
 
-              {member.interests.length > 0 && (
+              {interests.length > 0 && (
                 <section className="rounded-[24px] border border-border bg-card p-5">
                   <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">{copy.interests}</h3>
                   <div className="mt-4 flex flex-wrap gap-2">
-                    {member.interests.map((interest) => (
+                    {interests.map((interest) => (
                       <span key={interest} className="rounded-full border border-border bg-muted/30 px-3 py-1.5 text-xs font-medium text-foreground/80">
                         {interest}
                       </span>
@@ -420,11 +443,11 @@ export default function TeamProfileModal({
                 </section>
               )}
 
-              {member.links.length > 0 && (
+              {links.length > 0 && (
                 <section className="rounded-[24px] border border-border bg-card p-5">
                   <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">{copy.contact}</h3>
                   <div className="mt-4 flex flex-wrap gap-2">
-                    {member.links.map((link) => (
+                    {links.map((link) => (
                       <a
                         key={`${link.label}-${link.href}`}
                         href={link.href}

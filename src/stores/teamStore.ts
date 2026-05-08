@@ -29,7 +29,30 @@ const writeCache = (members: TeamMemberShowcase[]) => {
   }
 };
 
-const initialMembers = readCache() ?? [...teamShowcaseFallback];
+const normalizeMember = (member: TeamMemberShowcase): TeamMemberShowcase => ({
+  ...member,
+  quote: member.quote ?? {},
+  leadershipEn: Array.isArray(member.leadershipEn) ? member.leadershipEn : [],
+  leadershipKo: Array.isArray(member.leadershipKo) ? member.leadershipKo : [],
+  currentGoalsEn: Array.isArray(member.currentGoalsEn) ? member.currentGoalsEn : [],
+  currentGoalsKo: Array.isArray(member.currentGoalsKo) ? member.currentGoalsKo : [],
+  achievementsEn: Array.isArray(member.achievementsEn) ? member.achievementsEn : [],
+  achievementsKo: Array.isArray(member.achievementsKo) ? member.achievementsKo : [],
+  skills: Array.isArray(member.skills) ? member.skills : [],
+  interests: Array.isArray(member.interests) ? member.interests : [],
+  tags: Array.isArray(member.tags) ? member.tags : [],
+  timeline: Array.isArray(member.timeline) ? member.timeline : [],
+  projects: Array.isArray(member.projects) ? member.projects : [],
+  links: Array.isArray(member.links) ? member.links : [],
+  stats: {
+    projects: Number(member.stats?.projects) || 0,
+    collaborations: Number(member.stats?.collaborations) || 0,
+    events: Number(member.stats?.events) || 0,
+    contributions: Number(member.stats?.contributions) || 0,
+  },
+});
+
+const initialMembers = (readCache() ?? [...teamShowcaseFallback]).map(normalizeMember);
 
 export const useTeamStore = create<{
   members: TeamMemberShowcase[];
@@ -56,9 +79,9 @@ export const useTeamStore = create<{
       }
 
       const payload = (await response.json()) as { members?: TeamMemberShowcase[] };
-      const nextMembers = Array.isArray(payload.members) && payload.members.length
+      const nextMembers = (Array.isArray(payload.members) && payload.members.length
         ? payload.members
-        : [...teamShowcaseFallback];
+        : [...teamShowcaseFallback]).map(normalizeMember);
 
       preloadImages(
         nextMembers.flatMap((member) => [member.photo, member.bannerImage]).filter(Boolean)
@@ -66,7 +89,7 @@ export const useTeamStore = create<{
       writeCache(nextMembers);
       set({ members: nextMembers, status: 'ready', error: null });
     } catch (error) {
-      const fallbackMembers = readCache() ?? [...teamShowcaseFallback];
+      const fallbackMembers = (readCache() ?? [...teamShowcaseFallback]).map(normalizeMember);
       preloadImages(
         fallbackMembers.flatMap((member) => [member.photo, member.bannerImage]).filter(Boolean)
       );

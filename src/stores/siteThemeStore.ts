@@ -297,29 +297,7 @@ export function useSiteThemeSync() {
   const hydrate = useSiteThemeStore((s) => s.hydrate);
 
   useEffect(() => {
-    let channel: ReturnType<NonNullable<typeof supabase>['channel']> | null = null;
-
     hydrate();
-
-    if (!isSupabaseConfigured || !supabase) return () => {};
-
-    channel = supabase
-      .channel('site-theme-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: TABLE_NAME, filter: `id=eq.${SINGLETON_ID}` },
-        (payload) => {
-          const next = mapRowToTheme(payload.new as SiteThemeRow);
-          writeCache(next);
-          useSiteThemeStore.setState({ theme: next, status: 'ready', error: null });
-          applyThemeToDocument(next);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      if (channel) supabase.removeChannel(channel);
-    };
   }, [hydrate]);
 
   useEffect(() => {
