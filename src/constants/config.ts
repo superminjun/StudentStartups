@@ -17,7 +17,6 @@ export const SITE_CONFIG = {
 
 export const MAINTENANCE_MODE = {
   enabled: true,
-  allowPaths: ['/admin', '/login', '/forgot-password', '/reset-password', '/portal'],
   titleEn: 'Student Startups is temporarily offline.',
   titleKo: 'Student Startups 사이트를 잠시 점검하고 있습니다.',
   bodyEn:

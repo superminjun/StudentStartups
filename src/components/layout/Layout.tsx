@@ -3,14 +3,15 @@ import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUp } from 'lucide-react';
 import { MAINTENANCE_MODE } from '@/constants/config';
+import { useAuth } from '@/components/auth/AuthProvider';
 import Navbar from './Navbar';
 import Footer from './Footer';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
   const [showTop, setShowTop] = useState(false);
-  const hideChrome = MAINTENANCE_MODE.enabled
-    && !MAINTENANCE_MODE.allowPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+  const { isAdmin } = useAuth();
+  const hideChrome = MAINTENANCE_MODE.enabled && !isAdmin;
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });

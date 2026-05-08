@@ -1,7 +1,8 @@
 import { Suspense, lazy, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import RequireAuth from '@/components/auth/RequireAuth';
+import { useAuth } from '@/components/auth/AuthProvider';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useSiteContentSync } from '@/stores/siteContentStore';
 import { useSiteThemeSync } from '@/stores/siteThemeStore';
@@ -68,9 +69,16 @@ export default function App() {
 }
 
 function AppRoutes({ loadingLabel }: { loadingLabel: string }) {
-  const { pathname } = useLocation();
-  const maintenanceBlocked = MAINTENANCE_MODE.enabled
-    && !MAINTENANCE_MODE.allowPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+  const { isAdmin, loading } = useAuth();
+  const maintenanceBlocked = MAINTENANCE_MODE.enabled && !isAdmin;
+
+  if (MAINTENANCE_MODE.enabled && loading) {
+    return (
+      <Layout>
+        <LoadingFallback label={loadingLabel} />
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
