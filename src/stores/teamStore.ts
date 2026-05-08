@@ -9,12 +9,23 @@ const isBrowser = typeof window !== 'undefined';
 
 type TeamStatus = 'idle' | 'loading' | 'ready' | 'fallback' | 'error';
 
+const FALLBACK_MEMBER_IDS = new Set(teamShowcaseFallback.map((member) => member.id));
+const DEV_FALLBACK = import.meta.env.DEV ? [...teamShowcaseFallback] : [];
+
+const isMockFallbackPayload = (members: TeamMemberShowcase[]) =>
+  members.length > 0 && members.every((member) => FALLBACK_MEMBER_IDS.has(member.id));
+
 const readCache = () => {
   if (!isBrowser) return null;
   try {
     const raw = window.localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as TeamMemberShowcase[];
+    const parsed = JSON.parse(raw) as TeamMemberShowcase[];
+    if (!import.meta.env.DEV && isMockFallbackPayload(parsed)) {
+      window.localStorage.removeItem(CACHE_KEY);
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }
@@ -52,7 +63,7 @@ const normalizeMember = (member: TeamMemberShowcase): TeamMemberShowcase => ({
   },
 });
 
-const initialMembers = (readCache() ?? [...teamShowcaseFallback]).map(normalizeMember);
+const initialMembers = (readCache() ?? DEV_FALLBACK).map(normalizeMember);
 
 export const useTeamStore = create<{
   members: TeamMemberShowcase[];
@@ -79,9 +90,7 @@ export const useTeamStore = create<{
       }
 
       const payload = (await response.json()) as { members?: TeamMemberShowcase[] };
-      const nextMembers = (Array.isArray(payload.members) && payload.members.length
-        ? payload.members
-        : [...teamShowcaseFallback]).map(normalizeMember);
+      const nextMembers = (Array.isArray(payload.members) ? payload.members : DEV_FALLBACK).map(normalizeMember);
 
       preloadImages(
         nextMembers.flatMap((member) => [member.photo, member.bannerImage]).filter(Boolean)
@@ -89,7 +98,7 @@ export const useTeamStore = create<{
       writeCache(nextMembers);
       set({ members: nextMembers, status: 'ready', error: null });
     } catch (error) {
-      const fallbackMembers = (readCache() ?? [...teamShowcaseFallback]).map(normalizeMember);
+      const fallbackMembers = (readCache() ?? DEV_FALLBACK).map(normalizeMember);
       preloadImages(
         fallbackMembers.flatMap((member) => [member.photo, member.bannerImage]).filter(Boolean)
       );

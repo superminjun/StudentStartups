@@ -164,10 +164,12 @@ export default function Team() {
             </div>
 
             <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-              {(loading ? Array.from({ length: 4 }) : featuredMembers).map((member, index) =>
-                loading ? (
+              {loading ? (
+                Array.from({ length: 4 }).map((_, index) => (
                   <TeamCardSkeleton key={`featured-skeleton-${index}`} />
-                ) : (
+                ))
+              ) : featuredMembers.length ? (
+                featuredMembers.map((member, index) => (
                   <TeamMemberCard
                     key={member.id}
                     member={member}
@@ -179,7 +181,12 @@ export default function Team() {
                     onSelect={setSelectedMember}
                     priority={index < 2}
                   />
-                )
+                ))
+              ) : (
+                <div className="col-span-full rounded-[28px] border border-dashed border-border bg-card/70 px-6 py-12 text-center shadow-sm">
+                  <p className="text-lg font-semibold text-foreground">{copy.noMembersTitle}</p>
+                  <p className="mt-2 text-sm leading-7 text-muted-foreground">{copy.noMembersBody}</p>
+                </div>
               )}
             </div>
           </div>
