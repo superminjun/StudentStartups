@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import RequireAuth from '@/components/auth/RequireAuth';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -7,6 +7,7 @@ import { useSiteContentSync } from '@/stores/siteContentStore';
 import { useSiteThemeSync } from '@/stores/siteThemeStore';
 import { useSiteCopySync } from '@/stores/siteCopyStore';
 import { useCMSDataSync } from '@/stores/cmsStore';
+import { MAINTENANCE_MODE } from '@/constants/config';
 
 const Home = lazy(() => import('@/pages/Home'));
 const About = lazy(() => import('@/pages/About'));
@@ -28,6 +29,7 @@ const Login = lazy(() => import('@/pages/Login'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const Admin = lazy(() => import('@/pages/Admin'));
+const Maintenance = lazy(() => import('@/pages/Maintenance'));
 
 function LoadingFallback({ label }: { label: string }) {
   return (
@@ -60,14 +62,28 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Layout>
-        <Suspense fallback={<LoadingFallback label={t('common.loading')} />}>
+      <AppRoutes loadingLabel={t('common.loading')} />
+    </BrowserRouter>
+  );
+}
+
+function AppRoutes({ loadingLabel }: { loadingLabel: string }) {
+  const { pathname } = useLocation();
+  const maintenanceBlocked = MAINTENANCE_MODE.enabled
+    && !MAINTENANCE_MODE.allowPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+
+  return (
+    <Layout>
+      <Suspense fallback={<LoadingFallback label={loadingLabel} />}>
+        {maintenanceBlocked ? (
+          <Maintenance />
+        ) : (
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
-          <Route path="/team" element={<Team />} />
-          <Route path="/people" element={<Team />} />
-          <Route path="/story" element={<Story />} />
+            <Route path="/team" element={<Team />} />
+            <Route path="/people" element={<Team />} />
+            <Route path="/story" element={<Story />} />
             <Route path="/journal" element={<Journal />} />
             <Route path="/journal/:slug" element={<JournalPost />} />
             <Route path="/projects" element={<Projects />} />
@@ -100,8 +116,8 @@ export default function App() {
             />
             <Route path="*" element={<Home />} />
           </Routes>
-        </Suspense>
-      </Layout>
-    </BrowserRouter>
+        )}
+      </Suspense>
+    </Layout>
   );
 }
