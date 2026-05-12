@@ -89,4 +89,21 @@ export interface MemberProfile {
   joinDate: string;
 }
 
+export interface TeamProfile {
+  id: string;
+  memberId?: string | null;
+  fullName: string;
+  roleTitle: string;
+  joinedDate: string;
+  shortBio: string;
+  focus: string;
+  contribution: string;
+  currentWork: string;
+  photoUrl: string;
+  tags: string[];
+  isFounder: boolean;
+  isFeatured: boolean;
+  sortOrder: number;
+}
+
 export type Language = 'en' | 'ko';

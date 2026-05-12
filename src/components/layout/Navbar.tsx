@@ -9,6 +9,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 
 const siteLinks = [
   { path: '/about', key: 'nav.about' },
+  { path: '/team', key: 'nav.team' },
   { path: '/projects', key: 'nav.projects' },
   { path: '/impact', key: 'nav.impact' },
   { path: '/shop', key: 'nav.shop' },

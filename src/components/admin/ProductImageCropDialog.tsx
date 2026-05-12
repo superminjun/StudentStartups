@@ -19,6 +19,11 @@ type Props = {
   fileName: string;
   fileIndex?: number;
   fileCount?: number;
+  title?: string;
+  description?: string;
+  defaultHelperText?: string;
+  note?: string;
+  saveLabel?: string;
   onCancel: () => void;
   onSave: (cropPixels: Area) => void;
 };
@@ -29,6 +34,11 @@ export default function ProductImageCropDialog({
   fileName,
   fileIndex,
   fileCount,
+  title = 'Crop Product Image',
+  description = 'Position the product exactly where you want it. This fixed square frame matches the live product detail image, and you can reopen it later from any product preview.',
+  defaultHelperText = 'Square crop for live product image',
+  note = 'Save this crop to control exactly what stays visible once the live site uses full-bleed image cover mode.',
+  saveLabel = 'Save Cropped Image',
   onCancel,
   onSave,
 }: Props) {
@@ -47,8 +57,8 @@ export default function ProductImageCropDialog({
     if (fileCount && fileCount > 1) {
       return `Image ${fileIndex ?? 1} of ${fileCount}`;
     }
-    return 'Square crop for live product image';
-  }, [fileCount, fileIndex]);
+    return defaultHelperText;
+  }, [defaultHelperText, fileCount, fileIndex]);
 
   return (
     <Dialog
@@ -59,9 +69,9 @@ export default function ProductImageCropDialog({
     >
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Crop Product Image</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Position the product exactly where you want it. This fixed square frame matches the live product detail image, and you can reopen it later from any product preview.
+            {description}
           </DialogDescription>
         </DialogHeader>
 
@@ -115,7 +125,7 @@ export default function ProductImageCropDialog({
             </div>
 
             <div className="rounded-2xl border border-border bg-muted/50 p-4 text-xs leading-relaxed text-mid">
-              Save this crop to control exactly what stays visible once the live site uses full-bleed image cover mode.
+              {note}
             </div>
           </div>
         </div>
@@ -136,7 +146,7 @@ export default function ProductImageCropDialog({
             }}
             className="rounded-full bg-charcoal px-4 py-2 text-sm font-semibold text-white hover:bg-[hsl(20,8%,28%)]"
           >
-            Save Cropped Image
+            {saveLabel}
           </button>
         </DialogFooter>
       </DialogContent>

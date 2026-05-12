@@ -10,6 +10,7 @@ import { useCMSDataSync } from '@/stores/cmsStore';
 
 const Home = lazy(() => import('@/pages/Home'));
 const About = lazy(() => import('@/pages/About'));
+const Team = lazy(() => import('@/pages/Team'));
 const Projects = lazy(() => import('@/pages/Projects'));
 const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'));
 const Impact = lazy(() => import('@/pages/Impact'));
@@ -44,6 +45,7 @@ export default function App() {
   useCMSDataSync();
 
   useEffect(() => {
+    void import('@/pages/Team');
     void import('@/pages/Projects');
     void import('@/pages/ProjectDetail');
     void import('@/pages/Impact');
@@ -58,6 +60,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
+            <Route path="/team" element={<Team />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/projects/:id" element={<ProjectDetail />} />
             <Route path="/impact" element={<Impact />} />

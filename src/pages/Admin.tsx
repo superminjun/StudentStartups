@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { Project, Product } from '@/types';
+import { useTeamStore } from '@/stores/teamStore';
 import { useCMSStore, type ImpactMetricRecord, type RevenuePoint, type DonationPoint, type MemberGrowthPoint } from '@/stores/cmsStore';
 import { useSiteContentStore, type SiteContent } from '@/stores/siteContentStore';
 import { useSiteThemeStore, type SiteTheme } from '@/stores/siteThemeStore';
@@ -14,7 +15,7 @@ import { TEAM_OPTIONS, STAGE_LABELS_EN, TERMS } from '@/constants/config';
 import { translations } from '@/constants/translations';
 import { useLanguage } from '@/hooks/useLanguage';
 import { normalizeHex } from '@/lib/color';
-import { Users as UsersIcon, FolderOpen, ShoppingBag, BarChart3, MessageSquare, CheckCircle, XCircle, Save, FileText, Trash2, Package, Palette, Type, Crop, Minus } from 'lucide-react';
+import { Users as UsersIcon, FolderOpen, ShoppingBag, BarChart3, MessageSquare, CheckCircle, XCircle, Save, FileText, Trash2, Package, Palette, Type, Crop, Minus, UploadCloud } from 'lucide-react';
 
 type MemberRow = {
   id: string;
@@ -114,6 +115,42 @@ type UploadState = {
   message?: string;
 };
 
+type TeamProfileRow = {
+  id: string;
+  member_id: string | null;
+  full_name: string | null;
+  role_title: string | null;
+  joined_date: string | null;
+  short_bio: string | null;
+  focus: string | null;
+  contribution: string | null;
+  current_work: string | null;
+  photo_url: string | null;
+  tags: unknown;
+  is_founder: boolean | null;
+  is_featured: boolean | null;
+  is_published: boolean | null;
+  sort_order: number | null;
+};
+
+type TeamProfileDraft = {
+  id: string;
+  memberId: string | null;
+  fullName: string;
+  roleTitle: string;
+  joinedDate: string;
+  shortBio: string;
+  focus: string;
+  contribution: string;
+  currentWork: string;
+  photoUrl: string;
+  tagsText: string;
+  isFounder: boolean;
+  isFeatured: boolean;
+  isPublished: boolean;
+  sortOrder: number;
+};
+
 type ProductCropSession = {
   productId: string;
   kind: 'main' | 'gallery';
@@ -122,6 +159,58 @@ type ProductCropSession = {
   sourceUrl: string;
   replaceUrl?: string;
 };
+
+type TeamCropSession = {
+  profileId: string;
+  file: File;
+  sourceUrl: string;
+};
+
+const parseTeamTags = (value: unknown): string[] => {
+  if (Array.isArray(value)) return value.map(String).map((tag) => tag.trim()).filter(Boolean);
+  if (typeof value === 'string') return value.split(',').map((tag) => tag.trim()).filter(Boolean);
+  return [];
+};
+
+const getTeamProfileIdForMember = (memberId: string) => `team-${memberId}`;
+
+const buildDefaultTeamDraft = (member: MemberRow, index: number): TeamProfileDraft => ({
+  id: getTeamProfileIdForMember(member.id),
+  memberId: member.id,
+  fullName: member.name || member.email,
+  roleTitle: member.role || 'Member',
+  joinedDate: member.join_date || '',
+  shortBio: 'Contributes to Student Startups through practical project work and team execution.',
+  focus: member.team && member.team !== 'Unassigned'
+    ? `${member.team} work, project review, and disciplined execution.`
+    : 'Project execution, review, and disciplined teamwork.',
+  contribution: 'Helps move Student Startups work from planning into visible output.',
+  currentWork: 'Supporting current projects and operational routines.',
+  photoUrl: '',
+  tagsText: member.team && member.team !== 'Unassigned' ? member.team : 'Member',
+  isFounder: false,
+  isFeatured: index < 6,
+  isPublished: false,
+  sortOrder: index + 1,
+});
+
+const teamRowToDraft = (row: TeamProfileRow, fallbackMember?: MemberRow, index = 0): TeamProfileDraft => ({
+  id: row.id,
+  memberId: row.member_id ?? fallbackMember?.id ?? null,
+  fullName: row.full_name?.trim() || fallbackMember?.name || fallbackMember?.email || 'Student Startups Member',
+  roleTitle: row.role_title?.trim() || fallbackMember?.role || 'Member',
+  joinedDate: row.joined_date ?? fallbackMember?.join_date ?? '',
+  shortBio: row.short_bio?.trim() || 'Contributes to Student Startups through practical project work and team execution.',
+  focus: row.focus?.trim() || 'Project execution, review, and disciplined teamwork.',
+  contribution: row.contribution?.trim() || 'Helps move Student Startups work from planning into visible output.',
+  currentWork: row.current_work?.trim() || 'Supporting current projects and operational routines.',
+  photoUrl: toPublicStorageUrl(row.photo_url ?? ''),
+  tagsText: parseTeamTags(row.tags).join(', '),
+  isFounder: Boolean(row.is_founder),
+  isFeatured: Boolean(row.is_featured),
+  isPublished: Boolean(row.is_published),
+  sortOrder: Number(row.sort_order) || index + 1,
+});
 
 export default function Admin() {
   const { user } = useAuth();
@@ -147,6 +236,15 @@ export default function Admin() {
   const [orphanResetLoading, setOrphanResetLoading] = useState(false);
   const [orphanResetNotice, setOrphanResetNotice] = useState('');
   const [orphanResetError, setOrphanResetError] = useState('');
+  const [teamDrafts, setTeamDrafts] = useState<TeamProfileDraft[]>([]);
+  const [teamLoading, setTeamLoading] = useState(false);
+  const [teamNotice, setTeamNotice] = useState('');
+  const [teamError, setTeamError] = useState('');
+  const [teamSaveState, setTeamSaveState] = useState<Record<string, SaveState>>({});
+  const [teamUploadState, setTeamUploadState] = useState<Record<string, UploadState>>({});
+  const [teamDirty, setTeamDirty] = useState<Record<string, boolean>>({});
+  const [teamPhotoPreview, setTeamPhotoPreview] = useState<Record<string, string>>({});
+  const [teamCropSession, setTeamCropSession] = useState<TeamCropSession | null>(null);
 
   const formatMeetingDate = (date: string) => {
     if (!date) return '—';
@@ -321,6 +419,41 @@ export default function Admin() {
     }
   }, []);
 
+  const loadTeamProfiles = async (memberRows = members) => {
+    if (!supabase) return;
+    setTeamLoading(true);
+    setTeamError('');
+
+    const { data, error: teamProfileError } = await supabase
+      .from('team_profiles')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .order('full_name', { ascending: true });
+
+    const rows = (data as TeamProfileRow[] | null) ?? [];
+    if (teamProfileError) {
+      setTeamError(`${teamProfileError.message}. Run the Team page SQL patch first, then reload Admin.`);
+    }
+
+    const profilesByMember = new Map(
+      rows
+        .filter((row) => row.member_id)
+        .map((row) => [row.member_id as string, row])
+    );
+    const memberIds = new Set(memberRows.map((member) => member.id));
+    const memberDrafts = memberRows.map((member, index) => {
+      const profileRow = profilesByMember.get(member.id);
+      return profileRow ? teamRowToDraft(profileRow, member, index) : buildDefaultTeamDraft(member, index);
+    });
+    const standaloneDrafts = rows
+      .filter((row) => !row.member_id || !memberIds.has(row.member_id))
+      .map((row, index) => teamRowToDraft(row, undefined, memberDrafts.length + index));
+
+    setTeamDrafts([...memberDrafts, ...standaloneDrafts]);
+    setTeamDirty({});
+    setTeamLoading(false);
+  };
+
   const loadMembers = async () => {
     if (!supabase) return;
     setMembersLoading(true);
@@ -354,6 +487,7 @@ export default function Admin() {
 
     setMembers(mapped);
     setMembersLoading(false);
+    void loadTeamProfiles(mapped);
   };
 
   const loadMemberMeetings = async (memberId: string) => {
@@ -595,6 +729,137 @@ export default function Admin() {
       .from('members')
       .update(payload)
       .eq('id', activeMember.id);
+  };
+
+  const updateTeamDraft = (profileId: string, patch: Partial<TeamProfileDraft>) => {
+    setTeamDrafts((prev) => prev.map((profile) => (
+      profile.id === profileId ? { ...profile, ...patch } : profile
+    )));
+    setTeamDirty((prev) => ({ ...prev, [profileId]: true }));
+    setTeamSaveState((prev) => ({ ...prev, [profileId]: { status: 'idle' } }));
+  };
+
+  const handleSaveTeamProfile = async (profileId: string, overrideDraft?: TeamProfileDraft) => {
+    if (!supabase) return;
+    const draft = overrideDraft ?? teamDrafts.find((profile) => profile.id === profileId);
+    if (!draft) return;
+
+    setTeamSaveState((prev) => ({ ...prev, [profileId]: { status: 'saving' } }));
+    setTeamNotice('');
+    setTeamError('');
+
+    const payload = {
+      id: draft.id,
+      member_id: draft.memberId,
+      full_name: draft.fullName.trim() || 'Student Startups Member',
+      role_title: draft.roleTitle.trim() || 'Member',
+      joined_date: draft.joinedDate || null,
+      short_bio: draft.shortBio.trim(),
+      focus: draft.focus.trim(),
+      contribution: draft.contribution.trim(),
+      current_work: draft.currentWork.trim(),
+      photo_url: toPublicStorageUrl(draft.photoUrl),
+      tags: parseTeamTags(draft.tagsText),
+      is_founder: draft.isFounder,
+      is_featured: draft.isFeatured,
+      is_published: draft.isPublished,
+      sort_order: Number(draft.sortOrder) || 0,
+    };
+
+    const { error: saveError } = await supabase.from('team_profiles').upsert(payload);
+    if (saveError) {
+      setTeamSaveState((prev) => ({
+        ...prev,
+        [profileId]: { status: 'error', message: saveError.message },
+      }));
+      setTeamError(saveError.message);
+      return;
+    }
+
+    setTeamSaveState((prev) => ({ ...prev, [profileId]: { status: 'saved', message: 'Saved' } }));
+    setTeamDirty((prev) => ({ ...prev, [profileId]: false }));
+    setTeamNotice('Team profile saved');
+    void useTeamStore.getState().hydrate();
+    window.setTimeout(() => {
+      setTeamSaveState((prev) => ({ ...prev, [profileId]: { status: 'idle' } }));
+      setTeamNotice('');
+    }, 1800);
+  };
+
+  const startTeamCropSession = async (profileId: string, file: File, sourceUrl?: string) => {
+    try {
+      const previewUrl = sourceUrl ?? await getFilePreviewUrl(file);
+      setTeamUploadState((prev) => ({ ...prev, [profileId]: { status: 'uploading' } }));
+      setTeamCropSession({ profileId, file, sourceUrl: previewUrl });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not load the selected image.';
+      setTeamUploadState((prev) => ({ ...prev, [profileId]: { status: 'error', message } }));
+    }
+  };
+
+  const handleTeamPhotoUpload = async (profileId: string, file?: File | null) => {
+    if (!file) return;
+    await startTeamCropSession(profileId, file);
+  };
+
+  const handleRecropTeamPhoto = async (profile: TeamProfileDraft) => {
+    const targetUrl = toPublicStorageUrl(profile.photoUrl);
+    if (!targetUrl) return;
+    try {
+      const file = await createProductImageFileFromUrl(targetUrl, `${profile.id}-team-photo.jpg`);
+      await startTeamCropSession(profile.id, file, targetUrl);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not reopen this photo for cropping.';
+      setTeamUploadState((prev) => ({ ...prev, [profile.id]: { status: 'error', message } }));
+    }
+  };
+
+  const handleRemoveTeamPhoto = (profileId: string) => {
+    updateTeamDraft(profileId, { photoUrl: '' });
+    setTeamPhotoPreview((prev) => ({ ...prev, [profileId]: '' }));
+  };
+
+  const handleTeamCropCancel = () => {
+    if (teamCropSession) {
+      setTeamUploadState((prev) => ({ ...prev, [teamCropSession.profileId]: { status: 'idle' } }));
+    }
+    setTeamCropSession(null);
+  };
+
+  const handleTeamCropSave = async (cropPixels: { x: number; y: number; width: number; height: number }) => {
+    if (!teamCropSession) return;
+    const { profileId, file, sourceUrl } = teamCropSession;
+    try {
+      const cropped = await cropProductImageToSquare(file, sourceUrl, {
+        ...cropPixels,
+        outputSize: 1000,
+        quality: 0.88,
+      });
+      const safeName = cropped.name.replace(/\s+/g, '-');
+      const path = `${profileId}/${Date.now()}-${safeName}`;
+      const { url, error: uploadError } = await uploadToBucket('team-images', path, cropped);
+      if (!url) {
+        throw new Error(uploadError ?? 'Upload failed');
+      }
+
+      const previewUrl = await resolveStorageUrl(url);
+      const currentDraft = teamDrafts.find((profile) => profile.id === profileId);
+      if (!currentDraft) throw new Error('Team profile not found.');
+      const nextDraft = { ...currentDraft, photoUrl: url };
+
+      setTeamDrafts((prev) => prev.map((profile) => (profile.id === profileId ? nextDraft : profile)));
+      setTeamPhotoPreview((prev) => ({ ...prev, [profileId]: previewUrl }));
+      setTeamUploadState((prev) => ({ ...prev, [profileId]: { status: 'done', message: 'Photo saved' } }));
+      setTeamCropSession(null);
+      await handleSaveTeamProfile(profileId, nextDraft);
+      window.setTimeout(() => {
+        setTeamUploadState((prev) => ({ ...prev, [profileId]: { status: 'idle' } }));
+      }, 1800);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not save the cropped photo.';
+      setTeamUploadState((prev) => ({ ...prev, [profileId]: { status: 'error', message } }));
+      setTeamCropSession(null);
+    }
   };
 
   const handleSaveMeeting = async (attendanceId: string, currentRole: string, currentFeedback: string) => {
@@ -1409,6 +1674,9 @@ export default function Admin() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'contributions' }, () => {
         if (selectedMember) loadContributions(selectedMember);
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'team_profiles' }, () => {
+        loadTeamProfiles();
+      })
       .subscribe();
 
     return () => {
@@ -1496,6 +1764,7 @@ export default function Admin() {
 
   const tabs = [
     { key: 'members', label: 'Members', icon: UsersIcon },
+    { key: 'team', label: 'Team Page', icon: UsersIcon },
     { key: 'projects', label: 'Projects', icon: FolderOpen },
     { key: 'shop', label: 'Shop', icon: Package },
     { key: 'impact', label: 'Impact', icon: BarChart3 },
@@ -2010,6 +2279,281 @@ export default function Admin() {
                 )}
               </div>
             </div>
+          </motion.div>
+        )}
+
+        {/* Team page */}
+        {tab === 'team' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-charcoal">Team Page CMS</h3>
+                  <p className="mt-1 max-w-2xl text-xs leading-relaxed text-light">
+                    Publish clean public profiles for verified members. Photos use the same square crop system as Shop, so what you save here is exactly what appears on the live Team page.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => loadTeamProfiles()}
+                  className="rounded-full border border-border px-4 py-2 text-xs font-semibold text-mid transition-colors hover:border-charcoal hover:text-charcoal"
+                >
+                  Reload Profiles
+                </button>
+              </div>
+              {(teamNotice || teamError) && (
+                <p className={`mt-3 text-xs ${teamError ? 'text-red-500' : 'text-emerald-600'}`}>
+                  {teamError || teamNotice}
+                </p>
+              )}
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-lg border border-border bg-muted/40 p-3">
+                  <p className="text-xs uppercase tracking-[0.18em] text-light">Profiles</p>
+                  <p className="mt-1 text-2xl font-semibold text-charcoal">{teamDrafts.length}</p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/40 p-3">
+                  <p className="text-xs uppercase tracking-[0.18em] text-light">Published</p>
+                  <p className="mt-1 text-2xl font-semibold text-charcoal">
+                    {teamDrafts.filter((profile) => profile.isPublished).length}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/40 p-3">
+                  <p className="text-xs uppercase tracking-[0.18em] text-light">Featured</p>
+                  <p className="mt-1 text-2xl font-semibold text-charcoal">
+                    {teamDrafts.filter((profile) => profile.isFeatured).length}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {teamLoading ? (
+              <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-light">
+                Loading team profiles...
+              </div>
+            ) : teamDrafts.length === 0 ? (
+              <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-light">
+                No verified members yet. Create or verify members first, then return here.
+              </div>
+            ) : (
+              <div className="grid gap-5">
+                {teamDrafts.map((profile) => {
+                  const saveState = teamSaveState[profile.id]?.status ?? 'idle';
+                  const uploadState = teamUploadState[profile.id];
+                  const photoUrl = teamPhotoPreview[profile.id] || profile.photoUrl;
+                  const inputId = `team-photo-${profile.id}`;
+
+                  return (
+                    <div key={profile.id} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                      <div className="grid gap-5 lg:grid-cols-[220px,minmax(0,1fr)]">
+                        <div>
+                          <div className="group relative aspect-square overflow-hidden rounded-3xl border border-border bg-muted">
+                            {photoUrl ? (
+                              <img
+                                src={photoUrl}
+                                alt={`${profile.fullName} profile preview`}
+                                className="size-full object-cover"
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            ) : (
+                              <div className="flex size-full items-center justify-center bg-gradient-to-br from-muted via-card to-background text-3xl font-semibold text-light">
+                                {(profile.fullName || 'SS')
+                                  .split(/\s+/)
+                                  .filter(Boolean)
+                                  .slice(0, 2)
+                                  .map((part) => part[0]?.toUpperCase())
+                                  .join('') || 'SS'}
+                              </div>
+                            )}
+                            <div className="absolute inset-x-3 bottom-3 flex translate-y-2 flex-wrap gap-2 opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100">
+                              <label
+                                htmlFor={inputId}
+                                className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-charcoal shadow-sm backdrop-blur hover:bg-white"
+                              >
+                                <UploadCloud className="size-3.5" />
+                                Upload
+                              </label>
+                              {photoUrl && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRecropTeamPhoto(profile)}
+                                    className="inline-flex items-center gap-1 rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-charcoal shadow-sm backdrop-blur hover:bg-white"
+                                  >
+                                    <Crop className="size-3.5" />
+                                    Crop
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveTeamPhoto(profile.id)}
+                                    className="inline-flex items-center gap-1 rounded-full bg-red-500/90 px-3 py-1.5 text-xs font-semibold text-white shadow-sm backdrop-blur hover:bg-red-600"
+                                  >
+                                    <Minus className="size-3.5" />
+                                    Remove
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <input
+                            id={inputId}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(event) => {
+                              const file = event.currentTarget.files?.[0];
+                              void handleTeamPhotoUpload(profile.id, file);
+                              event.currentTarget.value = '';
+                            }}
+                          />
+                          <p className="mt-2 text-xs text-light">
+                            1:1 crop · saved to Team page after crop
+                          </p>
+                          {uploadState?.status === 'uploading' && <p className="mt-2 text-xs text-mid">Preparing crop...</p>}
+                          {uploadState?.status === 'done' && <p className="mt-2 text-xs text-emerald-600">{uploadState.message ?? 'Photo saved'}</p>}
+                          {uploadState?.status === 'error' && <p className="mt-2 text-xs text-red-500">{uploadState.message}</p>}
+                        </div>
+
+                        <div className="min-w-0 space-y-4">
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <label className="space-y-1">
+                              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Name</span>
+                              <input
+                                value={profile.fullName}
+                                onChange={(event) => updateTeamDraft(profile.id, { fullName: event.target.value })}
+                                className="input-base"
+                              />
+                            </label>
+                            <label className="space-y-1">
+                              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Role</span>
+                              <input
+                                value={profile.roleTitle}
+                                onChange={(event) => updateTeamDraft(profile.id, { roleTitle: event.target.value })}
+                                placeholder="Founder / Product Lead / Design"
+                                className="input-base"
+                              />
+                            </label>
+                            <label className="space-y-1">
+                              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Joined Date</span>
+                              <input
+                                type="date"
+                                value={profile.joinedDate}
+                                onChange={(event) => updateTeamDraft(profile.id, { joinedDate: event.target.value })}
+                                className="input-base"
+                              />
+                            </label>
+                            <label className="space-y-1">
+                              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Tags</span>
+                              <input
+                                value={profile.tagsText}
+                                onChange={(event) => updateTeamDraft(profile.id, { tagsText: event.target.value })}
+                                placeholder="Product, Design, Operations"
+                                className="input-base"
+                              />
+                            </label>
+                          </div>
+
+                          <label className="block space-y-1">
+                            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-light">One-line description</span>
+                            <textarea
+                              value={profile.shortBio}
+                              onChange={(event) => updateTeamDraft(profile.id, { shortBio: event.target.value })}
+                              rows={2}
+                              className="input-base resize-y"
+                            />
+                          </label>
+
+                          <div className="grid gap-3 lg:grid-cols-3">
+                            <label className="block space-y-1">
+                              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Focus</span>
+                              <textarea
+                                value={profile.focus}
+                                onChange={(event) => updateTeamDraft(profile.id, { focus: event.target.value })}
+                                rows={4}
+                                className="input-base resize-y"
+                              />
+                            </label>
+                            <label className="block space-y-1">
+                              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Contribution</span>
+                              <textarea
+                                value={profile.contribution}
+                                onChange={(event) => updateTeamDraft(profile.id, { contribution: event.target.value })}
+                                rows={4}
+                                className="input-base resize-y"
+                              />
+                            </label>
+                            <label className="block space-y-1">
+                              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Current Work</span>
+                              <textarea
+                                value={profile.currentWork}
+                                onChange={(event) => updateTeamDraft(profile.id, { currentWork: event.target.value })}
+                                rows={4}
+                                className="input-base resize-y"
+                              />
+                            </label>
+                          </div>
+
+                          <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex flex-wrap gap-3">
+                              <label className="flex items-center gap-2 text-sm text-mid">
+                                <input
+                                  type="checkbox"
+                                  checked={profile.isPublished}
+                                  onChange={(event) => updateTeamDraft(profile.id, { isPublished: event.target.checked })}
+                                />
+                                Published
+                              </label>
+                              <label className="flex items-center gap-2 text-sm text-mid">
+                                <input
+                                  type="checkbox"
+                                  checked={profile.isFeatured}
+                                  onChange={(event) => updateTeamDraft(profile.id, { isFeatured: event.target.checked })}
+                                />
+                                Featured
+                              </label>
+                              <label className="flex items-center gap-2 text-sm text-mid">
+                                <input
+                                  type="checkbox"
+                                  checked={profile.isFounder}
+                                  onChange={(event) => updateTeamDraft(profile.id, { isFounder: event.target.checked })}
+                                />
+                                Founder
+                              </label>
+                              <label className="flex items-center gap-2 text-sm text-mid">
+                                Order
+                                <input
+                                  type="number"
+                                  value={profile.sortOrder}
+                                  onChange={(event) => updateTeamDraft(profile.id, { sortOrder: Number(event.target.value) || 0 })}
+                                  className="w-20 rounded-lg border border-border bg-card px-2 py-1 text-sm text-charcoal outline-none focus:border-charcoal"
+                                />
+                              </label>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              {teamDirty[profile.id] && <span className="text-xs text-light">Unsaved changes</span>}
+                              {saveState === 'saved' && <span className="text-xs font-semibold text-emerald-600">Saved</span>}
+                              {saveState === 'error' && (
+                                <span className="max-w-[220px] truncate text-xs text-red-500">
+                                  {teamSaveState[profile.id]?.message}
+                                </span>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => handleSaveTeamProfile(profile.id)}
+                                disabled={saveState === 'saving'}
+                                className="rounded-full bg-charcoal px-5 py-2 text-sm font-semibold text-white transition-all hover:bg-[hsl(20,8%,28%)] disabled:cursor-not-allowed disabled:opacity-70"
+                              >
+                                {saveState === 'saving' ? 'Saving...' : 'Save Profile'}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -3390,6 +3934,7 @@ export default function Admin() {
                 <div className="mt-4 grid gap-2">
                   {[
                     { label: 'Review unread messages', tabKey: 'messages' },
+                    { label: 'Publish team profiles', tabKey: 'team' },
                     { label: 'Update low-stock products', tabKey: 'shop' },
                     { label: 'Assign member teams', tabKey: 'members' },
                     { label: 'Check project media', tabKey: 'projects' },
@@ -3417,6 +3962,18 @@ export default function Admin() {
         fileCount={productCropSession?.files.length}
         onCancel={handleProductCropCancel}
         onSave={handleProductCropSave}
+      />
+      <ProductImageCropDialog
+        open={Boolean(teamCropSession)}
+        sourceUrl={teamCropSession?.sourceUrl ?? ''}
+        fileName={teamCropSession?.file.name ?? 'team-photo'}
+        title="Crop Team Photo"
+        description="Position the member photo inside the same square frame used on the public Team page. The saved version will be uploaded and published from Admin."
+        defaultHelperText="Square crop for team profile"
+        note="Use the crop to keep faces centered and consistent across mobile, tablet, and desktop."
+        saveLabel="Save Team Photo"
+        onCancel={handleTeamCropCancel}
+        onSave={handleTeamCropSave}
       />
     </div>
   );
