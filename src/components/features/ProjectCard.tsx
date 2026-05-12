@@ -24,7 +24,6 @@ export default function ProjectCard({ project, priority = false }: { project: Pr
               alt={project.name}
               loading={priority ? 'eager' : 'lazy'}
               decoding="async"
-              fetchPriority={priority ? 'high' : 'auto'}
               className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (

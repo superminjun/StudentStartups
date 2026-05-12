@@ -9,10 +9,10 @@ const TABLE_NAME = 'site_content';
 const SINGLETON_ID = 'global';
 
 const defaultContent = {
-  heroTagline: 'Student Startups',
-  heroTitle: 'A serious place for early builders.',
-  heroSubtitle: 'Student Startups is a platform for students developing real products, operating disciplined teams, and building a record that can be examined.',
-  heroCta: 'Review the Work',
+  heroTagline: 'Student Startups Canada',
+  heroTitle: 'Where Students Build Real Businesses.',
+  heroSubtitle: 'A student founder platform for building startups, finding ambitious collaborators, and launching projects that matter.',
+  heroCta: 'Explore Startups',
   heroBackgroundUrl: '',
   shopTerms: TERMS.join(', '),
   totalRevenue: '24850',
