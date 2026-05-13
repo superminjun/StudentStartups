@@ -32,6 +32,7 @@ export default function ProductImageFrame({
         alt={alt}
         loading={priority ? 'eager' : 'lazy'}
         decoding="async"
+        fetchPriority={priority ? 'high' : 'auto'}
         width={width}
         height={height}
         sizes={sizes}

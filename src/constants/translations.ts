@@ -20,11 +20,11 @@ export const translations = {
       cart: 'Cart',
     },
     hero: {
-      tagline: 'Student Startups Canada',
-      title: 'Where Students Build Real Businesses.',
-      subtitle: 'A student founder platform for building startups, finding ambitious collaborators, and launching projects that matter.',
-      cta: 'Explore Startups',
-      secondaryCta: 'Join the Community',
+      tagline: 'Student Startups',
+      title: 'A serious place for early builders.',
+      subtitle: 'Student Startups is a platform for students developing real products, operating disciplined teams, and building a record that can be examined.',
+      cta: 'Review the Work',
+      secondaryCta: 'How It Operates',
     },
     mission: {
       title: 'What Student Startups Is',
@@ -378,11 +378,11 @@ export const translations = {
       cart: '장바구니',
     },
     hero: {
-      tagline: 'Student Startups Canada',
-      title: '학생들이 실제 회사를 만드는 곳.',
-      subtitle: 'Student Startups Canada는 고등학생과 대학생이 팀을 찾고, 아이디어를 검증하고, 실제 프로젝트를 출시하는 학생 창업 플랫폼입니다.',
-      cta: '스타트업 보기',
-      secondaryCta: '커뮤니티 참여',
+      tagline: 'Student Startups',
+      title: '일찍 시작하는 빌더를 위한 진지한 플랫폼입니다.',
+      subtitle: 'Student Startups는 학생들이 실제 제품을 만들고, 팀을 운영하며, 검토를 버틸 만한 기록을 남기는 플랫폼입니다.',
+      cta: '작업 보기',
+      secondaryCta: '어떻게 운영되는지 보기',
     },
     mission: {
       title: 'Student Startups에 대해',
