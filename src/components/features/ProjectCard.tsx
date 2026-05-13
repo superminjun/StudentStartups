@@ -13,20 +13,33 @@ export default function ProjectCard({ project, priority = false }: { project: Pr
   return (
     <Link to={`/projects/${project.id}`}>
       <motion.article
-        whileHover={{ y: -4 }}
-        transition={{ duration: 0.25 }}
-        className="group card card-hover overflow-hidden"
+        whileHover={{ y: -6 }}
+        transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+        className="group card card-hover overflow-hidden will-change-transform"
       >
         <div className="relative aspect-[4/3] overflow-hidden">
           {hasImage ? (
-            <img
-              src={project.image}
-              alt={project.name}
-              loading={priority ? 'eager' : 'lazy'}
-              decoding="async"
-              fetchPriority={priority ? 'high' : 'auto'}
-              className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
+            <>
+              <motion.img
+                src={project.image}
+                alt={project.name}
+                loading={priority ? 'eager' : 'lazy'}
+                decoding="async"
+                initial={{ scale: 1.08, opacity: 0 }}
+                whileInView={{ scale: 1, opacity: 1 }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+                className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+              <motion.div
+                aria-hidden
+                className="absolute inset-0 bg-card"
+                initial={{ y: 0 }}
+                whileInView={{ y: '101%' }}
+                viewport={{ once: true, margin: '-80px' }}
+                transition={{ duration: 0.75, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+              />
+            </>
           ) : (
             <div className="flex size-full items-center justify-center bg-muted/60 px-6 text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               {t('common.comingSoon')}
@@ -37,7 +50,7 @@ export default function ProjectCard({ project, priority = false }: { project: Pr
           </span>
         </div>
 
-        <div className="p-5">
+        <div className="p-5 transition-transform duration-300 ease-out group-hover:-translate-y-0.5">
           <h3 className="text-base font-semibold text-foreground group-hover:text-accent transition-colors">
             {project.name}
           </h3>

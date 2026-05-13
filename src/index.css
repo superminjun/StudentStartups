@@ -105,12 +105,12 @@
   .section-lead { @apply mt-3 text-base text-muted-foreground; }
 
   .card { @apply rounded-2xl border border-border bg-card/90 shadow-sm backdrop-blur; }
-  .card-hover { @apply transition-all hover:-translate-y-1 hover:shadow-lg; }
+  .card-hover { @apply transition-all duration-300 ease-out hover:-translate-y-1 hover:border-foreground/15 hover:shadow-xl hover:shadow-foreground/5; }
 
-  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-all duration-200; }
-  .btn-primary { @apply bg-foreground text-background shadow-sm hover:-translate-y-0.5 hover:shadow-md hover:bg-foreground/90 active:scale-[0.98]; }
-  .btn-secondary { @apply border border-border text-foreground hover:bg-muted active:scale-[0.98]; }
-  .btn-ghost { @apply text-foreground/80 hover:text-foreground hover:bg-muted active:scale-[0.98]; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-all duration-300 ease-out will-change-transform; }
+  .btn-primary { @apply bg-foreground text-background shadow-sm hover:-translate-y-1 hover:shadow-xl hover:shadow-foreground/10 hover:bg-foreground/90 active:scale-[0.98]; }
+  .btn-secondary { @apply border border-border text-foreground hover:-translate-y-1 hover:bg-muted hover:shadow-lg hover:shadow-foreground/5 active:scale-[0.98]; }
+  .btn-ghost { @apply text-foreground/80 hover:-translate-y-0.5 hover:text-foreground hover:bg-muted active:scale-[0.98]; }
   .btn-pill { @apply rounded-full; }
   .btn-sm { @apply px-3 py-1.5 text-xs; }
   .btn-lg { @apply px-8 py-3.5 text-base; }

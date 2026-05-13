@@ -57,7 +57,8 @@ export default function Home() {
       <HeroSection />
 
       {/* Value */}
-      <section id="value" className="section bg-beige scroll-mt-24">
+      <section id="value" className="section relative overflow-hidden bg-beige scroll-mt-24">
+        <div className="pointer-events-none absolute left-[-12rem] top-16 h-80 w-80 rounded-full bg-accent/10 blur-3xl" />
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid gap-14 lg:grid-cols-12 lg:gap-12">
             <div className="lg:col-span-5">
@@ -79,8 +80,12 @@ export default function Home() {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {valueProps.map((item, i) => (
                   <ScrollReveal key={item.titleKey} delay={i * 0.08} direction="scale">
-                    <motion.div whileHover={{ y: -4 }} className="card card-hover p-5">
-                      <div className="flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent">
+                    <motion.div
+                      whileHover={{ y: -7 }}
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                      className="group card card-hover p-5 will-change-transform"
+                    >
+                      <div className="flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent transition-transform duration-300 group-hover:scale-110">
                         <item.icon className="size-5" />
                       </div>
                       <h3 className="mt-4 text-base font-semibold text-foreground">
@@ -97,7 +102,11 @@ export default function Home() {
               <div className="mt-6 grid grid-cols-2 gap-3">
                 {stats.map((stat, i) => (
                   <ScrollReveal key={stat.key} delay={i * 0.06} direction="scale">
-                    <motion.div whileHover={{ y: -2 }} className="card card-hover p-4">
+                    <motion.div
+                      whileHover={{ y: -4 }}
+                      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                      className="card card-hover p-4 will-change-transform"
+                    >
                       <stat.icon className="size-4 text-accent" />
                       <p className="mt-2 text-lg font-semibold text-foreground tabular-nums">{stat.value}</p>
                       <p className="mt-1 text-xs text-muted-foreground">{t(`mission.${stat.key}`)}</p>
@@ -113,7 +122,9 @@ export default function Home() {
       <WorkflowSteps />
 
       {/* Proof */}
-      <section id="proof" className="section bg-beige scroll-mt-24">
+      <section id="proof" className="section relative overflow-hidden bg-beige scroll-mt-24">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/10 to-transparent" />
+        <div className="pointer-events-none absolute right-[-10rem] top-20 h-96 w-96 rounded-full bg-card blur-3xl" />
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <ScrollReveal>
             <p className="section-kicker">{t('proof.kicker')}</p>
@@ -147,7 +158,8 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section id="cta" className="section bg-charcoal scroll-mt-24">
+      <section id="cta" className="section relative overflow-hidden bg-charcoal scroll-mt-24">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.12),transparent_32%)]" />
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <ScrollReveal>
             <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
@@ -160,7 +172,7 @@ export default function Home() {
           <ScrollReveal delay={0.2}>
             <Link
               to="/contact"
-              className="btn btn-primary mt-8"
+              className="btn btn-primary mt-8 shadow-2xl shadow-white/10"
             >
               {t('cta.button')}
             </Link>

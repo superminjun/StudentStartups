@@ -17,7 +17,9 @@ export default function WorkflowSteps() {
   const { t } = useLanguage();
 
   return (
-    <section id="process" className="section bg-card scroll-mt-24">
+    <section id="process" className="section relative overflow-hidden bg-card scroll-mt-24">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/15 to-transparent" />
+      <div className="pointer-events-none absolute -right-24 top-20 h-72 w-72 rounded-full bg-accent/10 blur-3xl" />
       <div className="mx-auto max-w-6xl px-6">
         <ScrollReveal className="max-w-2xl">
           <p className="section-kicker">{t('workflow.kicker')}</p>
@@ -31,12 +33,12 @@ export default function WorkflowSteps() {
             return (
               <ScrollReveal key={step.id} delay={i * 0.05} direction="up">
                 <motion.div
-                  className="card card-hover p-5"
-                  whileHover={{ y: -4 }}
-                  transition={{ duration: 0.2 }}
+                  className="group card card-hover p-5 will-change-transform"
+                  whileHover={{ y: -6 }}
+                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent">
+                    <div className="flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent transition-transform duration-300 group-hover:scale-110">
                       <Icon className="size-5" />
                     </div>
                     <span className="text-xs font-semibold text-muted-foreground">{step.id}</span>

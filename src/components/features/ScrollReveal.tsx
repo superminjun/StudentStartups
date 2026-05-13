@@ -7,14 +7,16 @@ interface Props {
   delay?: number;
   className?: string;
   duration?: number;
+  amount?: number;
+  margin?: string;
 }
 
 const offsets = {
-  up: { y: 24 },
-  down: { y: -24 },
-  left: { x: -24 },
-  right: { x: 24 },
-  scale: { scale: 0.96 },
+  up: { y: 34 },
+  down: { y: -28 },
+  left: { x: -34 },
+  right: { x: 34 },
+  scale: { y: 18, scale: 0.965 },
   fade: {},
 };
 
@@ -23,11 +25,13 @@ export default function ScrollReveal({
   direction = 'up',
   delay = 0,
   className,
-  duration = 0.5,
+  duration = 0.68,
+  amount = 0.22,
+  margin = '-80px',
 }: Props) {
   const ref = useRef(null);
   const reduceMotion = useReducedMotion();
-  const isInView = useInView(ref, { once: true, margin: '-50px' });
+  const isInView = useInView(ref, { once: true, margin, amount });
 
   if (reduceMotion) {
     return (
@@ -42,7 +46,7 @@ export default function ScrollReveal({
       ref={ref}
       initial={{ opacity: 0, ...offsets[direction] }}
       animate={isInView ? { opacity: 1, y: 0, x: 0, scale: 1 } : undefined}
-      transition={{ duration, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration, delay, ease: [0.16, 1, 0.3, 1] }}
       style={{ willChange: 'transform, opacity' }}
       className={className}
     >

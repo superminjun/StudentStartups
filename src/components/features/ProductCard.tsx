@@ -32,19 +32,34 @@ export default function ProductCard({ product, priority = false }: { product: Pr
   return (
     <Link to={`/shop/${product.id}`}>
       <motion.div
-        whileHover={{ y: -3 }}
-        transition={{ duration: 0.2 }}
-        className="group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-[hsl(30,12%,90%)] bg-white"
+        whileHover={{ y: -5 }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        className="group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-[hsl(30,12%,90%)] bg-white shadow-sm transition-shadow hover:shadow-xl hover:shadow-black/5"
       >
-        <div className="relative">
-          <ProductImageFrame
-            src={product.image}
-            alt={product.name}
-            priority={priority}
-            width={900}
-            height={900}
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            imageClassName="transition-transform duration-500 group-hover:scale-105"
+        <div className="relative overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, scale: 1.04 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <ProductImageFrame
+              src={product.image}
+              alt={product.name}
+              priority={priority}
+              width={900}
+              height={900}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              imageClassName="transition-transform duration-700 ease-out group-hover:scale-105"
+            />
+          </motion.div>
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-white"
+            initial={{ y: 0 }}
+            whileInView={{ y: '101%' }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.62, delay: 0.04, ease: [0.16, 1, 0.3, 1] }}
           />
           {statusLabel && (
             <span className="absolute left-2 top-2 rounded-full bg-charcoal px-2 py-0.5 text-[9px] font-semibold text-white sm:left-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-[10px]">
