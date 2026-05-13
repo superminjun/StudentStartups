@@ -216,19 +216,16 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  body.has-custom-cursor a,
-  body.has-custom-cursor button,
-  body.has-custom-cursor .btn,
-  body.has-custom-cursor .card-hover,
-  body.has-custom-cursor [data-cursor] {
-    cursor: none;
+  body.has-custom-cursor,
+  body.has-custom-cursor * {
+    cursor: none !important;
   }
 
   body.has-custom-cursor input,
   body.has-custom-cursor textarea,
   body.has-custom-cursor select,
   body.has-custom-cursor [contenteditable='true'] {
-    cursor: auto;
+    cursor: text !important;
   }
 }
 
