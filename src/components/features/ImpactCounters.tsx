@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { useInView } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCounter } from '@/hooks/useCounter';
 import { useCMSStore } from '@/stores/cmsStore';
@@ -22,14 +22,20 @@ function CounterCard({ metric, index }: { metric: Metric; index: number }) {
 
   return (
     <ScrollReveal delay={index * 0.1} direction="up">
-      <div ref={ref} className="card card-hover p-6">
+      <motion.div
+        ref={ref}
+        data-cursor="metric"
+        className="card card-hover p-6"
+        whileHover={{ y: -6, scale: 1.015 }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      >
         <p className="text-3xl font-semibold tracking-tight text-foreground tabular-nums sm:text-4xl">
           {metric.prefix}{count.toLocaleString()}{metric.suffix}
         </p>
         <p className="mt-2 text-sm text-muted-foreground">
           {lang === 'en' ? metric.labelEn : metric.labelKo}
         </p>
-      </div>
+      </motion.div>
     </ScrollReveal>
   );
 }

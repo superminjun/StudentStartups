@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useLanguage } from '@/hooks/useLanguage';
 import { SITE_CONFIG } from '@/constants/config';
 import { Instagram, Mail } from 'lucide-react';
+import ScrollReveal from '@/components/features/ScrollReveal';
 
 export default function Footer() {
   const { lang, t } = useLanguage();
@@ -29,28 +31,30 @@ export default function Footer() {
     <footer className="overflow-x-clip border-t border-border bg-card">
       <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 lg:grid-cols-12">
         <div className="min-w-0 lg:col-span-5">
-          <Link to="/" className="text-lg font-semibold text-foreground">
-            Student Startups
-          </Link>
-          <p className="mt-1 text-xs text-muted-foreground">BNSS</p>
-          <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
-            {t('footer.description')}
-          </p>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Link to="/contact" className="btn btn-primary">
-              {t('footer.cta')}
+          <ScrollReveal>
+            <Link to="/" data-cursor="home" className="text-lg font-semibold text-foreground">
+              Student Startups
             </Link>
-            <Link to="/projects" className="btn btn-secondary">
-              {t('footer.viewWork')}
-            </Link>
-          </div>
+            <p className="mt-1 text-xs text-muted-foreground">BNSS</p>
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
+              {t('footer.description')}
+            </p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link to="/contact" data-cursor="join" data-magnetic="true" className="btn btn-primary">
+                {t('footer.cta')}
+              </Link>
+              <Link to="/projects" data-cursor="view" data-magnetic="true" className="btn btn-secondary">
+                {t('footer.viewWork')}
+              </Link>
+            </div>
+          </ScrollReveal>
         </div>
         <div className="min-w-0 lg:col-span-3">
           <h4 className="text-sm font-semibold text-foreground">{t('footer.quickLinks')}</h4>
           <ul className="mt-4 space-y-2.5">
             {navLinks.map((link) => (
               <li key={link.to}>
-                <Link to={link.to} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                <Link to={link.to} data-cursor="open" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                   {link.label}
                 </Link>
               </li>
@@ -62,7 +66,7 @@ export default function Footer() {
           <ul className="mt-4 space-y-2.5">
             {programLinks.map((link) => (
               <li key={link.to}>
-                <Link to={link.to} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                <Link to={link.to} data-cursor="open" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                   {link.label}
                 </Link>
               </li>
@@ -76,16 +80,19 @@ export default function Footer() {
               { href: SITE_CONFIG.social.instagram, icon: Instagram, label: 'Instagram' },
               { href: `mailto:${SITE_CONFIG.email}`, icon: Mail, label: 'Email' },
             ].map(({ href, icon: Icon, label }) => (
-              <a
+              <motion.a
                 key={label}
                 href={href}
                 target={label !== 'Email' ? '_blank' : undefined}
                 rel="noopener noreferrer"
+                data-cursor={label === 'Email' ? 'mail' : 'open'}
                 className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-all hover:bg-foreground hover:text-background"
                 aria-label={label}
+                whileHover={{ y: -4, scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
               >
                 <Icon className="size-4" />
-              </a>
+              </motion.a>
             ))}
           </div>
           <p className="mt-5 break-all text-sm text-muted-foreground">{SITE_CONFIG.email}</p>
@@ -104,11 +111,12 @@ export default function Footer() {
           <p className="text-xs text-muted-foreground">{t('footer.rights')}</p>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-end">
             {legalLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
+            <Link
+              key={link.to}
+              to={link.to}
+              data-cursor="open"
+              className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
                 {link.label}
               </Link>
             ))}

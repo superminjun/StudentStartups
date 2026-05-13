@@ -32,6 +32,7 @@ export default function ProductCard({ product, priority = false }: { product: Pr
   return (
     <Link to={`/shop/${product.id}`}>
       <motion.div
+        data-cursor="view"
         whileHover={{ y: -5 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         className="group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-[hsl(30,12%,90%)] bg-white shadow-sm transition-shadow hover:shadow-xl hover:shadow-black/5"
@@ -96,6 +97,8 @@ export default function ProductCard({ product, priority = false }: { product: Pr
             <button
               onClick={handleAdd}
               disabled={isSoldOut}
+              data-cursor={isSoldOut ? undefined : 'add'}
+              data-magnetic="true"
               className="flex w-full items-center justify-center gap-1 rounded-full bg-charcoal px-2.5 py-1.5 text-[11px] font-medium text-white transition-all hover:bg-[hsl(20,8%,28%)] disabled:cursor-not-allowed disabled:opacity-30 active:scale-95 sm:w-auto sm:gap-1.5 sm:px-3 sm:text-xs"
             >
               {added ? (

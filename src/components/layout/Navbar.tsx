@@ -125,7 +125,11 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className={cn(
+      <motion.nav
+        initial={{ y: -18, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        className={cn(
         'fixed top-0 left-0 right-0 z-nav overflow-x-clip transition-all duration-400',
         'bg-card/90 backdrop-blur-xl border-b border-border',
         elevated ? 'shadow-sm' : 'shadow-none'
@@ -134,7 +138,9 @@ export default function Navbar() {
           <button
             type="button"
             onClick={handleBrandClick}
-            className={cn('min-w-0 max-w-[11rem] truncate text-left text-base font-semibold tracking-tight transition-colors sm:max-w-none sm:text-lg', solid ? 'text-foreground' : 'text-white')}
+            data-cursor="home"
+            data-magnetic="true"
+            className={cn('nav-magnetic min-w-0 max-w-[11rem] truncate text-left text-base font-semibold tracking-tight transition-colors sm:max-w-none sm:text-lg', solid ? 'text-foreground' : 'text-white')}
             aria-label="Go to overview"
           >
             Student Startups
@@ -151,8 +157,9 @@ export default function Navbar() {
                     key={link.id}
                     type="button"
                     onClick={() => handleSectionClick(link.id)}
+                    data-magnetic="true"
                     className={cn(
-                      'relative px-3 py-2 text-sm font-medium transition-colors duration-200',
+                      'nav-magnetic relative px-3 py-2 text-sm font-medium transition-colors duration-200',
                       active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                     )}
                   >
@@ -169,8 +176,9 @@ export default function Navbar() {
                   <Link
                     key={link.path}
                     to={link.path}
+                    data-magnetic="true"
                     className={cn(
-                      'relative px-3 py-2 text-sm font-medium transition-colors duration-200',
+                      'nav-magnetic relative px-3 py-2 text-sm font-medium transition-colors duration-200',
                       solid
                         ? active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                         : active ? 'text-white' : 'text-white/70 hover:text-white'
@@ -198,8 +206,9 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setExploreOpen((prev) => !prev)}
+                  data-magnetic="true"
                   className={cn(
-                    'relative px-3 py-2 text-sm font-medium transition-colors',
+                    'nav-magnetic relative px-3 py-2 text-sm font-medium transition-colors',
                     exploreOpen ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                   )}
                   aria-expanded={exploreOpen}
@@ -221,7 +230,8 @@ export default function Navbar() {
                           <Link
                             key={link.path}
                             to={link.path}
-                            className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                            data-cursor="open"
+                            className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                           >
                             {t(link.key)}
                           </Link>
@@ -237,8 +247,9 @@ export default function Navbar() {
           <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => setLang(lang === 'en' ? 'ko' : 'en')}
+              data-magnetic="true"
               className={cn(
-                'flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium transition-all',
+                'nav-magnetic flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium transition-all',
                 solid ? 'text-muted-foreground hover:text-foreground hover:bg-muted' : 'text-white/70 hover:text-white hover:bg-card/10'
               )}
               aria-label="Toggle language"
@@ -249,7 +260,9 @@ export default function Navbar() {
 
             <Link
               to="/cart"
-              className={cn('relative p-2 transition-colors', solid ? 'text-foreground' : 'text-white')}
+              data-cursor="cart"
+              data-magnetic="true"
+              className={cn('nav-magnetic relative p-2 transition-colors', solid ? 'text-foreground' : 'text-white')}
               aria-label="Shopping cart"
             >
               <ShoppingBag className="size-5" />
@@ -266,8 +279,9 @@ export default function Navbar() {
 
             <Link
               to={authTarget}
+              data-magnetic="true"
               className={cn(
-                'hidden rounded-full px-4 py-1.5 text-sm font-medium transition-all lg:inline-flex',
+                'nav-magnetic hidden rounded-full px-4 py-1.5 text-sm font-medium transition-all lg:inline-flex',
                 solid
                   ? 'bg-foreground text-background hover:bg-foreground/90'
                   : 'bg-card/15 text-white hover:bg-card/25 backdrop-blur-sm'
@@ -278,6 +292,7 @@ export default function Navbar() {
 
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
+              data-magnetic="true"
               className={cn('p-2 lg:hidden', solid ? 'text-foreground' : 'text-white')}
               aria-label="Toggle menu"
             >
@@ -285,7 +300,7 @@ export default function Navbar() {
             </button>
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
       <AnimatePresence>
         {mobileOpen && (

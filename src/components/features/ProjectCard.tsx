@@ -13,6 +13,7 @@ export default function ProjectCard({ project, priority = false }: { project: Pr
   return (
     <Link to={`/projects/${project.id}`}>
       <motion.article
+        data-cursor="open"
         whileHover={{ y: -6 }}
         transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
         className="group card card-hover overflow-hidden will-change-transform"

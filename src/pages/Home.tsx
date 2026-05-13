@@ -70,7 +70,7 @@ export default function Home() {
                 <p className="section-lead">{t('valueProp.subtitle')}</p>
               </ScrollReveal>
               <ScrollReveal delay={0.1}>
-                <Link to="/about" className="btn btn-secondary mt-6">
+                <Link to="/about" data-cursor="open" data-magnetic="true" className="btn btn-secondary mt-6">
                   {t('common.learnMore')} <ArrowRight className="size-4" />
                 </Link>
               </ScrollReveal>
@@ -81,6 +81,7 @@ export default function Home() {
                 {valueProps.map((item, i) => (
                   <ScrollReveal key={item.titleKey} delay={i * 0.08} direction="scale">
                     <motion.div
+                      data-cursor="read"
                       whileHover={{ y: -7 }}
                       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                       className="group card card-hover p-5 will-change-transform"
@@ -103,6 +104,7 @@ export default function Home() {
                 {stats.map((stat, i) => (
                   <ScrollReveal key={stat.key} delay={i * 0.06} direction="scale">
                     <motion.div
+                      data-cursor="metric"
                       whileHover={{ y: -4 }}
                       transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
                       className="card card-hover p-4 will-change-transform"
@@ -150,7 +152,7 @@ export default function Home() {
           </div>
 
           <ScrollReveal className="mt-10">
-            <Link to="/projects" className="btn btn-secondary">
+            <Link to="/projects" data-cursor="view" data-magnetic="true" className="btn btn-secondary">
               {t('featured.viewAll')} <ArrowRight className="size-4" />
             </Link>
           </ScrollReveal>
@@ -172,6 +174,8 @@ export default function Home() {
           <ScrollReveal delay={0.2}>
             <Link
               to="/contact"
+              data-cursor="join"
+              data-magnetic="true"
               className="btn btn-primary mt-8 shadow-2xl shadow-white/10"
             >
               {t('cta.button')}
