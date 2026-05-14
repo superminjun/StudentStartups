@@ -45,6 +45,18 @@ export default function HeroSection() {
         review: 'review',
       };
 
+  const heroNotes = lang === 'ko'
+    ? [
+        ['01', '역할이 있는 팀'],
+        ['02', '기록되는 결정'],
+        ['03', '공개되는 결과물'],
+      ]
+    : [
+        ['01', 'Teams with roles'],
+        ['02', 'Decisions recorded'],
+        ['03', 'Work made public'],
+      ];
+
   const legacyHeroTitle = 'Build something real before graduation.';
   const legacyHeroSubtitle = 'Find teammates, test ideas, launch products, and learn how startups actually work.';
   const heroTitle = content.heroTitle === legacyHeroTitle
@@ -148,6 +160,20 @@ export default function HeroSection() {
             <Link to="/about" data-magnetic="true" className="btn btn-secondary">
               {t('hero.secondaryCta')}
             </Link>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.92, duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-14 grid max-w-2xl grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-3"
+          >
+            {heroNotes.map(([index, label]) => (
+              <div key={index} className="bg-card/[0.62] px-4 py-3 backdrop-blur-xl">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">{index}</p>
+                <p className="mt-1 text-sm font-medium tracking-tight text-foreground">{label}</p>
+              </div>
+            ))}
           </motion.div>
         </motion.div>
 

@@ -4,13 +4,24 @@
 
 /* ─── Yellow Highlighter Selection ─── */
 ::selection {
-  background: rgba(255, 224, 102, 0.5);
+  background: rgba(42, 37, 34, 0.14);
   color: inherit;
   -webkit-text-fill-color: inherit;
 }
 ::-moz-selection {
-  background: rgba(255, 224, 102, 0.5);
+  background: rgba(42, 37, 34, 0.14);
   color: inherit;
+}
+
+.bg-charcoal ::selection,
+.bg-charcoal ::-moz-selection {
+  background: rgba(250, 241, 235, 0.22);
+  color: #fff;
+  -webkit-text-fill-color: #fff;
+}
+
+.card ::selection {
+  background: rgba(244, 119, 46, 0.18);
 }
 
 @layer base {

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import type { PointerEvent } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { formatCurrency } from '@/lib/utils';
 import { STAGE_LABELS_EN, STAGE_LABELS_KO, STAGE_COLORS } from '@/constants/config';
@@ -9,16 +10,42 @@ export default function ProjectCard({ project, priority = false }: { project: Pr
   const { lang, t } = useLanguage();
   const stageLabel = lang === 'en' ? (STAGE_LABELS_EN[project.stage] || project.stageName) : (STAGE_LABELS_KO[project.stage] || project.stageName);
   const hasImage = Boolean(project.image);
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const rotateX = useSpring(useTransform(pointerY, [-0.5, 0.5], [2.5, -2.5]), { stiffness: 180, damping: 22 });
+  const rotateY = useSpring(useTransform(pointerX, [-0.5, 0.5], [-3, 3]), { stiffness: 180, damping: 22 });
+  const glowX = useTransform(pointerX, [-0.5, 0.5], ['18%', '82%']);
+  const glowY = useTransform(pointerY, [-0.5, 0.5], ['18%', '82%']);
+
+  const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    pointerX.set((event.clientX - rect.left) / rect.width - 0.5);
+    pointerY.set((event.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const handlePointerLeave = () => {
+    pointerX.set(0);
+    pointerY.set(0);
+  };
 
   return (
     <Link to={`/projects/${project.id}`}>
       <motion.article
         data-cursor="view"
         data-cursor-variant="image"
+        onPointerMove={handlePointerMove}
+        onPointerLeave={handlePointerLeave}
         whileHover={{ y: -6 }}
+        style={{ rotateX, rotateY, transformPerspective: 900 }}
         transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-        className="group card card-hover h-full overflow-hidden will-change-transform"
+        className="group card card-hover relative h-full overflow-hidden will-change-transform"
       >
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute z-[1] h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/[0.055] opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100"
+          style={{ left: glowX, top: glowY }}
+        />
         <div className="relative aspect-[4/3] overflow-hidden">
           {hasImage ? (
             <>
