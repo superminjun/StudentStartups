@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useSiteContentStore } from '@/stores/siteContentStore';
 import TextReveal from './TextReveal';
+import heroHomeImage from '@/assets/hero-home.jpg';
 
 export default function HeroSection() {
   const { lang, t } = useLanguage();
@@ -25,24 +26,25 @@ export default function HeroSection() {
   const defaultHeroUrl = 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1400&h=900&fit=crop';
   const heroBackgroundUrl = content.heroBackgroundUrl?.trim();
   const hasHeroImage = Boolean(heroBackgroundUrl && heroBackgroundUrl !== defaultHeroUrl);
+  const visualImageUrl = hasHeroImage ? heroBackgroundUrl : heroHomeImage;
   const visualCopy = lang === 'ko'
     ? {
-        eyebrow: '스튜디오 시그널',
-        cycle: '현재 빌드 사이클',
-        title: '의도보다 증거.',
-        body: '프로젝트는 출시, 숫자, 결정 기록으로 검토됩니다.',
-        stages: '단계',
+        eyebrow: '작업 현장',
+        cycle: '현재 운영 기록',
+        title: '실제 팀, 실제 제약.',
+        body: '프로젝트는 역할, 회의, 제품 결정, 판매, 공개 검토를 거쳐 움직입니다.',
+        stages: '프로젝트',
         teams: '팀',
-        review: '검토',
+        review: '기록',
       }
     : {
-        eyebrow: 'Studio signal',
-        cycle: 'current build cycle',
-        title: 'Evidence over intention.',
-        body: 'Projects are judged by releases, numbers, and decisions people can inspect.',
-        stages: 'stages',
+        eyebrow: 'Inside the work',
+        cycle: 'current operating record',
+        title: 'Real teams. Real constraints.',
+        body: 'Projects move through staffing, meetings, product decisions, sales, and public review.',
+        stages: 'projects',
         teams: 'teams',
-        review: 'review',
+        review: 'record',
       };
 
   const heroNotes = lang === 'ko'
@@ -57,14 +59,40 @@ export default function HeroSection() {
         ['03', 'Work made public'],
       ];
 
-  const legacyHeroTitle = 'Build something real before graduation.';
-  const legacyHeroSubtitle = 'Find teammates, test ideas, launch products, and learn how startups actually work.';
-  const heroTitle = content.heroTitle === legacyHeroTitle
-    ? t('hero.title')
-    : content.heroTitle || t('hero.title');
-  const heroSubtitle = content.heroSubtitle === legacyHeroSubtitle
-    ? t('hero.subtitle')
-    : content.heroSubtitle || t('hero.subtitle');
+  const refinedHeroCopy = lang === 'ko'
+    ? {
+        title: '일찍 시작하는 빌더를 위한 진지한 플랫폼입니다.',
+        subtitle: 'Student Startups는 학생들이 실제 제품을 만들고, 팀을 운영하며, 검토를 버틸 만한 기록을 남기는 플랫폼입니다.',
+        cta: '작업 보기',
+      }
+    : {
+        title: 'A serious place for early builders.',
+        subtitle: 'Student Startups is a platform for students developing real products, operating disciplined teams, and building a record that can be examined.',
+        cta: 'Review the Work',
+      };
+  const normalizedHeroTitle = content.heroTitle?.replace(/\s+/g, ' ').trim() ?? '';
+  const normalizedHeroSubtitle = content.heroSubtitle?.replace(/\s+/g, ' ').trim() ?? '';
+  const normalizedHeroCta = content.heroCta?.replace(/\s+/g, ' ').trim() ?? '';
+  const legacyHeroTitles = new Set([
+    'Build something real before graduation.',
+    'Where Students Build Real Businesses',
+  ]);
+  const legacyHeroSubtitles = new Set([
+    'Find teammates, test ideas, launch products, and learn how startups actually work.',
+    'Find teammates, test ideas, launch products, and learn how startups actually work while you are still in school.',
+  ]);
+  const legacyHeroCtas = new Set(['Start Building', 'Launch Your Idea', 'Build Your First Startup']);
+  const heroTitle = legacyHeroTitles.has(normalizedHeroTitle) || normalizedHeroTitle.startsWith('Where Students Build')
+    ? refinedHeroCopy.title
+    : content.heroTitle || refinedHeroCopy.title;
+  const heroSubtitle = legacyHeroSubtitles.has(normalizedHeroSubtitle)
+    || normalizedHeroSubtitle.includes('while you are still in school')
+    || normalizedHeroSubtitle.toLowerCase().includes('student-led entrepreneurship club')
+    ? refinedHeroCopy.subtitle
+    : content.heroSubtitle || refinedHeroCopy.subtitle;
+  const heroCta = legacyHeroCtas.has(normalizedHeroCta)
+    ? refinedHeroCopy.cta
+    : content.heroCta || refinedHeroCopy.cta;
 
   const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
     if (reduceMotion || window.matchMedia('(pointer: coarse)').matches) return;
@@ -119,7 +147,7 @@ export default function HeroSection() {
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ delay: 0.05, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             className="inline-flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground"
           >
             <span className="h-px w-9 bg-foreground/30" />
@@ -129,14 +157,15 @@ export default function HeroSection() {
           <TextReveal
             as="h1"
             text={heroTitle}
-            delay={0.26}
-            className="mt-7 max-w-4xl text-5xl font-semibold leading-[0.94] tracking-[-0.06em] text-foreground sm:text-6xl lg:text-8xl whitespace-pre-line"
+            delay={0.12}
+            stagger={0.018}
+            className="mt-7 max-w-3xl whitespace-pre-line text-4xl font-semibold leading-[1] tracking-[-0.04em] text-foreground sm:text-5xl lg:text-6xl"
           />
 
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.52, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ delay: 0.24, duration: 0.48, ease: [0.16, 1, 0.3, 1] }}
             className="mt-7 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg"
           >
             {heroSubtitle}
@@ -145,7 +174,7 @@ export default function HeroSection() {
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.74, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ delay: 0.34, duration: 0.48, ease: [0.16, 1, 0.3, 1] }}
             className="mt-10 flex flex-wrap items-center gap-4"
           >
             <Link
@@ -154,7 +183,7 @@ export default function HeroSection() {
               data-magnetic="true"
               className="btn btn-primary group px-7"
             >
-              {content.heroCta || t('hero.cta')}
+              {heroCta}
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <Link to="/about" data-magnetic="true" className="btn btn-secondary">
@@ -165,7 +194,7 @@ export default function HeroSection() {
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.92, duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ delay: 0.42, duration: 0.52, ease: [0.16, 1, 0.3, 1] }}
             className="mt-14 grid max-w-2xl grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-3"
           >
             {heroNotes.map(([index, label]) => (
@@ -188,35 +217,30 @@ export default function HeroSection() {
             className="relative overflow-hidden rounded-[2.4rem] border border-white/80 bg-card/[0.72] p-4 shadow-[0_40px_120px_rgba(40,34,30,0.14)] backdrop-blur-2xl"
             initial={{ opacity: 0, y: 38, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 0.5, duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ delay: 0.16, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[1.9rem] bg-[linear-gradient(145deg,hsl(var(--color-charcoal)),hsl(var(--color-dark))_48%,hsl(var(--color-beige-dark)))] p-6 text-white">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_18%,rgba(255,255,255,0.24),transparent_24%),radial-gradient(circle_at_78%_70%,rgba(244,119,46,0.26),transparent_28%)]" />
-              <div className="absolute left-6 right-6 top-20 h-px bg-white/[0.18]" />
-              <div className="absolute bottom-6 left-6 top-6 w-px bg-white/[0.18]" />
-              <motion.div
-                className="absolute right-8 top-10 h-40 w-28 rounded-full border border-white/[0.18]"
-                animate={{ y: [0, -12, 0], rotate: [0, 6, 0] }}
-                transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[1.9rem] bg-charcoal text-white">
+              <motion.img
+                src={visualImageUrl}
+                alt=""
+                loading="eager"
+                decoding="async"
+                className="size-full object-cover"
+                initial={{ scale: 1.1, opacity: 0 }}
+                animate={{ scale: 1.01, opacity: 1 }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               />
-              <motion.div
-                className="absolute bottom-12 right-10 h-32 w-48 rounded-[2rem] border border-white/[0.18] bg-white/10 backdrop-blur-xl"
-                animate={{ y: [0, 10, 0] }}
-                transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-              />
-              <div className="relative z-10 flex h-full flex-col justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.32em] text-white/[0.54]">{visualCopy.eyebrow}</p>
-                  <h3 className="mt-8 max-w-sm text-5xl font-semibold leading-[0.95] tracking-[-0.055em]">
-                    {visualCopy.title}
-                  </h3>
-                </div>
-                <div className="grid grid-cols-[1fr_auto] gap-8">
-                  <p className="max-w-xs text-sm leading-6 text-white/[0.64]">{visualCopy.body}</p>
-                  <div className="text-right">
-                    <p className="text-6xl font-semibold leading-none tracking-[-0.08em]">01</p>
-                    <p className="mt-2 text-[10px] uppercase tracking-[0.26em] text-white/[0.46]">{visualCopy.cycle}</p>
-                  </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/18 to-black/10" />
+              <div className="absolute inset-x-0 bottom-0 p-6">
+                <p className="text-xs uppercase tracking-[0.3em] text-white/[0.62]">{visualCopy.eyebrow}</p>
+                <h3 className="mt-4 max-w-sm text-3xl font-semibold leading-[1] tracking-[-0.045em]">
+                  {visualCopy.title}
+                </h3>
+                <div className="mt-6 flex items-end justify-between gap-8">
+                  <p className="max-w-xs text-sm leading-6 text-white/[0.68]">{visualCopy.body}</p>
+                  <p className="hidden max-w-[7rem] text-right text-[10px] font-semibold uppercase tracking-[0.24em] text-white/[0.48] xl:block">
+                    {visualCopy.cycle}
+                  </p>
                 </div>
               </div>
             </div>
@@ -232,7 +256,7 @@ export default function HeroSection() {
                     className="rounded-2xl border border-border bg-background/70 p-4"
                     initial={{ opacity: 0, y: 14 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.7 + index * 0.08, duration: 0.55 }}
+                    transition={{ delay: 0.36 + index * 0.05, duration: 0.42 }}
                   >
                     <p className="text-xl font-semibold text-foreground">{value}</p>
                     <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</p>

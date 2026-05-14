@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring } from 'framer-motion';
 
 type CursorState = {
@@ -18,6 +18,14 @@ export default function InteractionLayer() {
   const springX = useSpring(cursorX, { stiffness: 420, damping: 34, mass: 0.45 });
   const springY = useSpring(cursorY, { stiffness: 420, damping: 34, mass: 0.45 });
   const [cursor, setCursor] = useState<CursorState>({ visible: false, label: '', variant: 'pill' });
+  const cursorKeyRef = useRef('false--pill');
+
+  const setCursorIfChanged = (next: CursorState) => {
+    const key = `${next.visible}-${next.label}-${next.variant}`;
+    if (cursorKeyRef.current === key) return;
+    cursorKeyRef.current = key;
+    setCursor(next);
+  };
 
   useEffect(() => {
     const root = document.documentElement;
@@ -72,7 +80,7 @@ export default function InteractionLayer() {
         : cursorTarget?.dataset.cursorVariant === 'dot'
           ? 'dot'
           : 'pill';
-      setCursor({
+      setCursorIfChanged({
         visible: Boolean(cursorTarget),
         label: cursorTarget?.dataset.cursor ?? '',
         variant,
@@ -93,7 +101,7 @@ export default function InteractionLayer() {
 
     const onPointerLeave = () => {
       resetMagnetic();
-      setCursor((state) => ({ ...state, visible: false, label: '' }));
+      setCursorIfChanged({ visible: false, label: '', variant: 'pill' });
     };
 
     const onPointerOver = (event: PointerEvent) => {
@@ -104,14 +112,14 @@ export default function InteractionLayer() {
         : target.dataset.cursorVariant === 'dot'
           ? 'dot'
           : 'pill';
-      setCursor({ visible: true, label: target.dataset.cursor ?? '', variant });
+      setCursorIfChanged({ visible: true, label: target.dataset.cursor ?? '', variant });
     };
 
     const onPointerOut = (event: PointerEvent) => {
       const target = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-cursor]') : null;
       const related = event.relatedTarget instanceof Element ? event.relatedTarget.closest<HTMLElement>('[data-cursor]') : null;
       if (!target || related === target) return;
-      setCursor((state) => ({ ...state, visible: false, label: '' }));
+      setCursorIfChanged({ visible: false, label: '', variant: 'pill' });
       resetMagnetic();
     };
 

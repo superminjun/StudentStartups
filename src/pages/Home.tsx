@@ -173,7 +173,7 @@ export default function Home() {
         <div className="pointer-events-none absolute inset-x-6 top-8 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
           <ScrollReveal>
-            <h2 className="text-4xl font-semibold leading-[0.98] tracking-[-0.055em] text-white sm:text-5xl lg:text-7xl">
+            <h2 className="text-3xl font-semibold leading-[1.02] tracking-[-0.04em] text-white sm:text-4xl lg:text-5xl">
               {t('cta.title')}
             </h2>
           </ScrollReveal>

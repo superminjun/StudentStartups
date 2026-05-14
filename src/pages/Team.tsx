@@ -226,7 +226,7 @@ export default function Team() {
           className="max-w-3xl"
         >
           <p className="section-kicker">{lang === 'ko' ? '팀' : 'Team'}</p>
-          <h1 className="mt-5 text-5xl font-semibold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+          <h1 className="mt-5 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             {lang === 'ko' ? '작업을 실제로 맡는 사람들.' : 'The people behind the work.'}
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
