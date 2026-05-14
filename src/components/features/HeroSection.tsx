@@ -29,8 +29,8 @@ export default function HeroSection() {
     ? {
         eyebrow: '스튜디오 시그널',
         cycle: '현재 빌드 사이클',
-        title: 'Build / Test / Launch',
-        body: '아이디어는 회의록이 아니라 제품, 피드백, 숫자로 검증됩니다.',
+        title: '의도보다 증거.',
+        body: '프로젝트는 출시, 숫자, 결정 기록으로 검토됩니다.',
         stages: '단계',
         teams: '팀',
         review: '검토',
@@ -38,14 +38,21 @@ export default function HeroSection() {
     : {
         eyebrow: 'Studio signal',
         cycle: 'current build cycle',
-        title: 'Build / Test / Launch',
-        body: 'Ideas are judged by products, feedback, and numbers — not pitch decks.',
+        title: 'Evidence over intention.',
+        body: 'Projects are judged by releases, numbers, and decisions people can inspect.',
         stages: 'stages',
         teams: 'teams',
         review: 'review',
       };
 
-  const heroTitle = content.heroTitle || t('hero.title');
+  const legacyHeroTitle = 'Build something real before graduation.';
+  const legacyHeroSubtitle = 'Find teammates, test ideas, launch products, and learn how startups actually work.';
+  const heroTitle = content.heroTitle === legacyHeroTitle
+    ? t('hero.title')
+    : content.heroTitle || t('hero.title');
+  const heroSubtitle = content.heroSubtitle === legacyHeroSubtitle
+    ? t('hero.subtitle')
+    : content.heroSubtitle || t('hero.subtitle');
 
   const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
     if (reduceMotion || window.matchMedia('(pointer: coarse)').matches) return;
@@ -120,7 +127,7 @@ export default function HeroSection() {
             transition={{ delay: 0.52, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className="mt-7 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg"
           >
-            {content.heroSubtitle || t('hero.subtitle')}
+            {heroSubtitle}
           </motion.p>
 
           <motion.div
