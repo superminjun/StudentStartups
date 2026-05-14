@@ -5,7 +5,6 @@ import { ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useSiteContentStore } from '@/stores/siteContentStore';
 import TextReveal from './TextReveal';
-import heroHomeImage from '@/assets/hero-home.jpg';
 
 export default function HeroSection() {
   const { lang, t } = useLanguage();
@@ -26,49 +25,48 @@ export default function HeroSection() {
   const defaultHeroUrl = 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1400&h=900&fit=crop';
   const heroBackgroundUrl = content.heroBackgroundUrl?.trim();
   const hasHeroImage = Boolean(heroBackgroundUrl && heroBackgroundUrl !== defaultHeroUrl);
-  const visualImageUrl = hasHeroImage ? heroBackgroundUrl : heroHomeImage;
   const visualCopy = lang === 'ko'
     ? {
-        eyebrow: '작업 현장',
-        cycle: '현재 운영 기록',
-        title: '실제 팀, 실제 제약.',
-        body: '프로젝트는 역할, 회의, 제품 결정, 판매, 공개 검토를 거쳐 움직입니다.',
+        eyebrow: '작업 노트',
+        cycle: '이번 주 기록',
+        title: '만든 흔적을 남깁니다.',
+        body: '누가 맡았고, 무엇이 바뀌었고, 무엇이 공개됐는지 짧게 남깁니다.',
         stages: '프로젝트',
         teams: '팀',
-        review: '기록',
+        review: '노트',
       }
     : {
-        eyebrow: 'Inside the work',
-        cycle: 'current operating record',
-        title: 'Real teams. Real constraints.',
-        body: 'Projects move through staffing, meetings, product decisions, sales, and public review.',
+        eyebrow: 'Working notes',
+        cycle: 'this week',
+        title: 'The work stays visible.',
+        body: 'Who owned it, what changed, and what shipped. No mystery around the progress.',
         stages: 'projects',
         teams: 'teams',
-        review: 'record',
+        review: 'notes',
       };
 
   const heroNotes = lang === 'ko'
     ? [
-        ['01', '역할이 있는 팀'],
-        ['02', '기록되는 결정'],
-        ['03', '공개되는 결과물'],
+        ['01', '맡은 사람이 보이는 일'],
+        ['02', '짧게 남기는 결정'],
+        ['03', '밖에 보여주는 결과'],
       ]
     : [
-        ['01', 'Teams with roles'],
-        ['02', 'Decisions recorded'],
-        ['03', 'Work made public'],
+        ['01', 'Clear owners'],
+        ['02', 'Decisions in writing'],
+        ['03', 'Work shown outside'],
       ];
 
   const refinedHeroCopy = lang === 'ko'
     ? {
-        title: '일찍 시작하는 빌더를 위한 진지한 플랫폼입니다.',
-        subtitle: 'Student Startups는 학생들이 실제 제품을 만들고, 팀을 운영하며, 검토를 버틸 만한 기록을 남기는 플랫폼입니다.',
+        title: '기다리기보다 먼저 만드는 학생들을 위해.',
+        subtitle: '팀을 찾고, 첫 버전을 만들고, 팔아보고, 남은 기록까지 정리합니다. Student Startups는 그 과정을 실제로 굴리는 곳입니다.',
         cta: '작업 보기',
       }
     : {
-        title: 'A serious place for early builders.',
-        subtitle: 'Student Startups is a platform for students developing real products, operating disciplined teams, and building a record that can be examined.',
-        cta: 'Review the Work',
+        title: 'For students who would rather build than wait.',
+        subtitle: 'Student Startups helps students find people, make the first version, sell it, and keep a clear record of what actually happened.',
+        cta: 'See the Work',
       };
   const normalizedHeroTitle = content.heroTitle?.replace(/\s+/g, ' ').trim() ?? '';
   const normalizedHeroSubtitle = content.heroSubtitle?.replace(/\s+/g, ' ').trim() ?? '';
@@ -76,12 +74,15 @@ export default function HeroSection() {
   const legacyHeroTitles = new Set([
     'Build something real before graduation.',
     'Where Students Build Real Businesses',
+    'A serious place for early builders.',
+    'For serious students building early.',
   ]);
   const legacyHeroSubtitles = new Set([
     'Find teammates, test ideas, launch products, and learn how startups actually work.',
     'Find teammates, test ideas, launch products, and learn how startups actually work while you are still in school.',
+    'Student Startups is a platform for students developing real products, operating disciplined teams, and building a record that can be examined.',
   ]);
-  const legacyHeroCtas = new Set(['Start Building', 'Launch Your Idea', 'Build Your First Startup']);
+  const legacyHeroCtas = new Set(['Start Building', 'Launch Your Idea', 'Build Your First Startup', 'Review the Work']);
   const heroTitle = legacyHeroTitles.has(normalizedHeroTitle) || normalizedHeroTitle.startsWith('Where Students Build')
     ? refinedHeroCopy.title
     : content.heroTitle || refinedHeroCopy.title;
@@ -219,28 +220,33 @@ export default function HeroSection() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: 0.16, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[1.9rem] bg-charcoal text-white">
-              <motion.img
-                src={visualImageUrl}
-                alt=""
-                loading="eager"
-                decoding="async"
-                className="size-full object-cover"
-                initial={{ scale: 1.1, opacity: 0 }}
-                animate={{ scale: 1.01, opacity: 1 }}
-                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[1.9rem] bg-[linear-gradient(145deg,hsl(var(--color-charcoal)),hsl(var(--color-dark))_48%,hsl(var(--color-beige-dark)))] p-6 text-white">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_18%,rgba(255,255,255,0.22),transparent_24%),radial-gradient(circle_at_78%_70%,rgba(244,119,46,0.24),transparent_28%)]" />
+              <div className="absolute left-6 right-6 top-20 h-px bg-white/[0.18]" />
+              <div className="absolute bottom-6 left-6 top-6 w-px bg-white/[0.18]" />
+              <motion.div
+                className="absolute right-8 top-10 h-40 w-28 rounded-full border border-white/[0.18]"
+                animate={{ y: [0, -12, 0], rotate: [0, 6, 0] }}
+                transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/18 to-black/10" />
-              <div className="absolute inset-x-0 bottom-0 p-6">
-                <p className="text-xs uppercase tracking-[0.3em] text-white/[0.62]">{visualCopy.eyebrow}</p>
-                <h3 className="mt-4 max-w-sm text-3xl font-semibold leading-[1] tracking-[-0.045em]">
-                  {visualCopy.title}
-                </h3>
-                <div className="mt-6 flex items-end justify-between gap-8">
-                  <p className="max-w-xs text-sm leading-6 text-white/[0.68]">{visualCopy.body}</p>
-                  <p className="hidden max-w-[7rem] text-right text-[10px] font-semibold uppercase tracking-[0.24em] text-white/[0.48] xl:block">
-                    {visualCopy.cycle}
-                  </p>
+              <motion.div
+                className="absolute bottom-12 right-10 h-32 w-48 rounded-[2rem] border border-white/[0.18] bg-white/10 backdrop-blur-xl"
+                animate={{ y: [0, 10, 0] }}
+                transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <div className="relative z-10 flex h-full flex-col justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.32em] text-white/[0.54]">{visualCopy.eyebrow}</p>
+                  <h3 className="mt-8 max-w-sm text-4xl font-semibold leading-[0.98] tracking-[-0.045em]">
+                    {visualCopy.title}
+                  </h3>
+                </div>
+                <div className="grid grid-cols-[1fr_auto] gap-8">
+                  <p className="max-w-xs text-sm leading-6 text-white/[0.64]">{visualCopy.body}</p>
+                  <div className="text-right">
+                    <p className="text-5xl font-semibold leading-none tracking-[-0.08em]">01</p>
+                    <p className="mt-2 text-[10px] uppercase tracking-[0.26em] text-white/[0.46]">{visualCopy.cycle}</p>
+                  </div>
                 </div>
               </div>
             </div>
