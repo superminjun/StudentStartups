@@ -117,7 +117,7 @@ export default function ResetPassword() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.12 }}
-            className="mt-3 max-w-2xl text-base text-white/55"
+            className="mt-3 max-w-2xl text-base text-white/[0.55]"
           >
             {t('resetPassword.subtitle')}
           </motion.p>

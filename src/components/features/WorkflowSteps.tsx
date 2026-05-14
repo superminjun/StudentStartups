@@ -48,7 +48,6 @@ export default function WorkflowSteps() {
             return (
               <ScrollReveal key={step.id} delay={i * 0.04} direction={i % 2 === 0 ? 'left' : 'right'} amount={0.2}>
                 <motion.div
-                  data-cursor="step"
                   className="group card card-hover grid gap-5 p-5 will-change-transform sm:grid-cols-[auto_1fr_auto] sm:items-center"
                   whileHover={{ y: -6, scale: 1.01 }}
                   transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}

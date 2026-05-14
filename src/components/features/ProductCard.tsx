@@ -33,6 +33,7 @@ export default function ProductCard({ product, priority = false }: { product: Pr
     <Link to={`/shop/${product.id}`}>
       <motion.div
         data-cursor="view"
+        data-cursor-variant="image"
         whileHover={{ y: -5 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         className="group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-[hsl(30,12%,90%)] bg-white shadow-sm transition-shadow hover:shadow-xl hover:shadow-black/5"

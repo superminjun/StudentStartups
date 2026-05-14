@@ -13,10 +13,11 @@ export default function ProjectCard({ project, priority = false }: { project: Pr
   return (
     <Link to={`/projects/${project.id}`}>
       <motion.article
-        data-cursor="open"
+        data-cursor="view"
+        data-cursor-variant="image"
         whileHover={{ y: -6 }}
         transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-        className="group card card-hover overflow-hidden will-change-transform"
+        className="group card card-hover h-full overflow-hidden will-change-transform"
       >
         <div className="relative aspect-[4/3] overflow-hidden">
           {hasImage ? (

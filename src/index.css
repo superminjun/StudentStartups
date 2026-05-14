@@ -99,18 +99,18 @@
 }
 
 @layer components {
-  .section { @apply py-20 lg:py-28; }
-  .section-tight { @apply py-16 lg:py-20; }
-  .section-title { @apply text-3xl font-semibold tracking-tight text-foreground sm:text-4xl; }
-  .section-kicker { @apply text-xs uppercase tracking-[0.24em] text-muted-foreground; }
-  .section-lead { @apply mt-3 text-base text-muted-foreground; }
+  .section { @apply py-24 lg:py-36; }
+  .section-tight { @apply py-20 lg:py-24; }
+  .section-title { @apply text-4xl font-semibold leading-[0.98] tracking-[-0.055em] text-foreground sm:text-5xl lg:text-6xl; }
+  .section-kicker { @apply text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground; }
+  .section-lead { @apply mt-5 max-w-2xl text-base leading-8 text-muted-foreground; }
 
-  .card { @apply rounded-2xl border border-border bg-card/90 shadow-sm backdrop-blur; }
-  .card-hover { @apply transition-all duration-300 ease-out hover:-translate-y-1 hover:border-foreground/15 hover:shadow-xl hover:shadow-foreground/5; }
+  .card { @apply rounded-[1.65rem] border border-border bg-card/90 shadow-sm backdrop-blur; }
+  .card-hover { @apply transition-all duration-500 ease-out hover:-translate-y-1 hover:border-foreground/15 hover:shadow-2xl hover:shadow-foreground/5; }
 
-  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-all duration-300 ease-out will-change-transform; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold tracking-[-0.01em] transition-all duration-300 ease-out will-change-transform; }
   .btn-primary { @apply bg-foreground text-background shadow-sm hover:-translate-y-1 hover:shadow-xl hover:shadow-foreground/10 hover:bg-foreground/90 active:scale-[0.98]; }
-  .btn-secondary { @apply border border-border text-foreground hover:-translate-y-1 hover:bg-muted hover:shadow-lg hover:shadow-foreground/5 active:scale-[0.98]; }
+  .btn-secondary { @apply border border-border bg-card/45 text-foreground backdrop-blur-xl hover:-translate-y-1 hover:bg-card hover:shadow-lg hover:shadow-foreground/5 active:scale-[0.98]; }
   .btn-ghost { @apply text-foreground/80 hover:-translate-y-0.5 hover:text-foreground hover:bg-muted active:scale-[0.98]; }
   .btn-pill { @apply rounded-full; }
   .btn-sm { @apply px-3 py-1.5 text-xs; }
@@ -216,8 +216,8 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  body.has-custom-cursor,
-  body.has-custom-cursor * {
+  body.has-custom-cursor [data-cursor],
+  body.has-custom-cursor [data-cursor] * {
     cursor: none !important;
   }
 

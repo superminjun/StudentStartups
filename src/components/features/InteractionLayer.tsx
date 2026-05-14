@@ -3,8 +3,8 @@ import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring } 
 
 type CursorState = {
   visible: boolean;
-  active: boolean;
   label: string;
+  variant: 'pill' | 'image' | 'dot';
 };
 
 const supportsFinePointer = () =>
@@ -17,7 +17,7 @@ export default function InteractionLayer() {
   const cursorY = useMotionValue(-80);
   const springX = useSpring(cursorX, { stiffness: 420, damping: 34, mass: 0.45 });
   const springY = useSpring(cursorY, { stiffness: 420, damping: 34, mass: 0.45 });
-  const [cursor, setCursor] = useState<CursorState>({ visible: false, active: false, label: '' });
+  const [cursor, setCursor] = useState<CursorState>({ visible: false, label: '', variant: 'pill' });
 
   useEffect(() => {
     const root = document.documentElement;
@@ -66,15 +66,19 @@ export default function InteractionLayer() {
       cursorY.set(event.clientY);
 
       const target = event.target instanceof Element ? event.target : null;
-      const cursorTarget = target?.closest<HTMLElement>('[data-cursor], a, button, .card-hover');
-      const label = cursorTarget?.dataset.cursor ?? '';
+      const cursorTarget = target?.closest<HTMLElement>('[data-cursor]');
+      const variant = cursorTarget?.dataset.cursorVariant === 'image'
+        ? 'image'
+        : cursorTarget?.dataset.cursorVariant === 'dot'
+          ? 'dot'
+          : 'pill';
       setCursor({
-        visible: true,
-        active: Boolean(cursorTarget),
-        label,
+        visible: Boolean(cursorTarget),
+        label: cursorTarget?.dataset.cursor ?? '',
+        variant,
       });
 
-      const nextMagnetic = target?.closest<HTMLElement>('[data-magnetic="true"], .btn, .nav-magnetic');
+      const nextMagnetic = target?.closest<HTMLElement>('[data-magnetic="true"]');
       if (nextMagnetic !== magneticTarget) {
         resetMagnetic();
         magneticTarget = nextMagnetic ?? null;
@@ -89,20 +93,25 @@ export default function InteractionLayer() {
 
     const onPointerLeave = () => {
       resetMagnetic();
-      setCursor((state) => ({ ...state, visible: false, active: false, label: '' }));
+      setCursor((state) => ({ ...state, visible: false, label: '' }));
     };
 
     const onPointerOver = (event: PointerEvent) => {
-      const target = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-cursor], a, button, .card-hover') : null;
+      const target = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-cursor]') : null;
       if (!target) return;
-      setCursor((state) => ({ ...state, active: true, label: target.dataset.cursor ?? '' }));
+      const variant = target.dataset.cursorVariant === 'image'
+        ? 'image'
+        : target.dataset.cursorVariant === 'dot'
+          ? 'dot'
+          : 'pill';
+      setCursor({ visible: true, label: target.dataset.cursor ?? '', variant });
     };
 
     const onPointerOut = (event: PointerEvent) => {
-      const target = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-cursor], a, button, .card-hover') : null;
-      const related = event.relatedTarget instanceof Element ? event.relatedTarget.closest<HTMLElement>('[data-cursor], a, button, .card-hover') : null;
+      const target = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-cursor]') : null;
+      const related = event.relatedTarget instanceof Element ? event.relatedTarget.closest<HTMLElement>('[data-cursor]') : null;
       if (!target || related === target) return;
-      setCursor((state) => ({ ...state, active: false, label: '' }));
+      setCursor((state) => ({ ...state, visible: false, label: '' }));
       resetMagnetic();
     };
 
@@ -126,26 +135,23 @@ export default function InteractionLayer() {
   return (
     <>
       <div className="pointer-events-none fixed left-0 top-0 z-[80] h-[2px] w-full origin-left scale-x-[var(--page-scroll-progress,0)] bg-foreground/80 transition-transform duration-75" />
-      <div className="pointer-events-none fixed inset-0 z-[-1] overflow-hidden">
-        <div className="absolute left-[-18rem] top-[18vh] h-[32rem] w-[32rem] rounded-full bg-accent/5 blur-3xl motion-safe:animate-drift-slow" />
-        <div className="absolute right-[-20rem] top-[54vh] h-[36rem] w-[36rem] rounded-full bg-foreground/5 blur-3xl motion-safe:animate-drift" />
-      </div>
       <AnimatePresence>
         {cursor.visible && (
           <motion.div
-            className="pointer-events-none fixed left-0 top-0 z-[90] hidden -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-foreground/30 bg-card/20 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground shadow-2xl shadow-foreground/10 backdrop-blur-md lg:flex"
+            className="pointer-events-none fixed left-0 top-0 z-[90] hidden -translate-x-1/2 -translate-y-1/2 items-center justify-center border border-foreground/25 bg-card/25 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground shadow-2xl shadow-foreground/10 backdrop-blur-md lg:flex"
             style={{ x: springX, y: springY }}
             initial={{ opacity: 0, scale: 0.75 }}
             animate={{
               opacity: 1,
-              scale: cursor.active ? 1.2 : 1,
-              width: cursor.label ? 76 : 22,
-              height: cursor.label ? 76 : 22,
+              scale: cursor.variant === 'image' ? 1 : 0.96,
+              width: cursor.variant === 'image' ? 96 : cursor.variant === 'dot' ? 18 : 74,
+              height: cursor.variant === 'image' ? 44 : cursor.variant === 'dot' ? 18 : 34,
+              borderRadius: cursor.variant === 'image' ? 16 : 999,
             }}
             exit={{ opacity: 0, scale: 0.75 }}
             transition={{ duration: 0.18 }}
           >
-            {cursor.label}
+            {cursor.variant !== 'dot' ? cursor.label : null}
           </motion.div>
         )}
       </AnimatePresence>

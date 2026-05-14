@@ -24,7 +24,6 @@ function CounterCard({ metric, index }: { metric: Metric; index: number }) {
     <ScrollReveal delay={index * 0.1} direction="up">
       <motion.div
         ref={ref}
-        data-cursor="metric"
         className="card card-hover p-6"
         whileHover={{ y: -6, scale: 1.015 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}

@@ -67,7 +67,7 @@ function TeamCard({ profile, onSelect }: { profile: TeamProfile; onSelect: () =>
         <div className="relative aspect-[4/5] overflow-hidden">
           <TeamPhoto profile={profile} className="group-hover:scale-[1.055]" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/8 to-transparent opacity-80 transition-opacity group-hover:opacity-95" />
-          <div className="absolute inset-x-4 bottom-4 rounded-3xl border border-white/20 bg-white/12 p-4 text-white shadow-xl backdrop-blur-2xl transition-all duration-500 group-hover:translate-y-[-2px] group-hover:bg-white/18">
+          <div className="absolute inset-x-4 bottom-4 rounded-3xl border border-white/20 bg-white/[0.12] p-4 text-white shadow-xl backdrop-blur-2xl transition-all duration-500 group-hover:translate-y-[-2px] group-hover:bg-white/[0.18]">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -137,7 +137,7 @@ function ProfileModal({ profile, onClose }: { profile: TeamProfile | null; onClo
               <TeamPhoto profile={profile} />
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
-            <div className="absolute inset-x-5 bottom-5 rounded-3xl border border-white/20 bg-white/12 p-5 text-white shadow-2xl backdrop-blur-2xl">
+            <div className="absolute inset-x-5 bottom-5 rounded-3xl border border-white/20 bg-white/[0.12] p-5 text-white shadow-2xl backdrop-blur-2xl">
               <p className="text-xs uppercase tracking-[0.24em] text-white/62">
                 {formatJoinedDate(profile.joinedDate, lang)}
               </p>

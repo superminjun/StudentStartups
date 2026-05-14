@@ -32,7 +32,7 @@ export default function Footer() {
       <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 lg:grid-cols-12">
         <div className="min-w-0 lg:col-span-5">
           <ScrollReveal>
-            <Link to="/" data-cursor="home" className="text-lg font-semibold text-foreground">
+            <Link to="/" className="text-lg font-semibold text-foreground">
               Student Startups
             </Link>
             <p className="mt-1 text-xs text-muted-foreground">BNSS</p>
@@ -40,10 +40,10 @@ export default function Footer() {
               {t('footer.description')}
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Link to="/contact" data-cursor="join" data-magnetic="true" className="btn btn-primary">
+              <Link to="/contact" data-magnetic="true" className="btn btn-primary">
                 {t('footer.cta')}
               </Link>
-              <Link to="/projects" data-cursor="view" data-magnetic="true" className="btn btn-secondary">
+              <Link to="/projects" data-magnetic="true" className="btn btn-secondary">
                 {t('footer.viewWork')}
               </Link>
             </div>
@@ -54,7 +54,7 @@ export default function Footer() {
           <ul className="mt-4 space-y-2.5">
             {navLinks.map((link) => (
               <li key={link.to}>
-                <Link to={link.to} data-cursor="open" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                <Link to={link.to} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                   {link.label}
                 </Link>
               </li>
@@ -66,7 +66,7 @@ export default function Footer() {
           <ul className="mt-4 space-y-2.5">
             {programLinks.map((link) => (
               <li key={link.to}>
-                <Link to={link.to} data-cursor="open" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                <Link to={link.to} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                   {link.label}
                 </Link>
               </li>
@@ -85,7 +85,6 @@ export default function Footer() {
                 href={href}
                 target={label !== 'Email' ? '_blank' : undefined}
                 rel="noopener noreferrer"
-                data-cursor={label === 'Email' ? 'mail' : 'open'}
                 className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-all hover:bg-foreground hover:text-background"
                 aria-label={label}
                 whileHover={{ y: -4, scale: 1.04 }}
@@ -111,12 +110,11 @@ export default function Footer() {
           <p className="text-xs text-muted-foreground">{t('footer.rights')}</p>
           <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-end">
             {legalLinks.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              data-cursor="open"
-              className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
+              <Link
+                key={link.to}
+                to={link.to}
+                className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
                 {link.label}
               </Link>
             ))}
