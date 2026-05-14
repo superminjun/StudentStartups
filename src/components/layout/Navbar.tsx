@@ -113,14 +113,6 @@ export default function Navbar() {
   const elevated = scrolled;
   const isHome = location.pathname === '/';
   const navLinks = isHome ? homeSections : siteLinks;
-  const homeNavLabels: Record<string, { en: string; ko: string }> = {
-    'nav.intro': { en: 'Overview', ko: '개요' },
-    'nav.value': { en: 'Structure', ko: '구조' },
-    'nav.process': { en: 'Method', ko: '방식' },
-    'nav.proof': { en: 'Record', ko: '기록' },
-    'nav.cta': { en: 'Contact', ko: '문의' },
-  };
-  const navLabel = (key: string) => homeNavLabels[key]?.[lang] ?? t(key);
 
   const handleBrandClick = () => {
     if (isHome) {
@@ -169,7 +161,7 @@ export default function Navbar() {
                       active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                     )}
                   >
-                    {navLabel(link.key)}
+                    {t(link.key)}
                     {active && (
                       <motion.span
                         layoutId="nav-underline"
@@ -329,7 +321,7 @@ export default function Navbar() {
                         activeSection === (link as { id: string }).id ? 'text-foreground' : 'text-muted-foreground'
                       )}
                     >
-                      {navLabel(link.key)}
+                      {t(link.key)}
                     </button>
                   ) : (
                     <Link

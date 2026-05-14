@@ -70,6 +70,52 @@ type CopyDraft = {
   ko: string;
 };
 
+type CopyGroup = {
+  id: string;
+  label: string;
+  description: string;
+  prefixes: string[];
+};
+
+const COPY_GROUPS: CopyGroup[] = [
+  { id: 'home', label: 'Homepage', description: 'Hero, homepage sections, CTAs, and proof blocks.', prefixes: ['nav.', 'hero.', 'heroVisual.', 'heroNotes.', 'mission.', 'valueProp.', 'workflow.', 'impactPreview.', 'featured.', 'proof.', 'cta.'] },
+  { id: 'pages', label: 'Public Pages', description: 'About, team, projects, impact, shop, contact, and shared public text.', prefixes: ['about.', 'teamPage.', 'projects.', 'projectDetail.', 'impact.', 'shop.', 'contact.', 'footer.', 'common.'] },
+  { id: 'auth', label: 'Auth & Portal', description: 'Login, reset password, member portal, and account messages.', prefixes: ['login.', 'forgotPassword.', 'resetPassword.', 'portal.'] },
+  { id: 'all', label: 'All Copy', description: 'Every editable text key on the website.', prefixes: [] },
+];
+
+const COPY_KEY_LABELS: Record<string, string> = {
+  'hero.tagline': 'Hero eyebrow',
+  'hero.title': 'Hero headline',
+  'hero.subtitle': 'Hero supporting sentence',
+  'hero.cta': 'Primary hero button',
+  'hero.secondaryCta': 'Secondary hero button',
+  'heroVisual.eyebrow': 'Hero visual label',
+  'heroVisual.title': 'Hero visual headline',
+  'heroVisual.body': 'Hero visual body',
+  'heroNotes.one': 'Hero note 1',
+  'heroNotes.two': 'Hero note 2',
+  'heroNotes.three': 'Hero note 3',
+  'valueProp.title': 'Value section headline',
+  'valueProp.subtitle': 'Value section body',
+  'workflow.title': 'Method section headline',
+  'impactPreview.title': 'Record section headline',
+  'cta.title': 'Final CTA headline',
+};
+
+const copyGroupForKey = (key: string) =>
+  COPY_GROUPS.find((group) => group.id !== 'all' && group.prefixes.some((prefix) => key.startsWith(prefix)))?.id ?? 'all';
+
+const copyKeyLabel = (key: string) => {
+  if (COPY_KEY_LABELS[key]) return COPY_KEY_LABELS[key];
+  const last = key.split('.').pop() ?? key;
+  return last
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/[_-]/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+    .trim();
+};
+
 type ContributionRow = {
   id: string;
   member_id: string;
@@ -261,10 +307,15 @@ export default function Admin() {
   const [saved, setSaved] = useState(false);
   const { theme, updateTheme, status: themeStatus, error: themeError } = useSiteThemeStore();
   const [themeSaved, setThemeSaved] = useState(false);
-  const { copy, status: copyStatus, error: copyError } = useSiteCopyStore();
+  const { copy, status: copyStatus, error: copyError, upsertMany } = useSiteCopyStore();
   const [copyDrafts, setCopyDrafts] = useState<CopyDraft[]>([]);
   const [copySearch, setCopySearch] = useState('');
   const [copyNotice, setCopyNotice] = useState('');
+  const [copySection, setCopySection] = useState('home');
+  const [copyLanguage, setCopyLanguage] = useState<'both' | 'en' | 'ko'>('both');
+  const [copyDirty, setCopyDirty] = useState(false);
+  const [copySaveState, setCopySaveState] = useState<SaveState>({ status: 'idle' });
+  const [selectedCopyKey, setSelectedCopyKey] = useState<string | null>(null);
   const [newTermInput, setNewTermInput] = useState('');
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [messages, setMessages] = useState<MessageRow[]>([]);
@@ -1697,27 +1748,31 @@ export default function Admin() {
   };
 
   const handleSaveCopy = async () => {
-    if (!supabase) return;
+    setCopySaveState({ status: 'saving', message: 'Saving copy...' });
     const payload = copyDrafts.map((row) => ({
       key: row.key,
       value_en: row.en,
       value_ko: row.ko,
     }));
-    const { error: saveError } = await supabase.from('site_copy').upsert(payload);
-    if (!saveError) {
-      useSiteCopyStore.setState((state) => ({
-        copy: payload.reduce((acc, row) => {
-          acc[row.key] = { en: row.value_en, ko: row.value_ko };
-          return acc;
-        }, { ...state.copy } as Record<string, { en?: string | null; ko?: string | null }>)
-      }));
+    const result = await upsertMany(payload);
+    if (result.error) {
+      setCopySaveState({ status: 'error', message: result.error });
+      setCopyNotice(result.error);
+      return;
     }
-    setCopyNotice(saveError ? saveError.message : 'Copy saved');
-    window.setTimeout(() => setCopyNotice(''), 1800);
+    setCopyDirty(false);
+    setCopySaveState({ status: 'saved', message: 'Saved and live' });
+    setCopyNotice('Saved and live on the website');
+    window.setTimeout(() => {
+      setCopyNotice('');
+      setCopySaveState({ status: 'idle' });
+    }, 1800);
   };
 
   const handleResetCopy = () => {
     setCopyDrafts(defaultCopyList);
+    setCopyDirty(true);
+    setCopySaveState({ status: 'idle' });
   };
 
   const updateShopTerms = (terms: string[]) => {
@@ -1800,6 +1855,22 @@ export default function Admin() {
     }));
   }, []);
 
+  const mergedCopyList = useMemo<CopyDraft[]>(
+    () => defaultCopyList.map((row) => ({
+      ...row,
+      en: copy[row.key]?.en ?? row.en,
+      ko: copy[row.key]?.ko ?? row.ko,
+    })),
+    [copy, defaultCopyList]
+  );
+
+  const updateCopyDraft = (key: string, language: 'en' | 'ko', value: string) => {
+    setCopyDrafts((prev) => prev.map((item) => (item.key === key ? { ...item, [language]: value } : item)));
+    setSelectedCopyKey(key);
+    setCopyDirty(true);
+    setCopySaveState({ status: 'idle' });
+  };
+
   const parseTerms = (value: string) =>
     value
       .split(',')
@@ -1819,14 +1890,10 @@ export default function Admin() {
   );
 
   useEffect(() => {
-    setCopyDrafts(
-      defaultCopyList.map((row) => ({
-        ...row,
-        en: copy[row.key]?.en ?? row.en,
-        ko: copy[row.key]?.ko ?? row.ko,
-      }))
-    );
-  }, [copy, defaultCopyList]);
+    if (copyDirty) return;
+    setCopyDrafts(mergedCopyList);
+    setSelectedCopyKey((current) => current ?? mergedCopyList[0]?.key ?? null);
+  }, [copyDirty, mergedCopyList]);
 
   const themeColorFields = [
     { key: 'colorBeige', label: 'Beige' },
@@ -1843,17 +1910,45 @@ export default function Admin() {
   const getThemeColor = (key: keyof SiteTheme) => normalizeHex(theme[key] as string) ?? '#000000';
 
   const filteredCopyDrafts = useMemo(() => {
+    const section = COPY_GROUPS.find((group) => group.id === copySection) ?? COPY_GROUPS[0];
+    const sectionRows = section.id === 'all'
+      ? copyDrafts
+      : copyDrafts.filter((row) => section.prefixes.some((prefix) => row.key.startsWith(prefix)));
     const query = copySearch.trim().toLowerCase();
-    if (!query) return copyDrafts;
-    return copyDrafts.filter((row) =>
+    if (!query) return sectionRows;
+    return sectionRows.filter((row) =>
       row.key.toLowerCase().includes(query)
       || row.en.toLowerCase().includes(query)
       || row.ko.toLowerCase().includes(query)
+      || copyKeyLabel(row.key).toLowerCase().includes(query)
     );
-  }, [copyDrafts, copySearch]);
+  }, [copyDrafts, copySearch, copySection]);
+
+  const selectedCopyDraft = useMemo(
+    () => copyDrafts.find((row) => row.key === selectedCopyKey) ?? filteredCopyDrafts[0] ?? copyDrafts[0],
+    [copyDrafts, filteredCopyDrafts, selectedCopyKey]
+  );
+
+  const changedCopyCount = useMemo(() => {
+    const originals = new Map(mergedCopyList.map((row) => [row.key, row]));
+    return copyDrafts.filter((row) => {
+      const original = originals.get(row.key);
+      return !original || row.en !== original.en || row.ko !== original.ko;
+    }).length;
+  }, [copyDrafts, mergedCopyList]);
+
+  const copyGroupCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    COPY_GROUPS.forEach((group) => {
+      counts[group.id] = group.id === 'all'
+        ? copyDrafts.length
+        : copyDrafts.filter((row) => group.prefixes.some((prefix) => row.key.startsWith(prefix))).length;
+    });
+    return counts;
+  }, [copyDrafts]);
 
   const contentEntries = (Object.entries(siteContent) as [keyof SiteContent, string][])
-    .filter(([key]) => key !== 'heroBackgroundUrl' && key !== 'shopTerms');
+    .filter(([key]) => !['heroBackgroundUrl', 'shopTerms', 'heroTagline', 'heroTitle', 'heroSubtitle', 'heroCta'].includes(key));
 
   const normalizedOrders = orders.map((order, index) => {
     let items: { name: string; qty: number; price: number }[] = [];
@@ -3536,66 +3631,201 @@ export default function Admin() {
         {/* Copy */}
         {tab === 'copy' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-            <div className="rounded-xl border border-border bg-card p-6">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-charcoal">Edit All Text</h3>
-                  <p className="text-sm text-light">Search any key and update the English/Korean copy instantly.</p>
+                  <h3 className="text-lg font-bold text-charcoal">Website Copy Studio</h3>
+                  <p className="mt-1 max-w-2xl text-sm leading-6 text-light">
+                    Edit public website text by section, preview it before saving, then publish it live with one save.
+                  </p>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    changedCopyCount > 0 ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'
+                  }`}>
+                    {changedCopyCount > 0 ? `${changedCopyCount} unsaved` : 'All saved'}
+                  </span>
                   <button
                     onClick={handleResetCopy}
                     className="rounded-full border border-border px-4 py-2 text-xs text-mid hover:text-charcoal hover:border-charcoal"
                   >
-                    Reset to Defaults
+                    Reset all to defaults
                   </button>
                   <button
                     onClick={handleSaveCopy}
-                    className="rounded-full bg-charcoal px-5 py-2 text-xs font-semibold text-white"
+                    disabled={copySaveState.status === 'saving'}
+                    className="rounded-full bg-charcoal px-5 py-2 text-xs font-semibold text-white disabled:cursor-wait disabled:opacity-60"
                   >
-                    Save Changes
+                    {copySaveState.status === 'saving' ? 'Saving...' : 'Save & Publish'}
                   </button>
                 </div>
               </div>
 
-              <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="mt-6 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
                 <input
                   type="text"
                   value={copySearch}
                   onChange={(e) => setCopySearch(e.target.value)}
-                  placeholder="Search by key or text..."
+                  placeholder="Search a section, page, button, or exact text..."
                   className="w-full rounded-lg border border-border px-4 py-2 text-sm outline-none focus:border-charcoal"
                 />
-                <span className="text-xs text-light">{filteredCopyDrafts.length} items</span>
+                <div className="flex overflow-hidden rounded-full border border-border bg-muted/40 p-1">
+                  {(['both', 'en', 'ko'] as const).map((language) => (
+                    <button
+                      key={language}
+                      type="button"
+                      onClick={() => setCopyLanguage(language)}
+                      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        copyLanguage === language ? 'bg-charcoal text-white' : 'text-mid hover:text-charcoal'
+                      }`}
+                    >
+                      {language === 'both' ? 'EN + KO' : language.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <div className="mt-4 space-y-3">
-                {filteredCopyDrafts.map((row) => (
-                  <div key={row.key} className="grid gap-2 lg:grid-cols-[220px,1fr,1fr] items-start min-w-0">
-                    <div className="text-xs font-semibold text-mid break-all">{row.key}</div>
-                    <input
-                      type="text"
-                      value={row.en}
-                      onChange={(e) => setCopyDrafts((prev) => prev.map((item) => item.key === row.key ? { ...item, en: e.target.value } : item))}
-                      placeholder="English"
-                      className="w-full min-w-0 rounded-lg border border-border px-3 py-2 text-xs outline-none focus:border-charcoal"
-                    />
-                    <input
-                      type="text"
-                      value={row.ko}
-                      onChange={(e) => setCopyDrafts((prev) => prev.map((item) => item.key === row.key ? { ...item, ko: e.target.value } : item))}
-                      placeholder="Korean"
-                      className="w-full min-w-0 rounded-lg border border-border px-3 py-2 text-xs outline-none focus:border-charcoal"
-                    />
+              <div className="mt-5 grid gap-5 xl:grid-cols-[220px_minmax(0,1fr)_320px]">
+                <aside className="space-y-2">
+                  {COPY_GROUPS.map((group) => (
+                    <button
+                      key={group.id}
+                      type="button"
+                      onClick={() => {
+                        setCopySection(group.id);
+                        setSelectedCopyKey(null);
+                      }}
+                      className={`w-full rounded-2xl border p-4 text-left transition-all ${
+                        copySection === group.id
+                          ? 'border-charcoal bg-charcoal text-white shadow-sm'
+                          : 'border-border bg-background/60 text-charcoal hover:border-charcoal/40 hover:bg-background'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-semibold">{group.label}</span>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] ${
+                          copySection === group.id ? 'bg-white/15 text-white' : 'bg-muted text-light'
+                        }`}>
+                          {copyGroupCounts[group.id] ?? 0}
+                        </span>
+                      </div>
+                      <p className={`mt-1 text-xs leading-5 ${copySection === group.id ? 'text-white/65' : 'text-light'}`}>
+                        {group.description}
+                      </p>
+                    </button>
+                  ))}
+                </aside>
+
+                <div className="min-w-0 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-light">
+                      {filteredCopyDrafts.length} editable items
+                    </p>
+                    <p className="hidden text-xs text-light sm:block">
+                      Click a row to preview it on the right.
+                    </p>
                   </div>
-                ))}
+
+                  {filteredCopyDrafts.map((row) => {
+                    const active = selectedCopyDraft?.key === row.key;
+                    return (
+                      <div
+                        key={row.key}
+                        className={`rounded-2xl border p-4 transition-all ${
+                          active ? 'border-charcoal bg-background shadow-sm' : 'border-border bg-background/55 hover:border-charcoal/30'
+                        }`}
+                        onFocus={() => setSelectedCopyKey(row.key)}
+                        onClick={() => setSelectedCopyKey(row.key)}
+                      >
+                        <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <p className="text-sm font-semibold text-charcoal">{copyKeyLabel(row.key)}</p>
+                            <p className="mt-0.5 break-all text-[11px] text-light">{row.key}</p>
+                          </div>
+                          <span className="w-fit rounded-full bg-muted px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-light">
+                            {copyGroupForKey(row.key)}
+                          </span>
+                        </div>
+
+                        <div className={`grid gap-3 ${copyLanguage === 'both' ? 'lg:grid-cols-2' : ''}`}>
+                          {(copyLanguage === 'both' || copyLanguage === 'en') && (
+                            <label className="block">
+                              <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-light">English</span>
+                              <textarea
+                                value={row.en}
+                                onChange={(e) => updateCopyDraft(row.key, 'en', e.target.value)}
+                                placeholder="English copy"
+                                rows={row.en.length > 90 ? 4 : 2}
+                                className="w-full min-w-0 resize-y rounded-xl border border-border bg-card px-3 py-2 text-sm leading-6 text-charcoal outline-none transition-colors focus:border-charcoal"
+                              />
+                            </label>
+                          )}
+                          {(copyLanguage === 'both' || copyLanguage === 'ko') && (
+                            <label className="block">
+                              <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.14em] text-light">Korean</span>
+                              <textarea
+                                value={row.ko}
+                                onChange={(e) => updateCopyDraft(row.key, 'ko', e.target.value)}
+                                placeholder="Korean copy"
+                                rows={row.ko.length > 70 ? 4 : 2}
+                                className="w-full min-w-0 resize-y rounded-xl border border-border bg-card px-3 py-2 text-sm leading-6 text-charcoal outline-none transition-colors focus:border-charcoal"
+                              />
+                            </label>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {filteredCopyDrafts.length === 0 && (
+                    <div className="rounded-2xl border border-dashed border-border p-8 text-center">
+                      <p className="text-sm font-semibold text-charcoal">No copy found</p>
+                      <p className="mt-1 text-sm text-light">Try a different search term or section.</p>
+                    </div>
+                  )}
+                </div>
+
+                <aside className="xl:sticky xl:top-24 xl:self-start">
+                  <div className="rounded-2xl border border-border bg-background p-5 shadow-sm">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-light">Live preview</p>
+                    <h4 className="mt-2 text-base font-bold text-charcoal">
+                      {selectedCopyDraft ? copyKeyLabel(selectedCopyDraft.key) : 'Select a copy row'}
+                    </h4>
+                    {selectedCopyDraft && (
+                      <>
+                        <p className="mt-1 break-all text-[11px] text-light">{selectedCopyDraft.key}</p>
+                        <div className="mt-5 space-y-4">
+                          <div className="rounded-xl border border-border bg-card p-4">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-light">English</p>
+                            <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-charcoal">{selectedCopyDraft.en || 'No English copy yet.'}</p>
+                          </div>
+                          <div className="rounded-xl border border-border bg-card p-4">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-light">Korean</p>
+                            <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-charcoal">{selectedCopyDraft.ko || '아직 한국어 문구가 없습니다.'}</p>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="mt-3 rounded-2xl border border-border bg-muted/40 p-4">
+                    <p className="text-xs font-semibold text-charcoal">How publishing works</p>
+                    <p className="mt-1 text-xs leading-5 text-light">
+                      Edits stay local while typing. When you press Save & Publish, the copy store updates immediately and the public site receives the new text through Supabase.
+                    </p>
+                  </div>
+                </aside>
               </div>
 
-              <div className="mt-4 text-xs text-light">
+              <div className={`mt-5 text-xs ${
+                copySaveState.status === 'error' || copyError ? 'text-red-500' : copySaveState.status === 'saved' ? 'text-emerald-600' : 'text-light'
+              }`}>
                 {copyError
                   ? copyError
                   : copyNotice
                     ? copyNotice
+                    : copySaveState.message
+                      ? copySaveState.message
                     : copyStatus === 'loading'
                       ? 'Syncing...'
                       : copyStatus === 'demo'
@@ -3610,6 +3840,12 @@ export default function Admin() {
         {tab === 'content' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-xl border border-border bg-card p-6">
             <h3 className="text-lg font-bold text-charcoal mb-5">Edit Site Content</h3>
+            <div className="mb-5 rounded-xl border border-border bg-muted/40 p-4">
+              <p className="text-sm font-semibold text-charcoal">Text editing moved to Copy Studio</p>
+              <p className="mt-1 text-xs leading-5 text-light">
+                Hero titles, buttons, page copy, Korean translations, and navigation labels are now managed in the Copy tab so they can be previewed and published cleanly.
+              </p>
+            </div>
             <div className="space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-charcoal">Hero Background Image</label>

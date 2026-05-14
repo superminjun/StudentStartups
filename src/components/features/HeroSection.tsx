@@ -27,73 +27,39 @@ export default function HeroSection() {
   const hasHeroImage = Boolean(heroBackgroundUrl && heroBackgroundUrl !== defaultHeroUrl);
   const visualCopy = lang === 'ko'
     ? {
-        eyebrow: '작업 노트',
-        cycle: '이번 주 기록',
-        title: '만든 흔적을 남깁니다.',
-        body: '누가 맡았고, 무엇이 바뀌었고, 무엇이 공개됐는지 짧게 남깁니다.',
-        stages: '프로젝트',
-        teams: '팀',
-        review: '노트',
+        eyebrow: t('heroVisual.eyebrow'),
+        cycle: t('heroVisual.cycle'),
+        title: t('heroVisual.title'),
+        body: t('heroVisual.body'),
+        stages: t('heroVisual.projects'),
+        teams: t('heroVisual.teams'),
+        review: t('heroVisual.notes'),
       }
     : {
-        eyebrow: 'Working notes',
-        cycle: 'this week',
-        title: 'The work stays visible.',
-        body: 'Who owned it, what changed, and what shipped. No mystery around the progress.',
-        stages: 'projects',
-        teams: 'teams',
-        review: 'notes',
+        eyebrow: t('heroVisual.eyebrow'),
+        cycle: t('heroVisual.cycle'),
+        title: t('heroVisual.title'),
+        body: t('heroVisual.body'),
+        stages: t('heroVisual.projects'),
+        teams: t('heroVisual.teams'),
+        review: t('heroVisual.notes'),
       };
 
   const heroNotes = lang === 'ko'
     ? [
-        ['01', '맡은 사람이 보이는 일'],
-        ['02', '짧게 남기는 결정'],
-        ['03', '밖에 보여주는 결과'],
+        ['01', t('heroNotes.one')],
+        ['02', t('heroNotes.two')],
+        ['03', t('heroNotes.three')],
       ]
     : [
-        ['01', 'Clear owners'],
-        ['02', 'Decisions in writing'],
-        ['03', 'Work shown outside'],
+        ['01', t('heroNotes.one')],
+        ['02', t('heroNotes.two')],
+        ['03', t('heroNotes.three')],
       ];
 
-  const refinedHeroCopy = lang === 'ko'
-    ? {
-        title: '기다리기보다 먼저 만드는 학생들을 위해.',
-        subtitle: '팀을 찾고, 첫 버전을 만들고, 팔아보고, 남은 기록까지 정리합니다. Student Startups는 그 과정을 실제로 굴리는 곳입니다.',
-        cta: '작업 보기',
-      }
-    : {
-        title: 'For students who would rather build than wait.',
-        subtitle: 'Student Startups helps students find people, make the first version, sell it, and keep a clear record of what actually happened.',
-        cta: 'See the Work',
-      };
-  const normalizedHeroTitle = content.heroTitle?.replace(/\s+/g, ' ').trim() ?? '';
-  const normalizedHeroSubtitle = content.heroSubtitle?.replace(/\s+/g, ' ').trim() ?? '';
-  const normalizedHeroCta = content.heroCta?.replace(/\s+/g, ' ').trim() ?? '';
-  const legacyHeroTitles = new Set([
-    'Build something real before graduation.',
-    'Where Students Build Real Businesses',
-    'A serious place for early builders.',
-    'For serious students building early.',
-  ]);
-  const legacyHeroSubtitles = new Set([
-    'Find teammates, test ideas, launch products, and learn how startups actually work.',
-    'Find teammates, test ideas, launch products, and learn how startups actually work while you are still in school.',
-    'Student Startups is a platform for students developing real products, operating disciplined teams, and building a record that can be examined.',
-  ]);
-  const legacyHeroCtas = new Set(['Start Building', 'Launch Your Idea', 'Build Your First Startup', 'Review the Work']);
-  const heroTitle = legacyHeroTitles.has(normalizedHeroTitle) || normalizedHeroTitle.startsWith('Where Students Build')
-    ? refinedHeroCopy.title
-    : content.heroTitle || refinedHeroCopy.title;
-  const heroSubtitle = legacyHeroSubtitles.has(normalizedHeroSubtitle)
-    || normalizedHeroSubtitle.includes('while you are still in school')
-    || normalizedHeroSubtitle.toLowerCase().includes('student-led entrepreneurship club')
-    ? refinedHeroCopy.subtitle
-    : content.heroSubtitle || refinedHeroCopy.subtitle;
-  const heroCta = legacyHeroCtas.has(normalizedHeroCta)
-    ? refinedHeroCopy.cta
-    : content.heroCta || refinedHeroCopy.cta;
+  const heroTitle = t('hero.title');
+  const heroSubtitle = t('hero.subtitle');
+  const heroCta = t('hero.cta');
 
   const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
     if (reduceMotion || window.matchMedia('(pointer: coarse)').matches) return;
@@ -152,7 +118,7 @@ export default function HeroSection() {
             className="inline-flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground"
           >
             <span className="h-px w-9 bg-foreground/30" />
-            {content.heroTagline || t('hero.tagline')}
+            {t('hero.tagline')}
           </motion.p>
 
           <TextReveal
@@ -255,7 +221,7 @@ export default function HeroSection() {
                 {[
                   ['7', visualCopy.stages],
                   ['4', visualCopy.teams],
-                  [lang === 'ko' ? '진행' : 'live', visualCopy.review],
+                  [t('heroVisual.live'), visualCopy.review],
                 ].map(([value, label], index) => (
                   <motion.div
                     key={label}

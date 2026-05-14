@@ -6,7 +6,7 @@ import { Instagram, Mail } from 'lucide-react';
 import ScrollReveal from '@/components/features/ScrollReveal';
 
 export default function Footer() {
-  const { lang, t } = useLanguage();
+  const { t } = useLanguage();
 
   const navLinks = [
     { to: '/about', label: t('nav.about') },
@@ -23,8 +23,8 @@ export default function Footer() {
   ];
 
   const legalLinks = [
-    { to: '/privacy', label: lang === 'ko' ? '개인정보 처리방침' : 'Privacy Policy' },
-    { to: '/terms', label: lang === 'ko' ? '서비스 이용약관' : 'Terms of Service' },
+    { to: '/privacy', label: t('footer.privacy') },
+    { to: '/terms', label: t('footer.terms') },
   ];
 
   return (

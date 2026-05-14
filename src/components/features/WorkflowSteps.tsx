@@ -14,7 +14,7 @@ const steps = [
 ];
 
 export default function WorkflowSteps() {
-  const { lang, t } = useLanguage();
+  const { t } = useLanguage();
 
   return (
     <section id="process" className="section relative overflow-hidden bg-card scroll-mt-24">
@@ -30,11 +30,11 @@ export default function WorkflowSteps() {
           <ScrollReveal delay={0.12} className="mt-8 hidden overflow-hidden rounded-[2rem] border border-border bg-background/70 p-4 shadow-xl shadow-foreground/5 backdrop-blur-xl lg:block">
             <div className="aspect-[4/3] rounded-[1.45rem] bg-[radial-gradient(circle_at_28%_20%,hsl(var(--color-accent)/0.22),transparent_26%),linear-gradient(135deg,hsl(var(--color-beige)),hsl(var(--color-warm-white)))] p-5">
               <div className="flex h-full flex-col justify-between rounded-[1.2rem] border border-border bg-card/75 p-5 backdrop-blur-xl">
-                <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">{lang === 'ko' ? '운영 시스템' : 'Operating system'}</p>
+                <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">{t('workflow.systemLabel')}</p>
                 <div>
                   <p className="text-4xl font-semibold tracking-tight text-foreground">01–07</p>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    {lang === 'ko' ? '초기 아이디어에서 공개 출시까지 이어지는 단계형 흐름입니다.' : 'A staged path from rough idea to public launch.'}
+                    {t('workflow.systemDesc')}
                   </p>
                 </div>
               </div>

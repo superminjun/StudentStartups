@@ -10,6 +10,24 @@ interface LanguageContextType {
 }
 
 const staleCopy: Record<string, string[]> = {
+  'nav.intro': ['Start Here'],
+  'nav.value': ['Why It Works'],
+  'nav.process': ['Build Cycle'],
+  'nav.proof': ['Results'],
+  'nav.cta': ['Start Building'],
+  'hero.title': [
+    'A serious place for early builders.',
+    'Build something real before graduation.',
+    'Where Students Build Real Businesses',
+    '일찍 시작하는 빌더를 위한 진지한 플랫폼입니다.',
+  ],
+  'hero.subtitle': [
+    'Student Startups is a platform for students developing real products, operating disciplined teams, and building a record that can be examined.',
+    'Find teammates, test ideas, launch products, and learn how startups actually work.',
+    'Find teammates, test ideas, launch products, and learn how startups actually work while you are still in school.',
+    'Student Startups는 학생들이 실제 제품을 만들고, 팀을 운영하며, 검토를 버틸 만한 기록을 남기는 플랫폼입니다.',
+  ],
+  'hero.cta': ['Review the Work', 'Start Building', 'Launch Your Idea', 'Build Your First Startup'],
   'valueProp.title': [
     'Built for students who want to ship.',
     'A serious platform for early builders.',

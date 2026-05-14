@@ -50,7 +50,7 @@ function TeamPhoto({ profile, className }: { profile: TeamProfile; className?: s
 }
 
 function TeamCard({ profile, onSelect }: { profile: TeamProfile; onSelect: () => void }) {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
   const visibleTags = (profile.tags ?? []).slice(0, 3);
 
   return (
@@ -74,7 +74,7 @@ function TeamCard({ profile, onSelect }: { profile: TeamProfile; onSelect: () =>
                   <p className="truncate text-lg font-semibold tracking-tight">{profile.fullName}</p>
                   {profile.isFounder && (
                     <span className="rounded-full border border-white/25 bg-white/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em]">
-                      Founder
+                      {t('teamPage.founderBadge')}
                     </span>
                   )}
                 </div>
@@ -110,20 +110,20 @@ function TeamCard({ profile, onSelect }: { profile: TeamProfile; onSelect: () =>
 }
 
 function ProfileModal({ profile, onClose }: { profile: TeamProfile | null; onClose: () => void }) {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
   if (!profile) return null;
 
   const sections = [
     {
-      title: lang === 'ko' ? '현재 맡은 일' : 'Current Work',
+      title: t('teamPage.currentWork'),
       body: profile.currentWork,
     },
     {
-      title: lang === 'ko' ? '기여' : 'Contribution',
+      title: t('teamPage.contribution'),
       body: profile.contribution,
     },
     {
-      title: lang === 'ko' ? '집중 분야' : 'Focus',
+      title: t('teamPage.focus'),
       body: profile.focus,
     },
   ].filter((section) => section.body?.trim());
@@ -152,18 +152,18 @@ function ProfileModal({ profile, onClose }: { profile: TeamProfile | null; onClo
                 {profile.isFounder && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-foreground px-3 py-1 text-xs font-semibold text-background">
                     <BadgeCheck className="size-3.5" />
-                    Founder
+                    {t('teamPage.founderBadge')}
                   </span>
                 )}
                 {profile.isFeatured && (
                   <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
                     <Sparkles className="size-3.5" />
-                    Featured
+                    {t('teamPage.featuredBadge')}
                   </span>
                 )}
               </div>
               <DialogTitle className="mt-5 text-3xl font-semibold tracking-tight text-foreground">
-                {lang === 'ko' ? '프로필' : 'Profile'}
+                {t('teamPage.profileTitle')}
               </DialogTitle>
             </DialogHeader>
 
@@ -200,7 +200,7 @@ function ProfileModal({ profile, onClose }: { profile: TeamProfile | null; onClo
 }
 
 export default function Team() {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
   const [selectedProfile, setSelectedProfile] = useState<TeamProfile | null>(null);
   const profiles = useTeamStore((state) => state.profiles);
   const status = useTeamStore((state) => state.status);
@@ -225,22 +225,20 @@ export default function Team() {
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           className="max-w-3xl"
         >
-          <p className="section-kicker">{lang === 'ko' ? '팀' : 'Team'}</p>
+          <p className="section-kicker">{t('teamPage.kicker')}</p>
           <h1 className="mt-5 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            {lang === 'ko' ? '작업을 실제로 맡는 사람들.' : 'The people behind the work.'}
+            {t('teamPage.title')}
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-            {lang === 'ko'
-              ? 'Student Startups는 역할이 분명한 멤버들이 제품, 운영, 디자인, 커뮤니케이션을 나누어 맡으며 만들어갑니다.'
-              : 'Student Startups is built by members with defined responsibilities across product, operations, design, and communication.'}
+            {t('teamPage.subtitle')}
           </p>
         </motion.div>
 
         <div className="mt-12 grid gap-4 sm:grid-cols-3">
           {[
-            [lang === 'ko' ? '역할' : 'Roles', lang === 'ko' ? '기여가 보이는 구조' : 'Defined ownership'],
-            [lang === 'ko' ? '기록' : 'Record', lang === 'ko' ? '프로젝트와 연결된 작업' : 'Work tied to projects'],
-            [lang === 'ko' ? '기준' : 'Standard', lang === 'ko' ? '보여줄 수 있는 결과' : 'Output that can be reviewed'],
+            [t('teamPage.statOneLabel'), t('teamPage.statOneValue')],
+            [t('teamPage.statTwoLabel'), t('teamPage.statTwoValue')],
+            [t('teamPage.statThreeLabel'), t('teamPage.statThreeValue')],
           ].map(([label, value]) => (
             <div key={label} className="rounded-3xl border border-border bg-card/80 p-5 shadow-sm backdrop-blur">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">{label}</p>
@@ -253,17 +251,15 @@ export default function Team() {
       <section className="mx-auto max-w-6xl px-6 pb-24">
         {status === 'loading' && sortedProfiles.length === 0 ? (
           <div className="rounded-[2rem] border border-border bg-card p-10 text-center text-muted-foreground">
-            {lang === 'ko' ? '팀 프로필을 불러오는 중입니다.' : 'Loading team profiles.'}
+            {t('teamPage.loading')}
           </div>
         ) : sortedProfiles.length === 0 ? (
           <div className="rounded-[2rem] border border-dashed border-border bg-card p-10 text-center">
             <p className="text-lg font-semibold text-foreground">
-              {lang === 'ko' ? '아직 공개된 팀 프로필이 없습니다.' : 'No public team profiles yet.'}
+              {t('teamPage.emptyTitle')}
             </p>
             <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-              {lang === 'ko'
-                ? '관리자 페이지의 Team 탭에서 멤버 사진과 소개를 저장하면 이곳에 표시됩니다.'
-                : 'Once profiles are saved in the Admin Team tab, they will appear here.'}
+              {t('teamPage.emptyBody')}
             </p>
             {error && <p className="mt-4 text-xs text-muted-foreground">{error}</p>}
           </div>

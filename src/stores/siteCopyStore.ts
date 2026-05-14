@@ -53,7 +53,7 @@ export const useSiteCopyStore = create<{
   status: SiteCopyStatus;
   error: string | null;
   hydrate: () => Promise<void>;
-  upsertMany: (rows: SiteCopyRow[]) => Promise<void>;
+  upsertMany: (rows: SiteCopyRow[]) => Promise<{ error: string | null }>;
 }>((set) => ({
   copy: isSupabaseConfigured ? readCache() ?? {} : {},
   status: 'idle',
@@ -75,19 +75,23 @@ export const useSiteCopyStore = create<{
     set({ copy: mapped, status: 'ready', error: null });
   },
   upsertMany: async (rows) => {
-    if (!isSupabaseConfigured || !supabase) return;
+    const patch = mapRowsToCopy(rows);
+    set((state) => {
+      const nextCopy = { ...state.copy, ...patch };
+      writeCache(nextCopy);
+      return { copy: nextCopy, status: isSupabaseConfigured ? 'loading' : 'demo', error: null };
+    });
+
+    if (!isSupabaseConfigured || !supabase) return { error: null };
+
     const { error } = await supabase.from(TABLE_NAME).upsert(rows);
     if (error) {
       set({ status: 'error', error: error.message });
-    } else {
-      const patch = mapRowsToCopy(rows);
-      set((state) => {
-        const nextCopy = { ...state.copy, ...patch };
-        writeCache(nextCopy);
-        return { copy: nextCopy, status: 'ready', error: null };
-      });
-      return;
+      return { error: error.message };
     }
+
+    set({ status: 'ready', error: null });
+    return { error: null };
   },
 }));
 
