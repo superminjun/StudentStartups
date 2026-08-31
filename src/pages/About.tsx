@@ -1,16 +1,24 @@
-import { ArrowRight } from 'lucide-react';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { ArrowRight, CircleDollarSign, Megaphone, PackageOpen, PenTool } from 'lucide-react';
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { useLanguage } from '@/hooks/useLanguage';
+import MotionMark from '@/components/features/MotionMark';
 import ScrollReveal from '@/components/features/ScrollReveal';
+import { useLanguage } from '@/hooks/useLanguage';
+import { motionSpring, STAGGER } from '@/lib/motion';
 
 export default function About() {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
+  const heroRef = useRef<HTMLElement>(null);
+  const reduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+  const markRotate = useTransform(scrollYProgress, [0, 1], [0, 100]);
+  const markY = useTransform(scrollYProgress, [0, 1], ['0%', '45%']);
   const teams = [
-    [t('about.teamCards.marketingName'), t('about.teamCards.marketingDesc')],
-    [t('about.teamCards.productionName'), t('about.teamCards.productionDesc')],
-    [t('about.teamCards.financeName'), t('about.teamCards.financeDesc')],
-    [t('about.teamCards.designName'), t('about.teamCards.designDesc')],
+    { title: t('about.teamCards.marketingName'), body: t('about.teamCards.marketingDesc'), icon: Megaphone, color: 'var(--ss-coral)', rotate: '-2deg' },
+    { title: t('about.teamCards.productionName'), body: t('about.teamCards.productionDesc'), icon: PackageOpen, color: 'var(--ss-lime)', rotate: '1.5deg' },
+    { title: t('about.teamCards.financeName'), body: t('about.teamCards.financeDesc'), icon: CircleDollarSign, color: 'var(--ss-sky)', rotate: '-1deg' },
+    { title: t('about.teamCards.designName'), body: t('about.teamCards.designDesc'), icon: PenTool, color: 'var(--ss-violet)', rotate: '2deg' },
   ];
   const model = [
     [t('about.howRotation'), t('about.howRotationDesc')],
@@ -19,100 +27,62 @@ export default function About() {
   ];
 
   return (
-    <div className="pt-[4.5rem]">
-      <section className="border-b border-border bg-background py-20 sm:py-28 lg:py-36">
-        <div className="mx-auto max-w-7xl px-5 sm:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            className="grid gap-10 lg:grid-cols-[1.35fr_0.65fr] lg:items-end"
-          >
-            <div>
-              <p className="section-kicker">{t('nav.about')}</p>
-              <h1 className="mt-6 max-w-5xl font-heading text-[clamp(3.2rem,7vw,7rem)] font-semibold leading-[0.9] tracking-[-0.065em] text-foreground">
-                {t('about.title')}
-              </h1>
-            </div>
-            <p className="max-w-xl text-base leading-8 text-muted-foreground sm:text-lg">{t('about.subtitle')}</p>
-          </motion.div>
-        </div>
-      </section>
-
-      <section className="bg-card py-20 sm:py-28">
-        <div className="mx-auto grid max-w-7xl gap-14 px-5 sm:px-8 lg:grid-cols-[0.6fr_1.4fr] lg:gap-24">
-          <ScrollReveal>
-            <p className="section-kicker">{t('mission.title')}</p>
-          </ScrollReveal>
-          <div>
-            <ScrollReveal>
-              <p className="max-w-5xl font-heading text-3xl font-medium leading-[1.18] tracking-[-0.04em] text-foreground sm:text-5xl">
-                {t('mission.p1')}
-              </p>
-            </ScrollReveal>
-            <ScrollReveal delay={0.08}>
-              <p className="mt-10 max-w-2xl text-base leading-8 text-muted-foreground">{t('mission.p2')}</p>
-            </ScrollReveal>
+    <div className="bg-[var(--ss-canvas)] pt-[4.75rem]">
+      <section ref={heroRef} className="relative min-h-[92svh] overflow-hidden border-b border-black/10 px-5 py-16 sm:px-8 lg:py-24">
+        <motion.div style={{ y: markY, rotate: markRotate }} className="absolute -right-24 top-14"><MotionMark className="size-[clamp(22rem,45vw,42rem)] opacity-55" /></motion.div>
+        <div className="relative mx-auto flex min-h-[70svh] max-w-[90rem] flex-col justify-between">
+          <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={motionSpring.reveal} className="text-[10px] font-black uppercase tracking-[.28em] text-black/45">About / What holds the work together</motion.p>
+          <div className="relative z-10 mt-24">
+            <motion.h1 initial={reduceMotion ? false : { opacity: 0, y: 50, rotateX: 6, filter: 'blur(10px)' }} animate={{ opacity: 1, y: 0, rotateX: 0, filter: 'blur(0px)' }} transition={motionSpring.depth} className="max-w-[11ch] text-[clamp(4rem,10vw,10.5rem)] font-semibold leading-[.78] tracking-[-.095em]">{t('about.title')}</motion.h1>
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ ...motionSpring.reveal, delay: .25 }} className="mt-12 grid gap-8 border-t border-black/20 pt-7 lg:grid-cols-[1fr_.65fr]">
+              <p className="max-w-3xl text-[clamp(1.45rem,2.8vw,3rem)] font-medium leading-[1.08] tracking-[-.045em]">{t('about.subtitle')}</p>
+              <p className="max-w-lg text-base leading-7 text-black/55">{t('mission.p2')}</p>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      <section className="bg-background py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-5 sm:px-8">
-          <ScrollReveal className="border-b border-foreground pb-7">
-            <p className="section-kicker">{t('about.teamsTitle')}</p>
-            <h2 className="section-title mt-5 max-w-4xl">{t('valueProp.twoTitle')}</h2>
-          </ScrollReveal>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4">
-            {teams.map(([title, description], index) => (
-              <ScrollReveal key={title} delay={index * 0.05}>
-                <article className={`border-b border-border py-8 sm:min-h-64 sm:border-r ${index === 0 ? 'sm:pr-6' : 'sm:px-6'} ${index === teams.length - 1 ? 'lg:border-r-0' : ''}`}>
-                  <p className="text-xs font-semibold text-muted-foreground">0{index + 1}</p>
-                  <h3 className="mt-10 text-xl font-semibold tracking-tight text-foreground">{title}</h3>
-                  <p className="mt-4 max-w-xs text-sm leading-7 text-muted-foreground">{description}</p>
-                </article>
+      <section className="bg-white px-5 py-24 sm:px-8 lg:py-36">
+        <div className="mx-auto max-w-[90rem]">
+          <ScrollReveal className="grid gap-10 lg:grid-cols-[.55fr_1.45fr]"><p className="text-[10px] font-black uppercase tracking-[.28em] text-black/42">01 / Responsibility</p><h2 className="max-w-5xl text-[clamp(3.2rem,6.2vw,7rem)] font-semibold leading-[.88] tracking-[-.075em]">{t('about.teamsTitle')}</h2></ScrollReveal>
+          <div className="mt-16 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {teams.map(({ title, body, icon: Icon, color, rotate }, index) => (
+              <ScrollReveal key={title} delay={index * STAGGER}>
+                <motion.article whileHover={{ y: -13, rotate: 0 }} whileTap={{ scale: .97, y: 1 }} transition={motionSpring.press} className="flex min-h-[23rem] flex-col justify-between rounded-[1.8rem] border border-black/10 p-6 shadow-[0_22px_55px_rgba(18,18,18,.08)]" style={{ background: color, rotate }}>
+                  <div className="flex items-start justify-between"><span className="grid size-12 place-items-center rounded-full bg-white/65"><Icon className="size-5" /></span><span className="text-xs font-black">0{index + 1}</span></div>
+                  <div><h3 className="text-3xl font-semibold tracking-[-.055em]">{title}</h3><p className="mt-4 text-sm leading-6 text-black/58">{body}</p></div>
+                </motion.article>
               </ScrollReveal>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-foreground py-20 text-background sm:py-28">
-        <div className="mx-auto max-w-7xl px-5 sm:px-8">
-          <div className="grid gap-14 lg:grid-cols-[0.72fr_1.28fr] lg:gap-24">
-            <ScrollReveal>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-background/50">{t('about.howTitle')}</p>
-              <h2 className="mt-5 max-w-lg font-heading text-3xl font-semibold leading-tight tracking-[-0.04em] sm:text-5xl">
-                {t('about.teamWheelTitle')}
-              </h2>
-              <p className="mt-6 max-w-md text-sm leading-7 text-background/60">{t('about.teamWheelDesc')}</p>
-            </ScrollReveal>
-
-            <div className="border-t border-background/35">
-              {model.map(([title, description], index) => (
-                <ScrollReveal key={title} delay={index * 0.05}>
-                  <div className="grid gap-4 border-b border-background/20 py-8 sm:grid-cols-[3rem_0.8fr_1.2fr]">
-                    <p className="text-xs text-background/45">0{index + 1}</p>
-                    <h3 className="text-lg font-semibold">{title}</h3>
-                    <p className="text-sm leading-7 text-background/60">{description}</p>
-                  </div>
-                </ScrollReveal>
-              ))}
-            </div>
+      <section className="bg-[var(--ss-night)] px-5 py-24 text-white sm:px-8 lg:py-36">
+        <div className="mx-auto grid max-w-[90rem] gap-16 lg:grid-cols-[.8fr_1.2fr]">
+          <ScrollReveal className="lg:sticky lg:top-28 lg:self-start">
+            <p className="text-[10px] font-black uppercase tracking-[.28em] text-white/40">02 / Operating model</p>
+            <h2 className="mt-7 max-w-xl text-[clamp(3.2rem,5vw,6.2rem)] font-semibold leading-[.86] tracking-[-.075em]">{t('about.teamWheelTitle')}</h2>
+            <p className="mt-7 max-w-md text-base leading-7 text-white/52">{t('about.teamWheelDesc')}</p>
+            <div className="relative mt-12 hidden h-56 overflow-hidden lg:block"><MotionMark dark className="absolute left-4 top-2 size-48" /></div>
+          </ScrollReveal>
+          <div className="border-t border-white/25">
+            {model.map(([title, body], index) => (
+              <ScrollReveal key={title} delay={index * STAGGER} amount={.25}>
+                <motion.article whileHover={{ x: 10 }} transition={motionSpring.state} className="grid min-h-[18rem] gap-8 border-b border-white/15 py-10 sm:grid-cols-[4rem_1fr]">
+                  <p className="text-xs font-black text-white/35">0{index + 1}</p>
+                  <div><h3 className="text-[clamp(2rem,4vw,4.5rem)] font-semibold leading-none tracking-[-.065em]">{title}</h3><p className="mt-6 max-w-2xl text-base leading-7 text-white/52">{body}</p><div className="mt-10 h-1 w-full overflow-hidden rounded-full bg-white/10"><motion.div initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ ...motionSpring.depth, delay: .12 }} className="h-full origin-left" style={{ background: ['var(--ss-coral)', 'var(--ss-lime)', 'var(--ss-sky)'][index] }} /></div></div>
+                </motion.article>
+              </ScrollReveal>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-card py-16 sm:py-20">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 sm:px-8 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="section-kicker">{t('nav.team')}</p>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{t('teamPage.title')}</h2>
-          </div>
-          <Link to="/team" className="inline-flex items-center gap-2 text-sm font-semibold text-foreground hover:text-accent">
-            {t('nav.team')} <ArrowRight className="size-4" />
-          </Link>
+      <section className="relative overflow-hidden bg-[var(--ss-sand)] px-5 py-24 sm:px-8 lg:py-32">
+        <div className="mx-auto max-w-[90rem]">
+          <ScrollReveal><p className="text-[10px] font-black uppercase tracking-[.28em] text-black/45">03 / People</p><h2 className="mt-5 max-w-5xl text-[clamp(3.4rem,7vw,8rem)] font-semibold leading-[.84] tracking-[-.08em]">{lang === 'ko' ? '결국, 사람이 일을 움직입니다.' : 'In the end, people move the work.'}</h2></ScrollReveal>
+          <ScrollReveal delay={.1} className="mt-12 flex justify-end"><motion.div whileTap={{ scale: .97, y: 1 }} transition={motionSpring.press}><Link to="/team" className="group inline-flex items-center gap-3 rounded-full bg-black px-6 py-4 text-sm font-bold text-white">{t('nav.team')}<ArrowRight className="size-4 transition-transform group-hover:translate-x-1" /></Link></motion.div></ScrollReveal>
         </div>
       </section>
     </div>

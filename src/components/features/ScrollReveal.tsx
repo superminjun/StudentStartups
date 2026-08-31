@@ -1,5 +1,6 @@
-import { useRef, type ReactNode } from 'react';
-import { motion, useInView, useReducedMotion } from 'framer-motion';
+import type { ReactNode } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { motionSpring } from '@/lib/motion';
 
 interface Props {
   children: ReactNode;
@@ -10,13 +11,12 @@ interface Props {
   amount?: number;
   margin?: string;
 }
-
 const offsets = {
-  up: { y: 16 },
-  down: { y: -16 },
-  left: { x: -16 },
-  right: { x: 16 },
-  scale: { y: 10, scale: 0.985 },
+  up: { y: 18, rotateX: 2.4 },
+  down: { y: -18, rotateX: -2.4 },
+  left: { x: -24, rotateY: -2 },
+  right: { x: 24, rotateY: 2 },
+  scale: { y: 10, scale: 0.95 },
   fade: {},
 };
 
@@ -25,23 +25,19 @@ export default function ScrollReveal({
   direction = 'up',
   delay = 0,
   className,
-  duration = 0.48,
-  amount = 0.15,
+  amount = 0.16,
   margin = '-48px',
 }: Props) {
-  const ref = useRef(null);
   const reduceMotion = useReducedMotion();
-  const isInView = useInView(ref, { once: true, margin, amount });
-
-  if (reduceMotion) return <div ref={ref} className={className}>{children}</div>;
 
   return (
     <motion.div
-      ref={ref}
-      initial={{ opacity: 0, ...offsets[direction] }}
-      animate={isInView ? { opacity: 1, y: 0, x: 0, scale: 1 } : undefined}
-      transition={{ duration, delay, ease: [0.22, 1, 0.36, 1] }}
+      initial={reduceMotion ? false : { opacity: 0, filter: 'blur(5px)', scale: 0.965, ...offsets[direction] }}
+      whileInView={{ opacity: 1, filter: 'blur(0px)', x: 0, y: 0, scale: 1, rotateX: 0, rotateY: 0 }}
+      viewport={{ once: true, amount, margin }}
+      transition={{ ...motionSpring.reveal, delay }}
       className={className}
+      style={{ transformPerspective: 900 }}
     >
       {children}
     </motion.div>

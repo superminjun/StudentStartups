@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 ::selection {
-  background: rgba(42, 37, 34, 0.14);
+  background: #c9ee5c;
   color: inherit;
   -webkit-text-fill-color: inherit;
 }
@@ -62,6 +62,16 @@
     --ring: 24 80% 50%;
     --radius: 0.5rem;
 
+    /* Student Startups motion system */
+    --ss-canvas: #f7f5f0;
+    --ss-ink: #121212;
+    --ss-night: #0d0f12;
+    --ss-coral: #f0543b;
+    --ss-lime: #c9ee5c;
+    --ss-sky: #84b9ff;
+    --ss-violet: #a28aff;
+    --ss-sand: #f0dcae;
+
     --sidebar-background: 20 10% 15%;
     --sidebar-foreground: 30 25% 95%;
     --sidebar-primary: 24 80% 50%;
@@ -101,32 +111,38 @@
     font-family: var(--font-heading);
     letter-spacing: -0.02em;
   }
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ss-coral);
+    outline-offset: 3px;
+  }
   img,
   video,
   canvas,
   svg {
     max-width: 100%;
   }
-  :focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 3px;
-  }
 }
 
 @layer components {
   .section { @apply py-20 lg:py-28; }
   .section-tight { @apply py-16 lg:py-20; }
-  .section-title { @apply font-heading text-3xl font-semibold leading-[1.02] tracking-[-0.045em] text-foreground sm:text-4xl lg:text-5xl; }
-  .section-kicker { @apply text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground; }
+  .section-title { @apply text-3xl font-semibold leading-[1.02] tracking-[-0.04em] text-foreground sm:text-4xl lg:text-5xl; }
+  .section-kicker { @apply text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground; }
   .section-lead { @apply mt-5 max-w-2xl text-base leading-8 text-muted-foreground; }
 
   .card { @apply rounded-[1.65rem] border border-border bg-card/90 shadow-sm backdrop-blur; }
   .card-hover { @apply transition-all duration-500 ease-out hover:-translate-y-1 hover:border-foreground/15 hover:shadow-2xl hover:shadow-foreground/5; }
 
   .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold tracking-[-0.01em] transition-all duration-300 ease-out will-change-transform; }
-  .btn-primary { @apply bg-foreground text-background shadow-sm hover:-translate-y-1 hover:bg-foreground/90 hover:shadow-xl hover:shadow-foreground/10 active:scale-[0.98]; }
+  .btn-primary { @apply bg-foreground text-background shadow-sm hover:-translate-y-1 hover:shadow-xl hover:shadow-foreground/10 hover:bg-foreground/90 active:scale-[0.98]; }
   .btn-secondary { @apply border border-border bg-card/45 text-foreground backdrop-blur-xl hover:-translate-y-1 hover:bg-card hover:shadow-lg hover:shadow-foreground/5 active:scale-[0.98]; }
-  .btn-ghost { @apply text-foreground/80 hover:-translate-y-0.5 hover:bg-muted hover:text-foreground active:scale-[0.98]; }
+  .btn-ghost { @apply text-foreground/80 hover:-translate-y-0.5 hover:text-foreground hover:bg-muted active:scale-[0.98]; }
   .btn-pill { @apply rounded-full; }
   .btn-sm { @apply px-3 py-1.5 text-xs; }
   .btn-lg { @apply px-8 py-3.5 text-base; }
@@ -170,6 +186,60 @@
     max-width: 100%;
     aspect-ratio: 1 / 1;
   }
+
+  .editorial-mask {
+    clip-path: inset(0 0 0 0 round 1.5rem);
+  }
+
+  .ss-shell {
+    background: var(--ss-canvas);
+    color: var(--ss-ink);
+    font-feature-settings: 'kern' 1, 'ss01' 1;
+  }
+
+  .ss-mark {
+    position: relative;
+    display: grid;
+    place-items: center;
+    color: var(--ss-ink);
+  }
+
+  .ss-mark__orbit {
+    position: absolute;
+    inset: 12%;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    opacity: .35;
+  }
+
+  .ss-mark__orbit::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: -4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--ss-coral);
+    transform: translateX(-50%);
+  }
+
+  .ss-mark__orbit--wide { transform: rotate(32deg) scaleX(1.25); }
+  .ss-mark__orbit--tall { transform: rotate(-38deg) scaleY(1.24); }
+  .ss-mark__core {
+    display: grid;
+    width: 42%;
+    aspect-ratio: 1;
+    place-items: center;
+    border-radius: 50%;
+    background: currentColor;
+    color: var(--ss-canvas);
+    font-size: clamp(.65rem, 12cqw, 1.1rem);
+    font-weight: 900;
+    letter-spacing: -.08em;
+  }
+  .ss-mark--dark { color: white; }
+  .ss-mark--dark .ss-mark__core { color: var(--ss-night); }
 }
 
 @layer utilities {
@@ -193,6 +263,66 @@
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background: hsl(30 15% 82%);
     border-radius: 3px;
+  }
+}
+
+@keyframes counter-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+@keyframes ss-marquee {
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes ss-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.24); opacity: .58; }
+}
+
+@keyframes ss-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(24px, -18px, 0); }
+}
+
+@keyframes drift-slow {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(-18px, 22px, 0); }
+}
+
+@layer utilities {
+  .animate-drift { animation: drift 14s ease-in-out infinite; }
+  .animate-drift-slow { animation: drift-slow 22s ease-in-out infinite; }
+  .ss-pulse { animation: ss-pulse 3.4s ease-in-out infinite; }
+  .ss-bob { animation: ss-bob 1.8s ease-in-out infinite; }
+  .ss-grain {
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(0,0,0,.045) 0 1px, transparent 1.2px),
+      radial-gradient(circle at 75% 60%, rgba(0,0,0,.03) 0 1px, transparent 1.2px);
+    background-size: 17px 19px, 23px 29px;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+  }
+  .ss-marquee > div {
+    width: max-content;
+    min-width: 200%;
+    white-space: nowrap;
+    animation: ss-marquee 28s linear infinite;
   }
 }
 
