@@ -32,8 +32,8 @@ function TeamCard({ profile, onSelect, index }: { profile: TeamProfile; onSelect
       whileInView={{ opacity: 1, y: 0, scale: 1, rotateX: 0, filter: 'blur(0px)' }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ ...motionSpring.reveal, delay: Math.min(index * STAGGER, .28) }}
-      whileHover={{ y: -9, rotateZ: index % 2 ? .3 : -.3 }}
-      whileTap={{ scale: .975, y: 1 }}
+      whileHover={{ y: -5 }}
+      whileTap={{ scale: .985, y: 1 }}
       className="group w-full text-left"
       style={{ transformPerspective: 900 }}
     >
@@ -65,7 +65,7 @@ function ProfileModal({ profile, onClose }: { profile: TeamProfile | null; onClo
             <DialogHeader className="text-left"><p className="text-[10px] font-black uppercase tracking-[.2em] text-black/40">{formatJoinedDate(profile.joinedDate, lang)}</p><DialogTitle className="mt-4 text-4xl font-semibold tracking-[-.065em] sm:text-6xl">{profile.fullName}</DialogTitle><p className="mt-1 text-sm text-black/45">{profile.roleTitle}</p></DialogHeader>
             <p className="mt-8 text-base leading-7 text-black/60">{profile.shortBio}</p>
             {(profile.tags ?? []).length > 0 && <div className="mt-5 flex flex-wrap gap-2">{profile.tags.map((tag) => <span key={tag} className="rounded-full bg-black/[.06] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.12em]">{tag}</span>)}</div>}
-            <div className="mt-10 border-t border-black/30">{sections.map(([title, body], index) => <section key={title} className="border-b border-black/12 py-6"><p className="text-[10px] font-black uppercase tracking-[.18em]" style={{ color: ['#e84e35', '#4187d7', '#6d49b8'][index] }}>{title}</p><p className="mt-3 whitespace-pre-line text-sm leading-7 text-black/65">{body}</p></section>)}</div>
+            <div className="mt-10 border-t border-black/30">{sections.map(([title, body]) => <section key={title} className="border-b border-black/12 py-6"><p className="text-[10px] font-semibold uppercase tracking-[.18em] text-[var(--ss-bronze)]">{title}</p><p className="mt-3 whitespace-pre-line text-sm leading-7 text-black/65">{body}</p></section>)}</div>
           </div>
         </div>
       </DialogContent>

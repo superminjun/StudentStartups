@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 ::selection {
-  background: #c9ee5c;
+  background: rgba(154, 118, 84, .28);
   color: inherit;
   -webkit-text-fill-color: inherit;
 }
@@ -63,14 +63,16 @@
     --radius: 0.5rem;
 
     /* Student Startups motion system */
-    --ss-canvas: #f7f5f0;
-    --ss-ink: #121212;
-    --ss-night: #0d0f12;
-    --ss-coral: #f0543b;
-    --ss-lime: #c9ee5c;
-    --ss-sky: #84b9ff;
-    --ss-violet: #a28aff;
-    --ss-sand: #f0dcae;
+    --ss-canvas: #f2f0eb;
+    --ss-ink: #111110;
+    --ss-night: #0c0c0c;
+    --ss-bronze: #9a7654;
+    --ss-panel: #dfdcd4;
+    --ss-coral: #9a7654;
+    --ss-lime: #dedbd2;
+    --ss-sky: #c9cbc7;
+    --ss-violet: #bcb5ae;
+    --ss-sand: #e4e0d7;
 
     --sidebar-background: 20 10% 15%;
     --sidebar-foreground: 30 25% 95%;
@@ -316,6 +318,13 @@
       radial-gradient(circle at 75% 60%, rgba(0,0,0,.03) 0 1px, transparent 1.2px);
     background-size: 17px 19px, 23px 29px;
     mix-blend-mode: multiply;
+    pointer-events: none;
+  }
+  .ss-dark-grain {
+    background-image:
+      radial-gradient(circle at 17% 22%, rgba(255,255,255,.055) 0 .7px, transparent 1px),
+      radial-gradient(circle at 73% 67%, rgba(255,255,255,.035) 0 .7px, transparent 1px);
+    background-size: 19px 23px, 29px 31px;
     pointer-events: none;
   }
   .ss-marquee > div {

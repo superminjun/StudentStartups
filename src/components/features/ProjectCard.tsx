@@ -10,10 +10,10 @@ import { STAGE_LABELS_EN, STAGE_LABELS_KO } from '@/constants/config';
 export default function ProjectCard({ project, priority = false, index = 0 }: { project: Project; priority?: boolean; index?: number }) {
   const { lang, t } = useLanguage();
   const stageLabel = (lang === 'en' ? STAGE_LABELS_EN : STAGE_LABELS_KO)[project.stage] || project.stageName;
-  const colors = ['var(--ss-lime)', 'var(--ss-sky)', 'var(--ss-sand)', 'var(--ss-violet)'];
+  const colors = ['var(--ss-panel)', 'var(--ss-sky)', 'var(--ss-sand)', 'var(--ss-violet)'];
 
   return (
-    <motion.article layout whileHover={{ y: -8, rotateZ: index % 2 ? 0.35 : -0.35 }} whileTap={{ scale: 0.975, y: 1 }} transition={motionSpring.press} className="group h-full">
+    <motion.article layout whileHover={{ y: -5 }} whileTap={{ scale: .985, y: 1 }} transition={motionSpring.press} className="group h-full">
       <Link to={`/projects/${project.id}`} className="block h-full rounded-[1.65rem] border border-black/10 bg-white p-2 shadow-[0_18px_55px_rgba(18,18,18,.07)]">
         <div className="relative aspect-[4/3] overflow-hidden rounded-[1.2rem] bg-black/5">
           {project.image ? (
@@ -21,8 +21,8 @@ export default function ProjectCard({ project, priority = false, index = 0 }: { 
           ) : (
             <div className="grid size-full place-items-center text-xs font-bold uppercase tracking-[0.18em] text-black/40">{t('common.comingSoon')}</div>
           )}
-          <span className="absolute left-3 top-3 rounded-full px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] text-black" style={{ background: colors[index % colors.length] }}>{stageLabel}</span>
-          <span className="absolute bottom-3 right-3 grid size-10 place-items-center rounded-full bg-white/90 text-black backdrop-blur transition-transform duration-500 group-hover:rotate-45"><ArrowUpRight className="size-4" /></span>
+          <span className="absolute left-3 top-3 rounded-full border border-black/10 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-black" style={{ background: colors[index % colors.length] }}>{stageLabel}</span>
+          <span className="absolute bottom-3 right-3 grid size-10 place-items-center rounded-full bg-white/90 text-black backdrop-blur"><ArrowUpRight className="size-4 transition-transform duration-500 group-hover:-translate-y-1 group-hover:translate-x-1" /></span>
         </div>
         <div className="px-3 pb-3 pt-5">
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-black/42">{project.category}</p>

@@ -12,11 +12,11 @@ interface Props {
   margin?: string;
 }
 const offsets = {
-  up: { y: 18, rotateX: 2.4 },
-  down: { y: -18, rotateX: -2.4 },
-  left: { x: -24, rotateY: -2 },
-  right: { x: 24, rotateY: 2 },
-  scale: { y: 10, scale: 0.95 },
+  up: { y: 32, rotateX: 1.2 },
+  down: { y: -32, rotateX: -1.2 },
+  left: { x: -36, rotateY: -.8 },
+  right: { x: 36, rotateY: .8 },
+  scale: { y: 18, scale: .975 },
   fade: {},
 };
 
@@ -32,12 +32,12 @@ export default function ScrollReveal({
 
   return (
     <motion.div
-      initial={reduceMotion ? false : { opacity: 0, filter: 'blur(5px)', scale: 0.965, ...offsets[direction] }}
+      initial={reduceMotion ? false : { opacity: 0, filter: 'blur(10px)', scale: .985, ...offsets[direction] }}
       whileInView={{ opacity: 1, filter: 'blur(0px)', x: 0, y: 0, scale: 1, rotateX: 0, rotateY: 0 }}
       viewport={{ once: true, amount, margin }}
       transition={{ ...motionSpring.reveal, delay }}
       className={className}
-      style={{ transformPerspective: 900 }}
+      style={{ transformPerspective: 1200 }}
     >
       {children}
     </motion.div>

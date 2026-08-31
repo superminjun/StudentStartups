@@ -22,9 +22,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <AnimatePresence mode="wait" initial={false}>
         <motion.main
           key={pathname}
-          initial={reduceMotion ? false : { opacity: 0, filter: 'blur(7px)', scale: 0.94, y: 16 }}
+          initial={reduceMotion ? false : { opacity: 0, filter: 'blur(12px)', scale: .982, y: 22 }}
           animate={{ opacity: 1, filter: 'blur(0px)', scale: 1, y: 0 }}
-          exit={reduceMotion ? undefined : { opacity: 0, filter: 'blur(5px)', scale: 0.975, y: -8 }}
+          exit={reduceMotion ? undefined : { opacity: 0, filter: 'blur(8px)', scale: .99, y: -10 }}
           transition={motionSpring.depth}
           className="min-h-[70vh] min-w-0 overflow-x-clip"
           style={{ transformOrigin: '50% 10%', transformPerspective: 1200 }}

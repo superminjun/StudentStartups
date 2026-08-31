@@ -15,10 +15,10 @@ export default function About() {
   const markRotate = useTransform(scrollYProgress, [0, 1], [0, 100]);
   const markY = useTransform(scrollYProgress, [0, 1], ['0%', '45%']);
   const teams = [
-    { title: t('about.teamCards.marketingName'), body: t('about.teamCards.marketingDesc'), icon: Megaphone, color: 'var(--ss-coral)', rotate: '-2deg' },
-    { title: t('about.teamCards.productionName'), body: t('about.teamCards.productionDesc'), icon: PackageOpen, color: 'var(--ss-lime)', rotate: '1.5deg' },
-    { title: t('about.teamCards.financeName'), body: t('about.teamCards.financeDesc'), icon: CircleDollarSign, color: 'var(--ss-sky)', rotate: '-1deg' },
-    { title: t('about.teamCards.designName'), body: t('about.teamCards.designDesc'), icon: PenTool, color: 'var(--ss-violet)', rotate: '2deg' },
+    { title: t('about.teamCards.marketingName'), body: t('about.teamCards.marketingDesc'), icon: Megaphone },
+    { title: t('about.teamCards.productionName'), body: t('about.teamCards.productionDesc'), icon: PackageOpen },
+    { title: t('about.teamCards.financeName'), body: t('about.teamCards.financeDesc'), icon: CircleDollarSign },
+    { title: t('about.teamCards.designName'), body: t('about.teamCards.designDesc'), icon: PenTool },
   ];
   const model = [
     [t('about.howRotation'), t('about.howRotationDesc')],
@@ -46,9 +46,9 @@ export default function About() {
         <div className="mx-auto max-w-[90rem]">
           <ScrollReveal className="grid gap-10 lg:grid-cols-[.55fr_1.45fr]"><p className="text-[10px] font-black uppercase tracking-[.28em] text-black/42">01 / Responsibility</p><h2 className="max-w-5xl text-[clamp(3.2rem,6.2vw,7rem)] font-semibold leading-[.88] tracking-[-.075em]">{t('about.teamsTitle')}</h2></ScrollReveal>
           <div className="mt-16 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {teams.map(({ title, body, icon: Icon, color, rotate }, index) => (
+            {teams.map(({ title, body, icon: Icon }, index) => (
               <ScrollReveal key={title} delay={index * STAGGER}>
-                <motion.article whileHover={{ y: -13, rotate: 0 }} whileTap={{ scale: .97, y: 1 }} transition={motionSpring.press} className="flex min-h-[23rem] flex-col justify-between rounded-[1.8rem] border border-black/10 p-6 shadow-[0_22px_55px_rgba(18,18,18,.08)]" style={{ background: color, rotate }}>
+                <motion.article whileHover={{ y: -6, backgroundColor: 'rgba(255,255,255,.7)' }} whileTap={{ scale: .985, y: 1 }} transition={motionSpring.press} className="flex min-h-[23rem] flex-col justify-between rounded-[1.5rem] border border-black/10 bg-[var(--ss-panel)] p-6 shadow-[0_22px_55px_rgba(18,18,18,.06)]">
                   <div className="flex items-start justify-between"><span className="grid size-12 place-items-center rounded-full bg-white/65"><Icon className="size-5" /></span><span className="text-xs font-black">0{index + 1}</span></div>
                   <div><h3 className="text-3xl font-semibold tracking-[-.055em]">{title}</h3><p className="mt-4 text-sm leading-6 text-black/58">{body}</p></div>
                 </motion.article>
