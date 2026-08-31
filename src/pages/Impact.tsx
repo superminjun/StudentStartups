@@ -1,291 +1,163 @@
-import { useMemo, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { useLanguage } from '@/hooks/useLanguage';
-import { useCounter } from '@/hooks/useCounter';
-import { useCMSStore } from '@/stores/cmsStore';
-import { STAGE_LABELS_EN, STAGE_LABELS_KO } from '@/constants/config';
-import ScrollReveal from '@/components/features/ScrollReveal';
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, LineChart, Line,
+  Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart,
+  ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
+import ScrollReveal from '@/components/features/ScrollReveal';
+import { STAGE_LABELS_EN, STAGE_LABELS_KO } from '@/constants/config';
+import { useCounter } from '@/hooks/useCounter';
+import { useLanguage } from '@/hooks/useLanguage';
+import { useCMSStore, type ImpactMetricRecord } from '@/stores/cmsStore';
 
-type ImpactMetricView = {
-  labelEn: string;
-  labelKo: string;
-  value: number;
-  prefix?: string;
-  suffix?: string;
+const axis = { fontSize: 11, fill: 'hsl(var(--muted-foreground))' };
+const tooltip = {
+  border: '1px solid hsl(var(--border))',
+  borderRadius: 0,
+  boxShadow: 'none',
+  background: 'hsl(var(--card))',
+  color: 'hsl(var(--foreground))',
+  fontSize: 12,
 };
 
-function BigCounter({ metric, index }: { metric: ImpactMetricView; index: number }) {
+function Metric({ metric }: { metric: ImpactMetricRecord }) {
   const { lang } = useLanguage();
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
-  const count = useCounter(metric.value, isInView, 2200);
-
+  const count = useCounter(metric.value, useInView(ref, { once: true }), 1400);
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.08, duration: 0.5 }}
-      whileHover={{ y: -3 }}
-      className="card card-hover p-6 text-center"
-    >
-      <p className="text-3xl font-semibold text-foreground tabular-nums sm:text-4xl">
+    <div ref={ref} className="border-b border-border py-6 sm:border-r sm:px-6 sm:first:pl-0 sm:last:border-r-0">
+      <p className="text-3xl font-semibold tracking-[-0.045em] text-foreground tabular-nums sm:text-4xl">
         {metric.prefix}{count.toLocaleString()}{metric.suffix}
       </p>
-      <p className="mt-2 text-sm text-muted-foreground">{lang === 'en' ? metric.labelEn : metric.labelKo}</p>
-    </motion.div>
+      <p className="mt-2 text-xs text-muted-foreground">{lang === 'en' ? metric.labelEn : metric.labelKo}</p>
+    </div>
   );
 }
 
-function DonationBarChart({ data, emptyLabel }: { data: { name: string; value: number }[]; emptyLabel: string }) {
-  const hasData = data.length > 0;
-  const hasValues = data.some((d) => d.value > 0);
-
-  if (!hasData || !hasValues) {
-    return (
-      <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-        {emptyLabel}
-      </div>
-    );
-  }
-
+function ChartFrame({ title, body, children }: { title: string; body: string; children: React.ReactNode }) {
   return (
-    <div className="h-56 w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 6, left: -12, bottom: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis
-            dataKey="name"
-            tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-            tickLine={false}
-            axisLine={false}
-            interval={0}
-            tickFormatter={(value) => (value.length > 10 ? `${value.slice(0, 10)}…` : value)}
-          />
-          <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-          <Tooltip
-            contentStyle={{
-              borderRadius: '8px',
-              border: '1px solid hsl(var(--border))',
-              fontSize: '13px',
-              backgroundColor: 'hsl(var(--card))',
-              color: 'hsl(var(--foreground))',
-            }}
-          />
-          <Bar dataKey="value" fill="hsl(var(--accent))" radius={[6, 6, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+    <article className="border-t border-foreground pt-6">
+      <h2 className="text-xl font-semibold tracking-tight text-foreground">{title}</h2>
+      <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">{body}</p>
+      <div className="mt-7 h-72 min-w-0">{children}</div>
+    </article>
   );
 }
 
 export default function Impact() {
   const { lang, t } = useLanguage();
-  const [activePanel, setActivePanel] = useState<'revenue' | 'donations' | 'members' | 'stages'>('revenue');
-  const impactMetricsRaw = useCMSStore((s) => s.impactMetrics);
-  const revenueChartData = useCMSStore((s) => s.revenueData);
-  const donationByProject = useCMSStore((s) => s.donationData);
-  const memberGrowth = useCMSStore((s) => s.memberGrowthData);
-  const projects = useCMSStore((s) => s.projects);
-
-  const getChartWidth = (count: number, base = 560, per = 90) => Math.max(base, count * per);
+  const metrics = useCMSStore((state) => state.impactMetrics);
+  const revenue = useCMSStore((state) => state.revenueData);
+  const donations = useCMSStore((state) => state.donationData);
+  const growth = useCMSStore((state) => state.memberGrowthData);
+  const projects = useCMSStore((state) => state.projects);
   const stageLabels = lang === 'en' ? STAGE_LABELS_EN : STAGE_LABELS_KO;
 
-  const fallbackDonations = projects
-    .map((project) => ({ name: project.name, value: project.donation }))
-    .filter((row) => row.name);
-
-  const donationChartData = donationByProject.some((row) => row.value > 0)
-    ? donationByProject
-    : fallbackDonations;
-
-  const impactMetrics: ImpactMetricView[] = impactMetricsRaw.map((metric) => ({
-    labelEn: metric.labelEn,
-    labelKo: metric.labelKo,
-    value: metric.value,
-    prefix: metric.prefix,
-    suffix: metric.suffix,
+  const donationData = donations.some((item) => item.value > 0)
+    ? donations
+    : projects.filter((project) => project.donation > 0).map((project) => ({ name: project.name, value: project.donation }));
+  const stageData = [1, 2, 3, 4, 5, 6, 7].map((stage) => ({
+    stage: stageLabels[stage],
+    count: projects.filter((project) => project.stage === stage).length,
   }));
 
-  const stageCounts = projects.reduce<Record<number, number>>((acc, project) => {
-    const key = Number(project.stage) || 1;
-    acc[key] = (acc[key] ?? 0) + 1;
-    return acc;
-  }, {});
-
-  const stageData = useMemo(
-    () =>
-      [1, 2, 3, 4, 5, 6, 7].map((stage) => ({
-        stage: stageLabels[stage],
-        count: stageCounts[stage] ?? 0,
-      })),
-    [stageCounts, stageLabels]
-  );
-
-  const panelTabs = [
-    { key: 'revenue' as const, label: t('impact.revenueTitle') },
-    { key: 'donations' as const, label: t('impact.donationTitle') },
-    { key: 'members' as const, label: t('impact.memberTitle') },
-    { key: 'stages' as const, label: t('impact.stageTitle') },
-  ];
-
   return (
-    <div>
-      <section className="section bg-charcoal pt-32 lg:pt-40">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-semibold tracking-tight text-white sm:text-4xl"
-          >
-            {t('impact.title')}
-          </motion.h1>
-          <motion.p
+    <div className="pt-[4.5rem]">
+      <section className="border-b border-border bg-background py-20 sm:py-28 lg:py-36">
+        <div className="mx-auto max-w-7xl px-5 sm:px-8">
+          <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="mt-4 max-w-2xl text-base text-white/[0.55]"
+            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            className="grid gap-10 lg:grid-cols-[1.35fr_0.65fr] lg:items-end"
           >
-            {t('impact.subtitle')}
-          </motion.p>
+            <div>
+              <p className="section-kicker">{t('nav.impact')}</p>
+              <h1 className="mt-6 font-heading text-[clamp(3.4rem,8vw,7.5rem)] font-semibold leading-[0.88] tracking-[-0.07em] text-foreground">{t('impact.title')}</h1>
+            </div>
+            <p className="max-w-lg text-base leading-8 text-muted-foreground sm:text-lg">{t('impact.subtitle')}</p>
+          </motion.div>
         </div>
       </section>
 
-      {/* Counters */}
-      <section className="section-tight bg-beige">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {impactMetrics.map((m, i) => (
-              <BigCounter key={m.labelEn} metric={m} index={i} />
-            ))}
+      <section className="bg-card py-10 sm:py-12">
+        <div className="mx-auto max-w-7xl px-5 sm:px-8">
+          <div className="grid border-t border-foreground sm:grid-cols-2 lg:grid-cols-4">
+            {metrics.map((metric) => <Metric key={metric.id} metric={metric} />)}
           </div>
         </div>
       </section>
 
-      {/* Charts */}
-      <section className="bg-card py-14 lg:py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <section className="bg-card pb-20 pt-10 sm:pb-28 sm:pt-16">
+        <div className="mx-auto max-w-7xl px-5 sm:px-8">
           <ScrollReveal>
-            <div className="-mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
-              <div className="flex min-w-max gap-2">
-                {panelTabs.map((tab) => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActivePanel(tab.key)}
-                    className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                      activePanel === tab.key
-                        ? 'bg-charcoal text-white'
-                        : 'border border-border bg-white text-mid hover:text-charcoal'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <ChartFrame title={t('impact.revenueTitle')} body={t('impact.revenueBody')}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenue} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="impactRevenue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity={0.22} />
+                      <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis dataKey="month" tick={axis} tickLine={false} axisLine={false} />
+                  <YAxis tick={axis} tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={tooltip} />
+                  <Area type="monotone" dataKey="revenue" stroke="hsl(var(--accent))" fill="url(#impactRevenue)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="expenses" stroke="hsl(var(--foreground))" fill="none" strokeWidth={1.5} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ChartFrame>
           </ScrollReveal>
 
-          <div className="mt-6">
-            {activePanel === 'revenue' && (
-              <ScrollReveal>
-                <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-                  <div className="max-w-2xl">
-                    <h3 className="text-lg font-semibold text-charcoal">{t('impact.revenueTitle')}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-mid">{t('impact.revenueBody')}</p>
-                  </div>
-                  <div className="mt-5 overflow-x-auto">
-                    <div className="h-[18rem] min-w-[18rem] sm:h-80" style={{ minWidth: getChartWidth(revenueChartData.length, 320, 80) }}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={revenueChartData}>
-                          <defs>
-                            <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="hsl(var(--foreground))" stopOpacity={0.15} />
-                              <stop offset="95%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} interval="preserveStartEnd" />
-                          <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                          <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
-                          <Area type="monotone" dataKey="revenue" stroke="hsl(var(--foreground))" fill="url(#revGrad)" strokeWidth={2} />
-                          <Area type="monotone" dataKey="expenses" stroke="hsl(var(--accent))" fill="none" strokeWidth={1.5} strokeDasharray="5 5" />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </div>
-              </ScrollReveal>
-            )}
+          <div className="mt-16 grid gap-16 lg:grid-cols-2">
+            <ScrollReveal>
+              <ChartFrame title={t('impact.memberTitle')} body={t('impact.memberBody')}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={growth} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                    <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+                    <XAxis dataKey="month" tick={axis} tickLine={false} axisLine={false} />
+                    <YAxis tick={axis} tickLine={false} axisLine={false} />
+                    <Tooltip contentStyle={tooltip} />
+                    <Line type="monotone" dataKey="members" stroke="hsl(var(--foreground))" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartFrame>
+            </ScrollReveal>
 
-            {activePanel === 'donations' && (
-              <ScrollReveal>
-                <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-                  <div className="max-w-2xl">
-                    <h3 className="text-lg font-semibold text-charcoal">{t('impact.donationTitle')}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-mid">{t('impact.donationBody')}</p>
-                  </div>
-                  <div className="mt-5 overflow-x-auto">
-                    <div style={{ minWidth: getChartWidth(donationChartData.length, 320, 80) }}>
-                      <DonationBarChart data={donationChartData} emptyLabel={t('impact.noDonations')} />
-                    </div>
-                  </div>
-                </div>
-              </ScrollReveal>
-            )}
-
-            {activePanel === 'members' && (
-              <ScrollReveal>
-                <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-                  <div className="max-w-2xl">
-                    <h3 className="text-lg font-semibold text-charcoal">{t('impact.memberTitle')}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-mid">{t('impact.memberBody')}</p>
-                  </div>
-                  <div className="mt-5 overflow-x-auto">
-                    <div className="h-[18rem] min-w-[18rem] sm:h-80" style={{ minWidth: getChartWidth(memberGrowth.length, 320, 80) }}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={memberGrowth}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} interval="preserveStartEnd" />
-                          <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                          <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
-                          <Line type="monotone" dataKey="members" stroke="hsl(var(--accent))" strokeWidth={2.5} dot={{ r: 3, fill: 'hsl(var(--accent))' }} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </div>
-              </ScrollReveal>
-            )}
-
-            {activePanel === 'stages' && (
-              <ScrollReveal>
-                <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-                  <div className="max-w-2xl">
-                    <h3 className="text-lg font-semibold text-charcoal">{t('impact.stageTitle')}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-mid">{t('impact.stageBody')}</p>
-                  </div>
-                  <div className="mt-5 overflow-x-auto">
-                    <div className="h-[19rem] min-w-[18rem] sm:h-[24rem]" style={{ minWidth: 320 }}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={stageData} margin={{ top: 8, right: 8, left: -12, bottom: 8 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis dataKey="stage" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} interval={0} angle={stageData.length > 4 ? -12 : 0} textAnchor={stageData.length > 4 ? 'end' : 'middle'} height={stageData.length > 4 ? 52 : 36} />
-                          <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} allowDecimals={false} />
-                          <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '13px', backgroundColor: 'hsl(var(--card))', color: 'hsl(var(--foreground))' }} />
-                          <Bar dataKey="count" radius={[6, 6, 0, 0]} fill="hsl(var(--foreground))" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </div>
-              </ScrollReveal>
-            )}
+            <ScrollReveal delay={0.06}>
+              <ChartFrame title={t('impact.stageTitle')} body={t('impact.stageBody')}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={stageData} margin={{ top: 8, right: 8, left: -20, bottom: 8 }}>
+                    <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+                    <XAxis dataKey="stage" tick={axis} tickLine={false} axisLine={false} interval={0} />
+                    <YAxis tick={axis} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <Tooltip contentStyle={tooltip} />
+                    <Bar dataKey="count" fill="hsl(var(--foreground))" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartFrame>
+            </ScrollReveal>
           </div>
+
+          <ScrollReveal className="mt-16">
+            <ChartFrame title={t('impact.donationTitle')} body={t('impact.donationBody')}>
+              {donationData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={donationData} layout="vertical" margin={{ top: 0, right: 20, left: 20, bottom: 0 }}>
+                    <CartesianGrid horizontal={false} stroke="hsl(var(--border))" />
+                    <XAxis type="number" tick={axis} tickLine={false} axisLine={false} />
+                    <YAxis type="category" dataKey="name" width={100} tick={axis} tickLine={false} axisLine={false} />
+                    <Tooltip contentStyle={tooltip} />
+                    <Bar dataKey="value" fill="hsl(var(--accent))" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="grid h-full place-items-center text-sm text-muted-foreground">{t('impact.noDonations')}</p>
+              )}
+            </ChartFrame>
+          </ScrollReveal>
         </div>
       </section>
     </div>

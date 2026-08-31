@@ -1,103 +1,91 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useLanguage } from '@/hooks/useLanguage';
-import { useCMSStore } from '@/stores/cmsStore';
-import { STAGE_LABELS_EN, STAGE_LABELS_KO } from '@/constants/config';
 import ProjectCard from '@/components/features/ProjectCard';
 import ScrollReveal from '@/components/features/ScrollReveal';
+import { STAGE_LABELS_EN, STAGE_LABELS_KO } from '@/constants/config';
+import { useLanguage } from '@/hooks/useLanguage';
+import { useCMSStore } from '@/stores/cmsStore';
 
 export default function Projects() {
   const { lang, t } = useLanguage();
-  const [activeStage, setActiveStage] = useState(0);
+  const [stage, setStage] = useState(0);
+  const projects = useCMSStore((state) => state.projects);
+  const status = useCMSStore((state) => state.status);
   const stageLabels = lang === 'en' ? STAGE_LABELS_EN : STAGE_LABELS_KO;
-  const projects = useCMSStore((s) => s.projects);
-  const status = useCMSStore((s) => s.status);
-
   const filtered = useMemo(
-    () => (activeStage === 0 ? projects : projects.filter((p) => p.stage === activeStage)),
-    [activeStage, projects]
+    () => (stage === 0 ? projects : projects.filter((project) => project.stage === stage)),
+    [projects, stage]
   );
 
-  const showSkeleton = status === 'loading' && projects.length === 0;
-
   return (
-    <div>
-      <section className="section bg-charcoal pt-32 lg:pt-40">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-semibold tracking-tight text-white sm:text-4xl"
-          >
-            {t('projects.title')}
-          </motion.h1>
-          <motion.p
+    <div className="pt-[4.5rem]">
+      <section className="border-b border-border bg-background py-20 sm:py-28 lg:py-36">
+        <div className="mx-auto max-w-7xl px-5 sm:px-8">
+          <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="mt-3 max-w-xl text-base text-white/[0.55]"
+            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            className="grid gap-10 lg:grid-cols-[1.35fr_0.65fr] lg:items-end"
           >
-            {t('projects.subtitle')}
-          </motion.p>
+            <div>
+              <p className="section-kicker">{t('nav.projects')}</p>
+              <h1 className="mt-6 font-heading text-[clamp(3.4rem,8vw,7.5rem)] font-semibold leading-[0.88] tracking-[-0.07em] text-foreground">
+                {t('projects.title')}
+              </h1>
+            </div>
+            <div>
+              <p className="max-w-lg text-base leading-8 text-muted-foreground sm:text-lg">{t('projects.subtitle')}</p>
+              <p className="mt-5 text-sm font-semibold text-foreground">{projects.length} {t('nav.projects').toLowerCase()}</p>
+            </div>
+          </motion.div>
         </div>
       </section>
 
-      <section className="section-tight bg-beige">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <ScrollReveal>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setActiveStage(0)}
-                className={`btn btn-sm ${activeStage === 0 ? 'btn-primary' : 'btn-secondary'}`}
-              >
-                {t('projects.allStages')} ({projects.length})
-              </button>
-              {[1, 2, 3, 4, 5, 6, 7].map((stage) => {
-                const count = projects.filter((p) => p.stage === stage).length;
-                return (
-                  <button
-                    key={stage}
-                    onClick={() => setActiveStage(stage)}
-                    className={`btn btn-sm ${activeStage === stage ? 'btn-primary' : 'btn-secondary'}`}
-                  >
-                    {stageLabels[stage]} ({count})
-                  </button>
-                );
-              })}
+      <section className="bg-card py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-5 sm:px-8">
+          <div className="flex flex-col gap-5 border-b border-foreground pb-6 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <label htmlFor="project-stage" className="section-kicker">{t('projects.stage')}</label>
+              <p className="mt-2 text-sm text-muted-foreground">{filtered.length} / {projects.length}</p>
             </div>
-          </ScrollReveal>
+            <select
+              id="project-stage"
+              value={stage}
+              onChange={(event) => setStage(Number(event.target.value))}
+              className="min-h-11 min-w-56 border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-foreground"
+            >
+              <option value={0}>{t('projects.allStages')} ({projects.length})</option>
+              {[1, 2, 3, 4, 5, 6, 7].map((value) => (
+                <option key={value} value={value}>
+                  {stageLabels[value]} ({projects.filter((project) => project.stage === value).length})
+                </option>
+              ))}
+            </select>
+          </div>
 
-          {showSkeleton ? (
-            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {status === 'loading' && projects.length === 0 ? (
+            <div className="mt-10 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="overflow-hidden rounded-2xl border border-border bg-card"
-                >
+                <div key={index}>
                   <div className="aspect-[4/3] animate-pulse bg-muted" />
-                  <div className="space-y-3 p-5">
-                    <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
-                    <div className="h-3 w-full animate-pulse rounded bg-muted" />
-                    <div className="h-3 w-4/5 animate-pulse rounded bg-muted" />
-                  </div>
+                  <div className="mt-5 h-5 w-2/3 animate-pulse bg-muted" />
+                  <div className="mt-3 h-3 w-full animate-pulse bg-muted" />
                 </div>
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="py-20 text-center">
-              <p className="text-base text-muted-foreground">{t('projects.noProjects')}</p>
-            </div>
+            <p className="py-24 text-center text-sm text-muted-foreground">{t('projects.noProjects')}</p>
           ) : (
             <motion.div
-              key={activeStage}
+              key={stage}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.25 }}
-              className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+              transition={{ duration: 0.2 }}
+              className="mt-10 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3"
             >
-              {filtered.map((project, i) => (
-                <ScrollReveal key={project.id} delay={Math.min(i * 0.05, 0.3)}>
-                  <ProjectCard project={project} priority={i < 6} />
+              {filtered.map((project, index) => (
+                <ScrollReveal key={project.id} delay={Math.min(index * 0.04, 0.2)}>
+                  <ProjectCard project={project} priority={index < 6} />
                 </ScrollReveal>
               ))}
             </motion.div>

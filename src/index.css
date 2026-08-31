@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Yellow Highlighter Selection ─── */
 ::selection {
   background: rgba(42, 37, 34, 0.14);
   color: inherit;
@@ -94,6 +93,7 @@
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-body);
     font-size: var(--font-size-base);
+    line-height: 1.5;
     position: relative;
     overscroll-behavior-x: none;
   }
@@ -107,22 +107,26 @@
   svg {
     max-width: 100%;
   }
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
 }
 
 @layer components {
   .section { @apply py-20 lg:py-28; }
   .section-tight { @apply py-16 lg:py-20; }
-  .section-title { @apply text-3xl font-semibold leading-[1.02] tracking-[-0.04em] text-foreground sm:text-4xl lg:text-5xl; }
-  .section-kicker { @apply text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground; }
+  .section-title { @apply font-heading text-3xl font-semibold leading-[1.02] tracking-[-0.045em] text-foreground sm:text-4xl lg:text-5xl; }
+  .section-kicker { @apply text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground; }
   .section-lead { @apply mt-5 max-w-2xl text-base leading-8 text-muted-foreground; }
 
   .card { @apply rounded-[1.65rem] border border-border bg-card/90 shadow-sm backdrop-blur; }
   .card-hover { @apply transition-all duration-500 ease-out hover:-translate-y-1 hover:border-foreground/15 hover:shadow-2xl hover:shadow-foreground/5; }
 
   .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold tracking-[-0.01em] transition-all duration-300 ease-out will-change-transform; }
-  .btn-primary { @apply bg-foreground text-background shadow-sm hover:-translate-y-1 hover:shadow-xl hover:shadow-foreground/10 hover:bg-foreground/90 active:scale-[0.98]; }
+  .btn-primary { @apply bg-foreground text-background shadow-sm hover:-translate-y-1 hover:bg-foreground/90 hover:shadow-xl hover:shadow-foreground/10 active:scale-[0.98]; }
   .btn-secondary { @apply border border-border bg-card/45 text-foreground backdrop-blur-xl hover:-translate-y-1 hover:bg-card hover:shadow-lg hover:shadow-foreground/5 active:scale-[0.98]; }
-  .btn-ghost { @apply text-foreground/80 hover:-translate-y-0.5 hover:text-foreground hover:bg-muted active:scale-[0.98]; }
+  .btn-ghost { @apply text-foreground/80 hover:-translate-y-0.5 hover:bg-muted hover:text-foreground active:scale-[0.98]; }
   .btn-pill { @apply rounded-full; }
   .btn-sm { @apply px-3 py-1.5 text-xs; }
   .btn-lg { @apply px-8 py-3.5 text-base; }
@@ -166,10 +170,6 @@
     max-width: 100%;
     aspect-ratio: 1 / 1;
   }
-
-  .editorial-mask {
-    clip-path: inset(0 0 0 0 round 1.5rem);
-  }
 }
 
 @layer utilities {
@@ -193,50 +193,6 @@
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background: hsl(30 15% 82%);
     border-radius: 3px;
-  }
-}
-
-@keyframes counter-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.03); }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes drift {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(24px, -18px, 0); }
-}
-
-@keyframes drift-slow {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(-18px, 22px, 0); }
-}
-
-@layer utilities {
-  .animate-drift { animation: drift 14s ease-in-out infinite; }
-  .animate-drift-slow { animation: drift-slow 22s ease-in-out infinite; }
-}
-
-@media (hover: hover) and (pointer: fine) {
-  body.has-custom-cursor [data-cursor],
-  body.has-custom-cursor [data-cursor] * {
-    cursor: none !important;
-  }
-
-  body.has-custom-cursor input,
-  body.has-custom-cursor textarea,
-  body.has-custom-cursor select,
-  body.has-custom-cursor [contenteditable='true'] {
-    cursor: text !important;
   }
 }
 

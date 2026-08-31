@@ -1,24 +1,17 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, BadgeCheck, CalendarDays, Sparkles } from 'lucide-react';
 import type { TeamProfile } from '@/types';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useTeamStore, useTeamSync } from '@/stores/teamStore';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
-const initialsFor = (name: string) =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('') || 'SS';
+const initialsFor = (name: string) => name
+  .split(/\s+/)
+  .filter(Boolean)
+  .slice(0, 2)
+  .map((part) => part[0]?.toUpperCase())
+  .join('') || 'SS';
 
 const formatJoinedDate = (date: string, lang: 'en' | 'ko') => {
   if (!date) return lang === 'ko' ? '합류일 미정' : 'Joined date coming soon';
@@ -41,69 +34,37 @@ function TeamPhoto({ profile, className }: { profile: TeamProfile; className?: s
       />
     );
   }
-
-  return (
-    <div className="flex size-full items-center justify-center bg-gradient-to-br from-muted via-card to-background text-3xl font-semibold text-muted-foreground">
-      {initialsFor(profile.fullName)}
-    </div>
-  );
+  return <div className="grid size-full place-items-center bg-muted text-3xl font-semibold text-muted-foreground">{initialsFor(profile.fullName)}</div>;
 }
 
 function TeamCard({ profile, onSelect }: { profile: TeamProfile; onSelect: () => void }) {
   const { lang, t } = useLanguage();
-  const visibleTags = (profile.tags ?? []).slice(0, 3);
-
   return (
     <motion.button
       type="button"
       onClick={onSelect}
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      viewport={{ once: true, margin: '-48px' }}
+      transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
       className="group w-full text-left"
     >
-      <div className="relative overflow-hidden rounded-[2rem] border border-border bg-card shadow-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-foreground/10">
-        <div className="relative aspect-[4/5] overflow-hidden">
-          <TeamPhoto profile={profile} className="group-hover:scale-[1.055]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/8 to-transparent opacity-80 transition-opacity group-hover:opacity-95" />
-          <div className="absolute inset-x-4 bottom-4 rounded-3xl border border-white/20 bg-white/[0.12] p-4 text-white shadow-xl backdrop-blur-2xl transition-all duration-500 group-hover:translate-y-[-2px] group-hover:bg-white/[0.18]">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="truncate text-lg font-semibold tracking-tight">{profile.fullName}</p>
-                  {profile.isFounder && (
-                    <span className="rounded-full border border-white/25 bg-white/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em]">
-                      {t('teamPage.founderBadge')}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-1 text-sm text-white/78">{profile.roleTitle}</p>
-                <p className="mt-2 inline-flex items-center gap-1 text-xs text-white/68">
-                  <CalendarDays className="size-3.5" />
-                  {formatJoinedDate(profile.joinedDate, lang)}
-                </p>
-              </div>
-              <ArrowRight className="mt-1 size-4 shrink-0 opacity-70 transition-transform group-hover:translate-x-1" />
+      <div className="aspect-[4/5] overflow-hidden bg-muted">
+        <TeamPhoto profile={profile} className="group-hover:scale-[1.025]" />
+      </div>
+      <div className="border-b border-border py-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-xl font-semibold tracking-tight text-foreground">{profile.fullName}</h2>
+              {profile.isFounder && <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-accent">{t('teamPage.founderBadge')}</span>}
             </div>
+            <p className="mt-1 text-sm text-muted-foreground">{profile.roleTitle}</p>
           </div>
+          <span className="text-sm text-muted-foreground transition-transform group-hover:translate-x-1" aria-hidden>↗</span>
         </div>
-
-        <div className="space-y-4 p-5">
-          <p className="text-sm leading-relaxed text-muted-foreground">{profile.shortBio}</p>
-          {visibleTags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {visibleTags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+        <p className="mt-4 line-clamp-2 text-sm leading-6 text-muted-foreground">{profile.shortBio}</p>
+        <p className="mt-4 text-xs text-muted-foreground">{formatJoinedDate(profile.joinedDate, lang)}</p>
       </div>
     </motion.button>
   );
@@ -112,84 +73,35 @@ function TeamCard({ profile, onSelect }: { profile: TeamProfile; onSelect: () =>
 function ProfileModal({ profile, onClose }: { profile: TeamProfile | null; onClose: () => void }) {
   const { lang, t } = useLanguage();
   if (!profile) return null;
-
   const sections = [
-    {
-      title: t('teamPage.currentWork'),
-      body: profile.currentWork,
-    },
-    {
-      title: t('teamPage.contribution'),
-      body: profile.contribution,
-    },
-    {
-      title: t('teamPage.focus'),
-      body: profile.focus,
-    },
-  ].filter((section) => section.body?.trim());
+    [t('teamPage.currentWork'), profile.currentWork],
+    [t('teamPage.contribution'), profile.contribution],
+    [t('teamPage.focus'), profile.focus],
+  ].filter(([, body]) => body?.trim());
 
   return (
-    <Dialog open={Boolean(profile)} onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-h-[90vh] overflow-y-auto p-0 sm:max-w-4xl">
-        <div className="grid overflow-hidden rounded-[inherit] bg-card lg:grid-cols-[0.95fr,1.05fr]">
-          <div className="relative min-h-[360px] overflow-hidden bg-muted lg:min-h-[620px]">
-            <div className="absolute inset-0">
-              <TeamPhoto profile={profile} />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
-            <div className="absolute inset-x-5 bottom-5 rounded-3xl border border-white/20 bg-white/[0.12] p-5 text-white shadow-2xl backdrop-blur-2xl">
-              <p className="text-xs uppercase tracking-[0.24em] text-white/62">
-                {formatJoinedDate(profile.joinedDate, lang)}
-              </p>
-              <h2 className="mt-2 text-3xl font-semibold tracking-tight">{profile.fullName}</h2>
-              <p className="mt-2 text-sm text-white/78">{profile.roleTitle}</p>
-            </div>
+        <div className="grid bg-card lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="min-h-[360px] bg-muted lg:min-h-[620px]">
+            <TeamPhoto profile={profile} />
           </div>
-
-          <div className="p-6 sm:p-8">
+          <div className="p-6 sm:p-9">
             <DialogHeader className="text-left">
-              <div className="flex flex-wrap items-center gap-2">
-                {profile.isFounder && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-foreground px-3 py-1 text-xs font-semibold text-background">
-                    <BadgeCheck className="size-3.5" />
-                    {t('teamPage.founderBadge')}
-                  </span>
-                )}
-                {profile.isFeatured && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
-                    <Sparkles className="size-3.5" />
-                    {t('teamPage.featuredBadge')}
-                  </span>
-                )}
-              </div>
-              <DialogTitle className="mt-5 text-3xl font-semibold tracking-tight text-foreground">
-                {t('teamPage.profileTitle')}
-              </DialogTitle>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{formatJoinedDate(profile.joinedDate, lang)}</p>
+              <DialogTitle className="mt-3 text-3xl font-semibold tracking-[-0.035em] text-foreground sm:text-4xl">{profile.fullName}</DialogTitle>
+              <p className="mt-1 text-sm text-muted-foreground">{profile.roleTitle}</p>
             </DialogHeader>
-
-            <p className="mt-5 text-base leading-7 text-muted-foreground">{profile.shortBio}</p>
-
+            <p className="mt-7 text-base leading-7 text-muted-foreground">{profile.shortBio}</p>
             {(profile.tags ?? []).length > 0 && (
-              <div className="mt-6 flex flex-wrap gap-2">
-                {profile.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              <p className="mt-5 text-xs leading-6 text-muted-foreground">{profile.tags.join(' · ')}</p>
             )}
-
-            <div className="mt-8 grid gap-4">
-              {sections.map((section) => (
-                <div key={section.title} className="rounded-2xl border border-border bg-background p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                    {section.title}
-                  </p>
-                  <p className="mt-3 whitespace-pre-line text-sm leading-7 text-foreground/82">{section.body}</p>
-                </div>
+            <div className="mt-9 border-t border-foreground">
+              {sections.map(([title, body]) => (
+                <section key={title} className="border-b border-border py-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{title}</p>
+                  <p className="mt-3 whitespace-pre-line text-sm leading-7 text-foreground/80">{body}</p>
+                </section>
               ))}
             </div>
           </div>
@@ -200,83 +112,72 @@ function ProfileModal({ profile, onClose }: { profile: TeamProfile | null; onClo
 }
 
 export default function Team() {
-  const { lang, t } = useLanguage();
+  const { t } = useLanguage();
   const [selectedProfile, setSelectedProfile] = useState<TeamProfile | null>(null);
   const profiles = useTeamStore((state) => state.profiles);
   const status = useTeamStore((state) => state.status);
   const error = useTeamStore((state) => state.error);
   useTeamSync();
 
-  const sortedProfiles = useMemo(
-    () => [...profiles].sort((a, b) => {
-      if (a.isFounder !== b.isFounder) return a.isFounder ? -1 : 1;
-      if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
-      return a.sortOrder - b.sortOrder || a.fullName.localeCompare(b.fullName);
-    }),
-    [profiles]
-  );
+  const sortedProfiles = useMemo(() => [...profiles].sort((a, b) => {
+    if (a.isFounder !== b.isFounder) return a.isFounder ? -1 : 1;
+    if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
+    return a.sortOrder - b.sortOrder || a.fullName.localeCompare(b.fullName);
+  }), [profiles]);
 
   return (
-    <main className="min-h-screen bg-background pt-24 text-foreground">
-      <section className="mx-auto max-w-6xl px-6 py-16 sm:py-24">
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-3xl"
-        >
-          <p className="section-kicker">{t('teamPage.kicker')}</p>
-          <h1 className="mt-5 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            {t('teamPage.title')}
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-            {t('teamPage.subtitle')}
-          </p>
-        </motion.div>
-
-        <div className="mt-12 grid gap-4 sm:grid-cols-3">
-          {[
-            [t('teamPage.statOneLabel'), t('teamPage.statOneValue')],
-            [t('teamPage.statTwoLabel'), t('teamPage.statTwoValue')],
-            [t('teamPage.statThreeLabel'), t('teamPage.statThreeValue')],
-          ].map(([label, value]) => (
-            <div key={label} className="rounded-3xl border border-border bg-card/80 p-5 shadow-sm backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">{label}</p>
-              <p className="mt-2 text-base font-semibold text-foreground">{value}</p>
+    <div className="pt-[4.5rem]">
+      <section className="border-b border-border bg-background py-20 sm:py-28 lg:py-36">
+        <div className="mx-auto max-w-7xl px-5 sm:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            className="grid gap-10 lg:grid-cols-[1.35fr_0.65fr] lg:items-end"
+          >
+            <div>
+              <p className="section-kicker">{t('teamPage.kicker')}</p>
+              <h1 className="mt-6 max-w-5xl font-heading text-[clamp(3.4rem,8vw,7.5rem)] font-semibold leading-[0.88] tracking-[-0.07em] text-foreground">{t('teamPage.title')}</h1>
             </div>
-          ))}
+            <p className="max-w-lg text-base leading-8 text-muted-foreground sm:text-lg">{t('teamPage.subtitle')}</p>
+          </motion.div>
+
+          <div className="mt-14 grid border-t border-foreground sm:grid-cols-3">
+            {[
+              [t('teamPage.statOneLabel'), t('teamPage.statOneValue')],
+              [t('teamPage.statTwoLabel'), t('teamPage.statTwoValue')],
+              [t('teamPage.statThreeLabel'), t('teamPage.statThreeValue')],
+            ].map(([label, value], index) => (
+              <div key={label} className={`border-b border-border py-5 sm:border-r sm:px-6 ${index === 0 ? 'sm:pl-0' : ''} ${index === 2 ? 'sm:border-r-0' : ''}`}>
+                <p className="text-xs text-muted-foreground">{label}</p>
+                <p className="mt-2 text-sm font-semibold text-foreground">{value}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 pb-24">
-        {status === 'loading' && sortedProfiles.length === 0 ? (
-          <div className="rounded-[2rem] border border-border bg-card p-10 text-center text-muted-foreground">
-            {t('teamPage.loading')}
-          </div>
-        ) : sortedProfiles.length === 0 ? (
-          <div className="rounded-[2rem] border border-dashed border-border bg-card p-10 text-center">
-            <p className="text-lg font-semibold text-foreground">
-              {t('teamPage.emptyTitle')}
-            </p>
-            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-              {t('teamPage.emptyBody')}
-            </p>
-            {error && <p className="mt-4 text-xs text-muted-foreground">{error}</p>}
-          </div>
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {sortedProfiles.map((profile) => (
-              <TeamCard
-                key={profile.id}
-                profile={profile}
-                onSelect={() => setSelectedProfile(profile)}
-              />
-            ))}
-          </div>
-        )}
+      <section className="bg-card py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-5 sm:px-8">
+          {status === 'loading' && sortedProfiles.length === 0 ? (
+            <p className="py-20 text-center text-sm text-muted-foreground">{t('teamPage.loading')}</p>
+          ) : sortedProfiles.length === 0 ? (
+            <div className="border border-dashed border-border p-10 text-center">
+              <p className="text-lg font-semibold text-foreground">{t('teamPage.emptyTitle')}</p>
+              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">{t('teamPage.emptyBody')}</p>
+              {error && <p className="mt-4 text-xs text-muted-foreground">{error}</p>}
+            </div>
+          ) : (
+            <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+              {sortedProfiles.map((profile) => (
+                <TeamCard key={profile.id} profile={profile} onSelect={() => setSelectedProfile(profile)} />
+              ))}
+            </div>
+          )}
+        </div>
       </section>
 
       <ProfileModal profile={selectedProfile} onClose={() => setSelectedProfile(null)} />
-    </main>
+    </div>
   );
 }
