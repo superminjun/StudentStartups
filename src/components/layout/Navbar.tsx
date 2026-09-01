@@ -91,7 +91,7 @@ export default function Navbar() {
             <div className="mx-auto flex w-full max-w-[90rem] flex-1 flex-col">
               {links.map((link, index) => (
                 <motion.div key={link.path} initial={{ opacity: 0, y: 20, filter: 'blur(5px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} transition={{ ...motionSpring.reveal, delay: index * STAGGER }}>
-                  <NavLink to={link.path} className={({ isActive }) => `flex items-center justify-between border-b border-black/15 py-4 text-[clamp(2rem,9vw,4rem)] font-semibold leading-none tracking-[-0.06em] ${isActive ? 'text-[var(--ss-coral)]' : 'text-[var(--ss-ink)]'}`}>
+                  <NavLink to={link.path} className={({ isActive }) => `flex items-center justify-between border-b border-black/15 py-4 text-[clamp(1.75rem,6vw,2.5rem)] font-medium leading-tight tracking-[-0.04em] ${isActive ? 'text-[var(--ss-coral)]' : 'text-[var(--ss-ink)]'}`}>
                     {t(link.key)}<span className="text-base font-normal">0{index + 1}</span>
                   </NavLink>
                 </motion.div>

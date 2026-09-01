@@ -199,6 +199,50 @@
     font-feature-settings: 'kern' 1, 'ss01' 1;
   }
 
+  .ss-display {
+    font-size: clamp(2.75rem, 5vw, 4.5rem);
+    font-weight: 500;
+    line-height: .96;
+    letter-spacing: -.052em;
+    text-wrap: balance;
+  }
+
+  .ss-heading {
+    font-size: clamp(2.125rem, 3.6vw, 3.25rem);
+    font-weight: 500;
+    line-height: 1.02;
+    letter-spacing: -.045em;
+    text-wrap: balance;
+  }
+
+  .ss-title {
+    font-size: clamp(1.5rem, 2.2vw, 2.25rem);
+    font-weight: 500;
+    line-height: 1.12;
+    letter-spacing: -.035em;
+    text-wrap: balance;
+  }
+
+  .ss-lead {
+    font-size: clamp(1.0625rem, 1.5vw, 1.375rem);
+    line-height: 1.45;
+    letter-spacing: -.018em;
+  }
+
+  .ss-stat {
+    font-size: clamp(2rem, 3.4vw, 3rem);
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -.05em;
+  }
+
+  .ss-label {
+    font-size: .6875rem;
+    font-weight: 600;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+  }
+
   .ss-mark {
     position: relative;
     display: grid;

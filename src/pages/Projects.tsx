@@ -19,11 +19,10 @@ export default function Projects() {
   return (
     <div className="bg-[var(--ss-canvas)] pt-[4.75rem]">
       <section className="relative overflow-hidden border-b border-black/10 px-5 py-20 sm:px-8 lg:py-28">
-        <div className="absolute -right-12 top-4 select-none text-[clamp(12rem,30vw,30rem)] font-black leading-none tracking-[-.12em] text-black/[.035]">{String(projects.length).padStart(2, '0')}</div>
         <div className="relative mx-auto grid max-w-[90rem] gap-12 lg:grid-cols-[1.15fr_.85fr] lg:items-end">
           <motion.div initial={{ opacity: 0, y: 36, rotateX: 4, filter: 'blur(8px)' }} animate={{ opacity: 1, y: 0, rotateX: 0, filter: 'blur(0px)' }} transition={motionSpring.depth}>
-            <p className="text-[10px] font-black uppercase tracking-[.28em] text-black/45">Index / 2024—26</p>
-            <h1 className="mt-7 text-[clamp(5rem,12vw,12rem)] font-semibold leading-[.74] tracking-[-.1em]">{t('projects.title')}</h1>
+            <p className="ss-label text-black/45">Index / 2024—26</p>
+            <h1 className="ss-display mt-7">{t('projects.title')}</h1>
           </motion.div>
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ ...motionSpring.reveal, delay: .18 }}>
             <p className="max-w-lg text-lg leading-8 text-black/55">{t('projects.subtitle')}</p>

@@ -20,7 +20,7 @@ export default function Footer() {
         <div className="grid gap-14 border-b border-white/15 pb-16 lg:grid-cols-[1.3fr_.75fr_.75fr]">
           <div>
             <MotionMark dark className="mb-8 size-24" />
-            <h2 className="max-w-2xl text-[clamp(2.5rem,5vw,5.5rem)] font-semibold leading-[0.88] tracking-[-0.07em]">Make it real.<br /><span className="text-white/35">Then make it better.</span></h2>
+            <h2 className="ss-heading max-w-2xl">Make it real.<br /><span className="text-white/35">Then make it better.</span></h2>
           </div>
           <nav className="grid content-start gap-1" aria-label="Footer navigation">
             {links.map(([to, label]) => (
@@ -38,7 +38,7 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <p className="select-none whitespace-nowrap pt-8 text-[clamp(3rem,10vw,9.5rem)] font-black leading-none tracking-[-0.09em] text-white">STUDENT STARTUPS</p>
+        <p className="ss-display select-none whitespace-nowrap pt-8 text-white">STUDENT STARTUPS</p>
         <div className="flex flex-col gap-3 pt-7 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
           <p>{t('footer.rights')}</p>
           <div className="flex gap-5"><Link to="/privacy">{t('footer.privacy')}</Link><Link to="/terms">{t('footer.terms')}</Link></div>
