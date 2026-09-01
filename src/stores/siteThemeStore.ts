@@ -9,20 +9,20 @@ const TABLE_NAME = 'site_theme';
 const SINGLETON_ID = 'global';
 
 const defaultTheme = {
-  fontUrl: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@500;600;700&display=swap',
-  fontBody: "'Inter', system-ui, -apple-system, sans-serif",
-  fontHeading: "'Sora', 'Inter', system-ui, -apple-system, sans-serif",
+  fontUrl: 'https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@500;600&display=swap',
+  fontBody: "'Noto Sans KR', system-ui, -apple-system, sans-serif",
+  fontHeading: "'Noto Serif KR', Georgia, serif",
   baseFontSize: '16px',
-  radius: '0.5rem',
-  colorBeige: '#f5f2ef',
-  colorBeigeDark: '#e9e6e2',
-  colorWarmWhite: '#fbfaf8',
-  colorCharcoal: '#2a2522',
-  colorDark: '#3d3734',
-  colorMid: '#78716d',
-  colorLight: '#a39c99',
-  colorAccent: '#e66b19',
-  colorAccentSoft: '#faf1eb',
+  radius: '0.25rem',
+  colorBeige: '#f5f2ea',
+  colorBeigeDark: '#ddd7cb',
+  colorWarmWhite: '#fffdf8',
+  colorCharcoal: '#17243b',
+  colorDark: '#2a3a55',
+  colorMid: '#626b7a',
+  colorLight: '#89909b',
+  colorAccent: '#8b2635',
+  colorAccentSoft: '#eee3e5',
 };
 
 export type SiteTheme = typeof defaultTheme;
@@ -48,7 +48,9 @@ type SiteThemeRow = {
 
 type SiteThemeStatus = 'idle' | 'loading' | 'ready' | 'error' | 'demo';
 
-const mapRowToTheme = (row: SiteThemeRow | null): SiteTheme => ({
+const isLegacyTheme = (accent?: string | null) => ['#e66b19', '#9a7654'].includes(accent?.toLowerCase() ?? '');
+
+const mapRowToTheme = (row: SiteThemeRow | null): SiteTheme => !row || isLegacyTheme(row.color_accent) ? defaultTheme : ({
   fontUrl: row?.font_url ?? defaultTheme.fontUrl,
   fontBody: row?.font_body ?? defaultTheme.fontBody,
   fontHeading: row?.font_heading ?? defaultTheme.fontHeading,
@@ -96,16 +98,15 @@ const resolveMode = (mode?: ColorMode): ColorMode => mode ?? getSystemColorMode(
 
 const deriveDarkTheme = (theme: SiteTheme): SiteTheme => ({
   ...theme,
-  // Warm charcoal base with a soft, editorial feel
-  colorBeige: '#1a1715',       // page background
-  colorBeigeDark: '#25211f',   // muted background
-  colorWarmWhite: '#2a2522',   // card/surface (requested tone)
-  colorCharcoal: '#f6f1ed',    // primary text
-  colorDark: '#e1d8d1',        // strong text
-  colorMid: '#b8aea6',         // secondary text
-  colorLight: '#8d847d',       // tertiary text
-  colorAccent: '#e9a46a',      // warm highlight
-  colorAccentSoft: '#3a2f29',  // accent surface
+  colorBeige: '#111a2b',
+  colorBeigeDark: '#1c2940',
+  colorWarmWhite: '#202f49',
+  colorCharcoal: '#f5f2ea',
+  colorDark: '#e7e4dc',
+  colorMid: '#bcc3cf',
+  colorLight: '#8e99aa',
+  colorAccent: '#c76a77',
+  colorAccentSoft: '#3b2833',
 });
 
 const applyThemeToDocument = (theme: SiteTheme, mode?: ColorMode) => {
@@ -166,6 +167,20 @@ const applyThemeToDocument = (theme: SiteTheme, mode?: ColorMode) => {
   setVar('--input', hexToHsl(beigeDark));
   setVar('--ring', hexToHsl(accent));
 
+  setVar('--ss-canvas', beige);
+  setVar('--ss-paper', beige);
+  setVar('--ss-surface', warmWhite);
+  setVar('--ss-ink', charcoal);
+  setVar('--ss-night', resolvedMode === 'dark' ? beige : charcoal);
+  setVar('--ss-navy', resolvedMode === 'dark' ? beige : charcoal);
+  setVar('--ss-navy-soft', resolvedMode === 'dark' ? beigeDark : dark);
+  setVar('--ss-accent', accent);
+  setVar('--ss-rule', beigeDark);
+  setVar('--ss-muted', mid);
+  setVar('--ss-panel', beigeDark);
+  setVar('--ss-bronze', accent);
+  setVar('--ss-coral', accent);
+
   const sidebarBackground = resolvedMode === 'dark' ? beige : charcoal;
   const sidebarForeground = resolvedMode === 'dark' ? charcoal : beige;
   const sidebarAccent = resolvedMode === 'dark' ? beigeDark : dark;
@@ -224,13 +239,14 @@ const writeCache = (theme: SiteTheme) => {
 const loadFallback = (): SiteTheme => {
   if (!isBrowser) return defaultTheme;
   if (isSupabaseConfigured) {
-    return readCache() ?? defaultTheme;
+    const cached = readCache();
+    return cached && !isLegacyTheme(cached.colorAccent) ? cached : defaultTheme;
   }
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) return defaultTheme;
   try {
     const parsed = JSON.parse(saved) as Partial<SiteTheme>;
-    return { ...defaultTheme, ...parsed };
+    return isLegacyTheme(parsed.colorAccent) ? defaultTheme : { ...defaultTheme, ...parsed };
   } catch {
     return defaultTheme;
   }

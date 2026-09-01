@@ -23,7 +23,6 @@ function TeamPhoto({ profile, className }: { profile: TeamProfile; className?: s
 
 function TeamCard({ profile, onSelect, index }: { profile: TeamProfile; onSelect: () => void; index: number }) {
   const { lang, t } = useLanguage();
-  const colors = ['var(--ss-sky)', 'var(--ss-lime)', 'var(--ss-sand)', 'var(--ss-violet)'];
   return (
     <motion.button
       type="button"
@@ -32,20 +31,18 @@ function TeamCard({ profile, onSelect, index }: { profile: TeamProfile; onSelect
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ ...motionSpring.reveal, delay: Math.min(index * STAGGER, .28) }}
-      whileHover={{ y: -5 }}
-      whileTap={{ scale: .985, y: 1 }}
-      className="group w-full text-left"
+      whileHover={{ y: -3 }}
+      whileTap={{ y: 1 }}
+      className="group w-full border-t border-[var(--ss-rule)] pt-4 text-left"
     >
-      <div className="relative aspect-[4/5] overflow-hidden rounded-[1.7rem] bg-black/[.04]">
-        <TeamPhoto profile={profile} className="transition-transform duration-700 ease-out group-hover:scale-[1.045]" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-        <span className="absolute right-3 top-3 grid size-10 translate-y-2 place-items-center rounded-full bg-white/90 text-sm opacity-0 backdrop-blur transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">↗</span>
-        {profile.isFounder && <span className="absolute bottom-3 left-3 rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-[.14em] text-black" style={{ background: colors[index % colors.length] }}>{t('teamPage.founderBadge')}</span>}
+      <div className="relative aspect-[4/5] overflow-hidden bg-[var(--ss-panel)]">
+        <TeamPhoto profile={profile} className="transition-transform duration-500 ease-out group-hover:scale-[1.025]" />
+        <span className="absolute bottom-0 right-0 grid size-11 place-items-center bg-[var(--ss-navy)] text-sm text-white">↗</span>
       </div>
-      <div className="px-1 pb-3 pt-5">
-        <div className="flex items-start justify-between gap-4"><div><h2 className="text-2xl font-semibold tracking-[-.05em]">{profile.fullName}</h2><p className="mt-1 text-sm text-black/45">{profile.roleTitle}</p></div><span className="text-[10px] font-bold text-black/35">0{index + 1}</span></div>
-        <p className="mt-4 line-clamp-2 text-sm leading-6 text-black/52">{profile.shortBio}</p>
-        <p className="mt-4 border-t border-black/10 pt-3 text-[10px] font-semibold uppercase tracking-[.14em] text-black/35">{formatJoinedDate(profile.joinedDate, lang)}</p>
+      <div className="pb-3 pt-5">
+        <div className="flex items-start justify-between gap-4"><div><h2 className="font-heading text-xl font-medium">{profile.fullName}</h2><p className="mt-1 text-sm text-[var(--ss-muted)]">{profile.roleTitle}</p></div><span className="text-[10px] font-semibold text-[var(--ss-muted)]">0{index + 1}</span></div>
+        <p className="mt-4 line-clamp-2 text-sm leading-6 text-[var(--ss-muted)]">{profile.shortBio}</p>
+        <div className="mt-4 flex items-center justify-between border-t border-[var(--ss-rule)] pt-3 text-[10px] font-semibold uppercase tracking-[.1em] text-[var(--ss-muted)]"><span>{formatJoinedDate(profile.joinedDate, lang)}</span>{profile.isFounder && <span className="text-[var(--ss-accent)]">{t('teamPage.founderBadge')}</span>}</div>
       </div>
     </motion.button>
   );
@@ -57,14 +54,14 @@ function ProfileModal({ profile, onClose }: { profile: TeamProfile | null; onClo
   const sections = [[t('teamPage.currentWork'), profile.currentWork], [t('teamPage.contribution'), profile.contribution], [t('teamPage.focus'), profile.focus]].filter(([, body]) => body?.trim());
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto border-0 bg-[var(--ss-canvas)] p-0 sm:max-w-5xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-sm border border-[var(--ss-rule)] bg-[var(--ss-paper)] p-0 sm:max-w-5xl">
         <div className="grid lg:grid-cols-[.92fr_1.08fr]">
-          <div className="min-h-[360px] bg-black/5 lg:min-h-[640px]"><TeamPhoto profile={profile} /></div>
+          <div className="min-h-[360px] bg-[var(--ss-panel)] lg:min-h-[640px]"><TeamPhoto profile={profile} /></div>
           <div className="p-7 sm:p-10">
-            <DialogHeader className="text-left"><p className="ss-label text-black/40">{formatJoinedDate(profile.joinedDate, lang)}</p><DialogTitle className="ss-heading mt-4">{profile.fullName}</DialogTitle><p className="mt-1 text-sm text-black/45">{profile.roleTitle}</p></DialogHeader>
-            <p className="mt-8 text-base leading-7 text-black/60">{profile.shortBio}</p>
-            {(profile.tags ?? []).length > 0 && <div className="mt-5 flex flex-wrap gap-2">{profile.tags.map((tag) => <span key={tag} className="rounded-full bg-black/[.06] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.12em]">{tag}</span>)}</div>}
-            <div className="mt-10 border-t border-black/30">{sections.map(([title, body]) => <section key={title} className="border-b border-black/12 py-6"><p className="text-[10px] font-semibold uppercase tracking-[.18em] text-[var(--ss-bronze)]">{title}</p><p className="mt-3 whitespace-pre-line text-sm leading-7 text-black/65">{body}</p></section>)}</div>
+            <DialogHeader className="text-left"><p className="ss-label text-[var(--ss-accent)]">{formatJoinedDate(profile.joinedDate, lang)}</p><DialogTitle className="ss-heading mt-4">{profile.fullName}</DialogTitle><p className="mt-1 text-sm text-[var(--ss-muted)]">{profile.roleTitle}</p></DialogHeader>
+            <p className="mt-8 text-[15px] leading-7 text-[var(--ss-muted)]">{profile.shortBio}</p>
+            {(profile.tags ?? []).length > 0 && <p className="mt-5 text-[10px] font-semibold uppercase tracking-[.12em] text-[var(--ss-muted)]">{profile.tags.join(' · ')}</p>}
+            <div className="mt-10 border-t border-[var(--ss-rule)]">{sections.map(([title, body]) => <section key={title} className="border-b border-[var(--ss-rule)] py-6"><p className="text-[10px] font-semibold uppercase tracking-[.14em] text-[var(--ss-accent)]">{title}</p><p className="mt-3 whitespace-pre-line text-sm leading-7 text-[var(--ss-muted)]">{body}</p></section>)}</div>
           </div>
         </div>
       </DialogContent>
@@ -82,17 +79,16 @@ export default function Team() {
   const sortedProfiles = useMemo(() => [...profiles].sort((a, b) => a.isFounder !== b.isFounder ? (a.isFounder ? -1 : 1) : a.isFeatured !== b.isFeatured ? (a.isFeatured ? -1 : 1) : a.sortOrder - b.sortOrder || a.fullName.localeCompare(b.fullName)), [profiles]);
 
   return (
-    <div className="bg-[var(--ss-canvas)] pt-[4.75rem]">
-      <section className="relative overflow-hidden px-5 py-20 sm:px-8 lg:py-28">
-        <div className="relative mx-auto max-w-[90rem]">
-          <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={motionSpring.reveal} className="ss-label text-black/45">People / {String(sortedProfiles.length).padStart(2, '0')}</motion.p>
-          <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={motionSpring.depth} className="ss-display mt-8 max-w-[15ch]">{t('teamPage.title')}</motion.h1>
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ ...motionSpring.reveal, delay: .2 }} className="mt-12 grid gap-8 border-t border-black/20 pt-7 lg:grid-cols-[1.1fr_.9fr]"><p className="ss-lead max-w-2xl">{lang === 'ko' ? '직함보다, 실제로 맡은 일로 소개합니다.' : 'Introduced by the work they actually own.'}</p><p className="max-w-lg text-base leading-7 text-black/55">{t('teamPage.subtitle')}</p></motion.div>
+    <div className="bg-[var(--ss-paper)] pt-[4.5rem]">
+      <section className="border-b border-[var(--ss-rule)] py-16 lg:py-20">
+        <div className="ss-wrap grid gap-10 lg:grid-cols-[.38fr_1fr]">
+          <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={motionSpring.reveal} className="ss-label text-[var(--ss-accent)]">{t('nav.team')} · {String(sortedProfiles.length).padStart(2, '0')}</motion.p>
+          <div><motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={motionSpring.depth} className="ss-display max-w-[17ch]">{t('teamPage.title')}</motion.h1><motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ ...motionSpring.reveal, delay: .1 }} className="mt-7 max-w-xl text-[15px] leading-7 text-[var(--ss-muted)]">{t('teamPage.subtitle')}</motion.p></div>
         </div>
       </section>
-      <section className="bg-white px-5 py-20 sm:px-8 lg:py-28">
-        <div className="mx-auto max-w-[90rem]">
-          {status === 'loading' && sortedProfiles.length === 0 ? <p className="py-20 text-center text-sm text-black/45">{t('teamPage.loading')}</p> : sortedProfiles.length === 0 ? <div className="rounded-[1.5rem] border border-dashed border-black/20 p-12 text-center"><p className="text-xl font-semibold">{t('teamPage.emptyTitle')}</p><p className="mx-auto mt-3 max-w-md text-sm leading-6 text-black/50">{t('teamPage.emptyBody')}</p>{error && <p className="mt-4 text-xs text-black/35">{error}</p>}</div> : <div className="grid gap-x-5 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">{sortedProfiles.map((profile, index) => <TeamCard key={profile.id} profile={profile} index={index} onSelect={() => setSelectedProfile(profile)} />)}</div>}
+      <section className="ss-section bg-[var(--ss-surface)]">
+        <div className="ss-wrap">
+          {status === 'loading' && sortedProfiles.length === 0 ? <p className="py-20 text-center text-sm text-[var(--ss-muted)]">{t('teamPage.loading')}</p> : sortedProfiles.length === 0 ? <div className="border border-[var(--ss-rule)] p-12 text-center"><p className="font-heading text-xl">{t('teamPage.emptyTitle')}</p><p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--ss-muted)]">{t('teamPage.emptyBody')}</p>{error && <p className="mt-4 text-xs text-[var(--ss-muted)]">{error}</p>}</div> : <div className="grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">{sortedProfiles.map((profile, index) => <TeamCard key={profile.id} profile={profile} index={index} onSelect={() => setSelectedProfile(profile)} />)}</div>}
         </div>
       </section>
       <ProfileModal profile={selectedProfile} onClose={() => setSelectedProfile(null)} />

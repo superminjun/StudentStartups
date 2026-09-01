@@ -10,9 +10,9 @@ const SINGLETON_ID = 'global';
 
 const defaultContent = {
   heroTagline: 'Student Startups',
-  heroTitle: 'For students who would rather build than wait.',
-  heroSubtitle: 'Student Startups helps students find people, make the first version, sell it, and keep a clear record of what actually happened.',
-  heroCta: 'See the Work',
+  heroTitle: 'Ideas become practice here.',
+  heroSubtitle: 'Student Startups is BNSS’s student-led program for developing products, running teams, and learning from each launch.',
+  heroCta: 'View Projects',
   heroBackgroundUrl: '',
   shopTerms: TERMS.join(', '),
   totalRevenue: '24850',

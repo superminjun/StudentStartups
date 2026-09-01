@@ -42,7 +42,7 @@ export const mapTeamProfileRow = (row: TeamProfileRow): TeamProfile => ({
   roleTitle: row.role_title?.trim() || 'Member',
   joinedDate: row.joined_date ?? '',
   shortBio: row.short_bio?.trim() || 'Contributing to the Student Startups operating system.',
-  focus: row.focus?.trim() || 'Building practical judgment through real work.',
+  focus: row.focus?.trim() || 'Current project work and team responsibilities.',
   contribution: row.contribution?.trim() || 'Supports projects through execution, review, and iteration.',
   currentWork: row.current_work?.trim() || 'Active across current Student Startups work.',
   photoUrl: toPublicStorageUrl(row.photo_url ?? ''),

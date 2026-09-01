@@ -235,9 +235,9 @@ export default function MemberPortal() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center bg-beige">
+      <div className="flex min-h-[60vh] items-center justify-center bg-[var(--ss-paper)]">
         <div className="text-center">
-          <div className="mx-auto size-8 animate-spin rounded-full border-2 border-border border-t-[hsl(24,80%,50%)]" />
+          <div className="mx-auto size-8 animate-spin rounded-full border-2 border-border border-t-[var(--ss-accent)]" />
           <p className="mt-4 text-sm text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
@@ -246,8 +246,8 @@ export default function MemberPortal() {
 
   return (
     <div>
-      <section className="bg-charcoal pb-6 pt-24 lg:pt-28">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="bg-[var(--ss-navy)] pb-0 pt-24 lg:pt-28">
+        <div className="ss-wrap">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-white/40">{t('portal.dashboard')}</p>
@@ -258,19 +258,19 @@ export default function MemberPortal() {
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      className="rounded-lg border border-white/20 bg-card/10 px-3 py-1.5 text-xl font-bold text-white outline-none"
+                      className="rounded-sm border border-white/20 bg-white/10 px-3 py-1.5 font-heading text-xl text-white outline-none"
                     />
                     <button
                       onClick={handleSaveProfile}
                       disabled={savingProfile}
-                      className="rounded-full bg-card/20 px-3 py-1 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
+                      className="border border-white/30 px-3 py-1 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {savingProfile ? t('portal.saving') : t('portal.save')}
                     </button>
                   </div>
                 ) : (
                   <>
-                    <h1 className="text-2xl font-bold text-white">{editName}</h1>
+                    <h1 className="font-heading text-2xl font-medium text-white">{editName}</h1>
                     <button onClick={() => setEditMode(true)} className="text-white/40 hover:text-white transition-colors">
                       <Edit3 className="size-4" />
                     </button>
@@ -280,7 +280,7 @@ export default function MemberPortal() {
             </div>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-white/60 hover:text-white hover:bg-card/10 transition-all"
+              className="flex items-center gap-2 border border-white/20 px-4 py-2 text-sm text-white/60 transition-all hover:bg-white/10 hover:text-white"
             >
               <LogOut className="size-4" />
               {t('portal.logout')}
@@ -292,8 +292,8 @@ export default function MemberPortal() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`rounded-t-lg px-4 py-2 text-sm font-medium transition-colors ${
-                  activeTab === tab ? 'bg-beige text-foreground' : 'text-white/40 hover:text-white/70'
+                className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+                  activeTab === tab ? 'border-[var(--ss-accent)] bg-[var(--ss-paper)] text-foreground' : 'border-transparent text-white/40 hover:text-white/70'
                 }`}
               >
                 {t(`portal.${tab}`)}
@@ -303,26 +303,26 @@ export default function MemberPortal() {
         </div>
       </section>
 
-      <section className="bg-beige py-8 lg:py-10">
-        <div className="mx-auto max-w-6xl px-6">
+      <section className="min-h-[60vh] bg-[var(--ss-paper)] py-8 lg:py-10">
+        <div className="ss-wrap">
           <AnimatePresence mode="wait">
             {activeTab === 'overview' && (
               <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {[
-                    { icon: Users, label: t('portal.team'), value: profile.team, color: 'bg-blue-50 text-blue-600' },
-                    { icon: Award, label: t('portal.role'), value: profile.role, color: 'bg-amber-50 text-amber-600' },
-                    { icon: Calendar, label: t('portal.attendance'), value: `${attendanceCount}/${totalMeetings}`, color: 'bg-emerald-50 text-emerald-600' },
-                    { icon: Clock, label: t('portal.joined'), value: profile.join_date, color: 'bg-violet-50 text-violet-600' },
+                    { icon: Users, label: t('portal.team'), value: profile.team },
+                    { icon: Award, label: t('portal.role'), value: profile.role },
+                    { icon: Calendar, label: t('portal.attendance'), value: `${attendanceCount}/${totalMeetings}` },
+                    { icon: Clock, label: t('portal.joined'), value: profile.join_date },
                   ].map((item, i) => (
                     <motion.div
                       key={item.label}
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.06 }}
-                      className="card p-5"
+                      className="border-t border-[var(--ss-rule)] py-5"
                     >
-                      <div className={`inline-flex size-9 items-center justify-center rounded-lg ${item.color}`}>
+                      <div className="inline-flex size-9 items-center justify-center bg-[var(--ss-navy)] text-white">
                         <item.icon className="size-4" />
                       </div>
                       <p className="mt-3 text-xs text-muted-foreground">{item.label}</p>
@@ -367,18 +367,18 @@ export default function MemberPortal() {
             {activeTab === 'stats' && (
               <motion.div key="stats" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid gap-6 lg:grid-cols-2">
                 <div className="card p-6">
-                  <h3 className="text-lg font-semibold text-foreground">{t('portal.attendance')}</h3>
+                  <h3 className="font-heading text-lg font-medium text-foreground">{t('portal.attendance')}</h3>
                   <div className="mt-5">
                     <AnimatedProgress value={attendanceCount} max={Math.max(totalMeetings, 1)} label={attendanceSummary} color="bg-emerald-500" />
                   </div>
-                  <p className="mt-4 text-4xl font-bold text-foreground tabular-nums">
+                  <p className="mt-4 font-heading text-3xl font-medium text-foreground tabular-nums">
                     {totalMeetings ? Math.round((attendanceCount / totalMeetings) * 100) : 0}%
                   </p>
                 </div>
                 <div className="card p-6">
-                  <h3 className="text-lg font-semibold text-foreground">{t('portal.contributions')}</h3>
+                  <h3 className="font-heading text-lg font-medium text-foreground">{t('portal.contributions')}</h3>
                   <div className="mt-5">
-                    <p className="text-4xl font-bold text-[hsl(24,80%,50%)] tabular-nums">{contributionTotal}</p>
+                    <p className="font-heading text-3xl font-medium text-[var(--ss-accent)] tabular-nums">{contributionTotal}</p>
                     <p className="mt-2 text-sm text-muted-foreground">{t('portal.contributionSummary')}</p>
                   </div>
                   <div className="mt-4 space-y-2">
@@ -388,12 +388,12 @@ export default function MemberPortal() {
                       <p className="text-sm text-muted-foreground">{t('portal.noContributions')}</p>
                     ) : (
                       contributions.slice(0, 6).map((entry) => (
-                        <div key={entry.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
+                        <div key={entry.id} className="flex items-center justify-between border-b border-border px-1 py-2">
                           <div>
                             <p className="text-xs font-semibold text-foreground">{entry.title}</p>
                             <p className="text-[11px] text-muted-foreground">{entry.contribution_date}</p>
                           </div>
-                          <span className="text-xs font-semibold text-[hsl(24,80%,50%)]">{entry.points}</span>
+                          <span className="text-xs font-semibold text-[var(--ss-accent)]">{entry.points}</span>
                         </div>
                       ))
                     )}

@@ -98,13 +98,15 @@ export default function Contact() {
     `input-base ${errors[field] ? 'border-red-400 bg-red-50/30' : 'border-border'}`;
 
   return (
-    <div>
-      <section className="section bg-charcoal pt-32 lg:pt-40">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+    <div className="bg-[var(--ss-paper)] pt-[4.5rem]">
+      <header className="border-b border-[var(--ss-rule)] py-16 lg:py-20">
+        <div className="ss-wrap grid gap-10 lg:grid-cols-[.38fr_1fr]">
+          <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="ss-label text-[var(--ss-accent)]">{t('nav.contact')}</motion.p>
+          <div>
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-semibold tracking-tight text-white sm:text-4xl"
+            className="ss-display"
           >
             {t('contact.title')}
           </motion.h1>
@@ -112,19 +114,20 @@ export default function Contact() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="mt-3 max-w-xl text-base text-white/[0.55]"
+            className="mt-7 max-w-xl text-[15px] leading-7 text-[var(--ss-muted)]"
           >
             {t('contact.subtitle')}
           </motion.p>
+          </div>
         </div>
-      </section>
+      </header>
 
-      <section className="section-tight bg-beige">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <section className="ss-section bg-[var(--ss-surface)]">
+        <div className="ss-wrap">
           <div className="grid gap-10 lg:grid-cols-12">
             <div className="lg:col-span-7">
               <ScrollReveal>
-                <form onSubmit={handleSubmit} className="card p-6 lg:p-8">
+                <form onSubmit={handleSubmit} className="border-t border-[var(--ss-rule)] pt-6">
                   <div className="hidden" aria-hidden="true">
                     <label htmlFor="website">Website</label>
                     <input
@@ -188,7 +191,7 @@ export default function Contact() {
                   </div>
 
                   {status === 'error' && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-5 flex items-center gap-2 rounded-lg bg-red-50 p-4 text-sm text-red-600">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-5 flex items-center gap-2 border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                       <AlertCircle className="size-4 shrink-0" /> {statusMessage || t('contact.error')}
                     </motion.div>
                   )}
@@ -206,15 +209,15 @@ export default function Contact() {
             </div>
 
             <div className="lg:col-span-5">
-              <ScrollReveal direction="right">
-                <div className="card p-6">
-                  <h3 className="text-base font-semibold text-foreground">{t('contact.infoTitle')}</h3>
+              <ScrollReveal>
+                <div className="border-t border-[var(--ss-rule)] pt-6">
+                  <h3 className="font-heading text-lg font-medium">{t('contact.infoTitle')}</h3>
                   <div className="mt-4 space-y-3 text-sm text-muted-foreground">
                     <a
                       href={`mailto:${SITE_CONFIG.email}`}
                       className="flex items-center gap-2 transition-colors hover:text-foreground"
                     >
-                      <Mail className="size-4 text-accent" />
+                      <Mail className="size-4 text-[var(--ss-accent)]" />
                       <span className="break-all">{SITE_CONFIG.email}</span>
                     </a>
                     <a
@@ -223,7 +226,7 @@ export default function Contact() {
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 transition-colors hover:text-foreground"
                     >
-                      <Instagram className="size-4 text-accent" />
+                      <Instagram className="size-4 text-[var(--ss-accent)]" />
                       Instagram
                     </a>
                     <a
@@ -232,15 +235,15 @@ export default function Contact() {
                       rel="noopener noreferrer"
                       className="flex items-start gap-2 transition-colors hover:text-foreground"
                     >
-                      <MapPin className="mt-0.5 size-4 text-accent" />
+                      <MapPin className="mt-0.5 size-4 text-[var(--ss-accent)]" />
                       <span className="break-words">{SITE_CONFIG.address}</span>
                     </a>
                   </div>
                 </div>
               </ScrollReveal>
-              <ScrollReveal direction="right" delay={0.1}>
-                <div className="mt-4 card p-4">
-                  <div className="overflow-hidden rounded-lg border border-border">
+              <ScrollReveal delay={0.1}>
+                <div className="mt-8 border-t border-[var(--ss-rule)] pt-4">
+                  <div className="overflow-hidden border border-[var(--ss-rule)]">
                     <iframe
                       title="Student Startups location"
                       src={SITE_CONFIG.maps.embed}
@@ -262,16 +265,16 @@ export default function Contact() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-[2px]"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--ss-navy)]/45"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-              className="mx-6 w-full max-w-sm rounded-2xl border border-emerald-500/20 bg-card p-6 text-center shadow-lg"
+              transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+              className="mx-6 w-full max-w-sm border border-[var(--ss-rule)] bg-[var(--ss-surface)] p-7 text-center"
             >
-              <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500">
+              <div className="mx-auto flex size-12 items-center justify-center bg-[var(--ss-navy)] text-white">
                 <Send className="size-5" />
               </div>
               <p className="mt-4 text-sm font-semibold text-foreground">{t('contact.sent')}</p>

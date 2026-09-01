@@ -1,13 +1,11 @@
 import { useEffect } from 'react';
-import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring } from 'framer-motion';
+import { motion, useScroll, useSpring } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
-import { motionSpring } from '@/lib/motion';
 import Footer from './Footer';
 import Navbar from './Navbar';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
-  const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, { stiffness: 180, damping: 30, mass: 0.5 });
 
@@ -17,20 +15,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="ss-shell min-h-screen overflow-x-clip bg-background">
-      <motion.div className="fixed inset-x-0 top-0 z-[70] h-[2px] origin-left bg-[var(--ss-coral)]" style={{ scaleX: progress }} />
+      <motion.div className="fixed inset-x-0 top-0 z-[70] h-[2px] origin-left bg-[var(--ss-accent)]" style={{ scaleX: progress }} />
       <Navbar />
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.main
-          key={pathname}
-          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={reduceMotion ? undefined : { opacity: 0, y: -4 }}
-          transition={motionSpring.reveal}
-          className="min-h-[70vh] min-w-0 overflow-x-clip"
-        >
-          {children}
-        </motion.main>
-      </AnimatePresence>
+      <main key={pathname} className="min-h-[70vh] min-w-0 overflow-x-clip">{children}</main>
       <Footer />
     </div>
   );

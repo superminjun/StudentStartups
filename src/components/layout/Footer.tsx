@@ -1,6 +1,5 @@
 import { ArrowUpRight, Instagram, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import MotionMark from '@/components/features/MotionMark';
 import { useLanguage } from '@/hooks/useLanguage';
 import { SITE_CONFIG } from '@/constants/config';
 
@@ -12,21 +11,23 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="overflow-hidden bg-[var(--ss-night)] text-white">
-      <div className="mx-auto max-w-[90rem] px-5 pb-7 pt-16 sm:px-8 lg:pt-24">
-        <div className="grid gap-14 border-b border-white/15 pb-16 lg:grid-cols-[1.3fr_.75fr_.75fr]">
+    <footer className="overflow-hidden bg-[var(--ss-navy)] text-[var(--ss-paper)]">
+      <div className="mx-auto max-w-[80rem] px-5 pb-7 pt-14 sm:px-8 lg:pt-20">
+        <div className="grid gap-12 border-b border-white/15 pb-14 lg:grid-cols-[1.35fr_.65fr_.8fr]">
           <div>
-            <MotionMark dark className="mb-8 size-24" />
-            <h2 className="ss-heading max-w-2xl">Make it real.<br /><span className="text-white/35">Then make it better.</span></h2>
+            <div className="flex items-center gap-3"><span className="grid size-9 place-items-center border border-white/55 text-[9px] font-semibold tracking-[.08em]">SS</span><p className="font-heading text-lg font-semibold">Student Startups</p></div>
+            <p className="mt-7 max-w-md text-sm leading-7 text-white/58">{t('footer.description')}</p>
+            <Link to="/projects" className="ss-link mt-8 text-white">{t('footer.viewWork')}<ArrowUpRight className="size-4" /></Link>
           </div>
           <nav className="grid content-start gap-1" aria-label="Footer navigation">
             {links.map(([to, label]) => (
-              <Link key={to} to={to} className="group flex items-center justify-between border-b border-white/15 py-3 text-sm text-white/65 transition-colors hover:text-white">
+              <Link key={to} to={to} className="group flex items-center justify-between border-b border-white/15 py-3 text-xs font-medium text-white/65 transition-colors hover:text-white">
                 {label}<ArrowUpRight className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
               </Link>
             ))}
           </nav>
-          <div className="text-sm leading-7 text-white/55">
+          <div className="text-xs leading-6 text-white/58">
+            <p className="mb-4 text-[10px] font-semibold uppercase tracking-[.14em] text-white/35">{t('footer.connect')}</p>
             <a href={`mailto:${SITE_CONFIG.email}`} className="break-all text-white transition-colors hover:text-[var(--ss-lime)]">{SITE_CONFIG.email}</a>
             <p className="mt-3">{SITE_CONFIG.address}</p>
             <div className="mt-6 flex gap-4">
@@ -35,7 +36,7 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-3 pt-7 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 pt-6 text-[11px] text-white/38 sm:flex-row sm:items-center sm:justify-between">
           <p>{t('footer.rights')}</p>
           <div className="flex gap-5"><Link to="/privacy">{t('footer.privacy')}</Link><Link to="/terms">{t('footer.terms')}</Link></div>
         </div>

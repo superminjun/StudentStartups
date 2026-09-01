@@ -45,13 +45,15 @@ export default function Shop() {
   const showSkeleton = status === 'loading' && products.length === 0;
 
   return (
-    <div>
-      <section className="bg-charcoal pb-16 pt-32 lg:pb-24 lg:pt-40">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+    <div className="bg-[var(--ss-paper)] pt-[4.5rem]">
+      <header className="border-b border-[var(--ss-rule)] py-16 lg:py-20">
+        <div className="ss-wrap grid gap-10 lg:grid-cols-[.38fr_1fr]">
+          <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="ss-label text-[var(--ss-accent)]">{t('nav.shop')}</motion.p>
+          <div>
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-2xl font-bold tracking-tight text-white sm:text-4xl"
+            className="ss-display"
           >
             {t('shop.title')}
           </motion.h1>
@@ -59,25 +61,25 @@ export default function Shop() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="mt-3 max-w-xl text-base text-white/50"
+            className="mt-7 max-w-xl text-[15px] leading-7 text-[var(--ss-muted)]"
           >
             {t('shop.subtitle')}
           </motion.p>
+          </div>
         </div>
-      </section>
+      </header>
 
-      <section className="bg-beige py-10 lg:py-14">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          {/* Term filter */}
+      <section className="ss-section bg-[var(--ss-surface)] pt-8">
+        <div className="ss-wrap">
           <ScrollReveal>
-            <div className="mb-4">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-light sm:text-xs">{t('shop.termFilter')}</p>
-              <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 scrollbar-thin">
-                <div className="flex min-w-max gap-2">
+            <div className="border-y border-[var(--ss-rule)] py-5">
+              <p className="mb-3 text-[10px] font-semibold uppercase tracking-[.12em] text-[var(--ss-muted)]">{t('shop.termFilter')}</p>
+              <div className="-mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0 scrollbar-thin">
+                <div className="flex min-w-max gap-5">
                 <button
                   onClick={() => setActiveTerm('All')}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-all sm:px-4 sm:py-2 sm:text-sm ${
-                    activeTerm === 'All' ? 'bg-charcoal text-white' : 'bg-white text-mid hover:text-charcoal border border-[hsl(30,12%,90%)]'
+                  className={`shrink-0 border-b px-0 py-1 text-xs font-semibold transition-colors ${
+                    activeTerm === 'All' ? 'border-[var(--ss-accent)] text-[var(--ss-ink)]' : 'border-transparent text-[var(--ss-muted)] hover:text-[var(--ss-ink)]'
                   }`}
                 >
                   {t('shop.allTerms')}
@@ -86,8 +88,8 @@ export default function Shop() {
                   <button
                     key={term}
                     onClick={() => setActiveTerm(term)}
-                    className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-all sm:px-4 sm:py-2 sm:text-sm ${
-                      activeTerm === term ? 'bg-charcoal text-white' : 'bg-white text-mid hover:text-charcoal border border-[hsl(30,12%,90%)]'
+                    className={`shrink-0 border-b px-0 py-1 text-xs font-semibold transition-colors ${
+                      activeTerm === term ? 'border-[var(--ss-accent)] text-[var(--ss-ink)]' : 'border-transparent text-[var(--ss-muted)] hover:text-[var(--ss-ink)]'
                     }`}
                   >
                     {term}
@@ -98,16 +100,15 @@ export default function Shop() {
             </div>
           </ScrollReveal>
 
-          {/* Category filter */}
           <ScrollReveal>
-            <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 scrollbar-thin">
-              <div className="flex min-w-max gap-2">
+            <div className="-mx-5 overflow-x-auto border-b border-[var(--ss-rule)] px-5 py-5 sm:mx-0 sm:px-0 scrollbar-thin">
+              <div className="flex min-w-max gap-5">
                 {categories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
-                    className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-all sm:px-4 sm:py-2 sm:text-sm ${
-                      activeCategory === cat ? 'bg-charcoal text-white' : 'bg-white text-mid hover:text-charcoal border border-[hsl(30,12%,90%)]'
+                    className={`shrink-0 border-b px-0 py-1 text-xs font-semibold transition-colors ${
+                      activeCategory === cat ? 'border-[var(--ss-accent)] text-[var(--ss-ink)]' : 'border-transparent text-[var(--ss-muted)] hover:text-[var(--ss-ink)]'
                     }`}
                   >
                     {cat === 'All' ? t('shop.allCategories') : cat}
@@ -118,24 +119,24 @@ export default function Shop() {
           </ScrollReveal>
 
           {showSkeleton ? (
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+            <div className="mt-10 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 8 }).map((_, index) => (
                 <div
                   key={index}
-                  className="overflow-hidden rounded-xl border border-[hsl(30,12%,90%)] bg-white"
+                  className="overflow-hidden border-t border-[var(--ss-rule)] pt-4"
                 >
-                  <div className="aspect-square animate-pulse bg-[hsl(30,15%,92%)]" />
+                  <div className="aspect-square animate-pulse bg-[var(--ss-panel)]" />
                   <div className="space-y-2 p-3 sm:p-4">
-                    <div className="h-3 w-2/3 animate-pulse rounded bg-[hsl(30,12%,88%)]" />
-                    <div className="h-3 w-full animate-pulse rounded bg-[hsl(30,12%,92%)]" />
-                    <div className="h-3 w-1/2 animate-pulse rounded bg-[hsl(30,12%,88%)]" />
+                    <div className="h-3 w-2/3 animate-pulse bg-[var(--ss-panel)]" />
+                    <div className="h-3 w-full animate-pulse bg-[var(--ss-panel)]" />
+                    <div className="h-3 w-1/2 animate-pulse bg-[var(--ss-panel)]" />
                   </div>
                 </div>
               ))}
             </div>
           ) : filtered.length === 0 ? (
             <div className="py-20 text-center">
-              <p className="text-base text-light">{t('shop.noProducts')}</p>
+              <p className="text-sm text-[var(--ss-muted)]">{t('shop.noProducts')}</p>
             </div>
           ) : (
             <motion.div
@@ -143,7 +144,7 @@ export default function Shop() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.25 }}
-              className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-5 md:grid-cols-3 lg:grid-cols-4"
+              className="mt-10 grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 md:grid-cols-3 lg:grid-cols-4"
             >
               {filtered.map((product, i) => (
                 <ScrollReveal key={product.id} delay={Math.min(i * 0.04, 0.25)}>

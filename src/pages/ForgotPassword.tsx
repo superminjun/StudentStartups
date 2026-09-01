@@ -94,13 +94,13 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div>
-      <section className="section bg-charcoal pt-28 lg:pt-32">
-        <div className="mx-auto max-w-6xl px-6">
+    <div className="bg-[var(--ss-paper)] pt-[4.5rem]">
+      <header className="border-b border-[var(--ss-rule)] py-12 lg:py-16">
+        <div className="ss-wrap max-w-3xl">
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-semibold tracking-tight text-white sm:text-4xl"
+            className="ss-heading"
           >
             {t('forgotPassword.title')}
           </motion.h1>
@@ -108,23 +108,23 @@ export default function ForgotPassword() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.12 }}
-            className="mt-3 max-w-2xl text-base text-white/[0.55]"
+            className="mt-4 max-w-2xl text-[15px] leading-7 text-[var(--ss-muted)]"
           >
             {t('forgotPassword.subtitle')}
           </motion.p>
         </div>
-      </section>
+      </header>
 
-      <section className="section-tight bg-beige">
-        <div className="mx-auto max-w-3xl px-6">
+      <section className="ss-section bg-[var(--ss-surface)]">
+        <div className="ss-wrap max-w-3xl">
           <motion.form
             onSubmit={handleSubmit}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="card p-6 lg:p-8"
+            className="border border-[var(--ss-rule)] bg-[var(--ss-paper)] p-6 lg:p-8"
           >
             {!isSupabaseConfigured && (
-              <div className="mb-5 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-xs text-accent">
+              <div className="mb-5 rounded-sm border border-accent/30 bg-accent-soft px-4 py-3 text-xs text-accent">
                 {t('login.errorSupabase')}
               </div>
             )}
@@ -162,7 +162,7 @@ export default function ForgotPassword() {
                         <InputOTPSlot
                           key={index}
                           index={index}
-                          className="h-11 w-11 rounded-lg border border-border bg-card text-sm text-foreground"
+                          className="h-11 w-11 rounded-sm border border-border bg-card text-sm text-foreground"
                         />
                       ))}
                     </InputOTPGroup>

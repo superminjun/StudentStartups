@@ -580,13 +580,13 @@ export default function Login() {
   };
 
   return (
-    <div>
-      <section className="section bg-charcoal pt-28 lg:pt-32">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+    <div className="bg-[var(--ss-paper)] pt-[4.5rem]">
+      <header className="border-b border-[var(--ss-rule)] py-12 lg:py-16">
+        <div className="ss-wrap">
           <motion.h1
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-semibold tracking-tight text-white sm:text-4xl"
+            className="ss-heading"
           >
             {t('login.title')}
           </motion.h1>
@@ -594,15 +594,15 @@ export default function Login() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.12 }}
-            className="mt-3 max-w-2xl text-base text-white/[0.55]"
+            className="mt-4 max-w-2xl text-[15px] leading-7 text-[var(--ss-muted)]"
           >
             {t('login.subtitle')}
           </motion.p>
         </div>
-      </section>
+      </header>
 
-      <section className="bg-beige py-12 lg:py-16">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-[1.05fr_0.95fr]">
+      <section className="ss-section bg-[var(--ss-surface)]">
+        <div className="ss-wrap grid gap-10 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-6">
             {[
               { icon: User, title: t('login.memberTitle'), description: t('login.memberDesc') },
@@ -613,14 +613,14 @@ export default function Login() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.08 * index }}
-                className="rounded-2xl border border-border bg-card p-6"
+                className="border-t border-[var(--ss-rule)] py-6"
               >
                 <div className="flex items-start gap-4">
-                  <div className="flex size-11 items-center justify-center rounded-xl bg-muted text-foreground">
+                  <div className="flex size-11 items-center justify-center bg-[var(--ss-navy)] text-white">
                     <item.icon className="size-5" />
                   </div>
                   <div>
-                    <p className="text-base font-semibold text-foreground">{item.title}</p>
+                    <p className="font-heading text-lg font-medium text-foreground">{item.title}</p>
                     <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{item.description}</p>
                   </div>
                 </div>
@@ -632,7 +632,7 @@ export default function Login() {
             onSubmit={handleSubmit}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl border border-border bg-card p-6 lg:p-8"
+            className="border border-[var(--ss-rule)] bg-[var(--ss-paper)] p-6 lg:p-8"
           >
             {!isSupabaseConfigured && (
               <div className="mb-5 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-xs text-accent">
@@ -641,7 +641,7 @@ export default function Login() {
             )}
             <div className="mb-6">
               <div className="flex items-center gap-2">
-                <div className="flex size-10 items-center justify-center rounded-full bg-muted text-foreground">
+                <div className="flex size-10 items-center justify-center bg-[var(--ss-navy)] text-white">
                   <LogIn className="size-4" />
                 </div>
                 <div>
@@ -649,7 +649,7 @@ export default function Login() {
                   <p className="text-lg font-semibold text-foreground">{modeLabel}</p>
                 </div>
               </div>
-              <div className="mt-5 flex rounded-full border border-border bg-card p-1">
+              <div className="mt-5 flex border border-border bg-card p-1">
                 {(['member', 'admin'] as const).map((value) => (
                   <button
                     key={value}
@@ -663,7 +663,7 @@ export default function Login() {
                       if (value === 'admin') setMemberMode('signin');
                     }}
                     className={cn(
-                      'flex-1 rounded-full px-4 py-2 text-xs font-semibold transition-all',
+                      'flex-1 px-4 py-2 text-xs font-semibold transition-all',
                       mode === value ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'
                     )}
                   >
@@ -736,7 +736,7 @@ export default function Login() {
                         <InputOTPSlot
                           key={index}
                           index={index}
-                          className="h-11 w-11 rounded-lg border border-border bg-card text-sm text-foreground"
+                          className="h-11 w-11 rounded-sm border border-border bg-card text-sm text-foreground"
                         />
                       ))}
                     </InputOTPGroup>

@@ -39,14 +39,14 @@ export default function OAuthProviderButtons({
               onClick={() => onSelect(provider.key)}
               disabled={disabled}
               className={cn(
-                'group flex w-full items-center gap-3 rounded-2xl border border-border px-4 py-3 text-left text-sm font-semibold shadow-sm transition-all duration-200',
-                'hover:-translate-y-px hover:border-foreground/15 hover:shadow-md',
+                'group flex w-full items-center gap-3 rounded-sm border border-border px-4 py-3 text-left text-sm font-semibold transition-all duration-200',
+                'hover:-translate-y-px hover:border-foreground/30',
                 'disabled:cursor-not-allowed disabled:opacity-65',
                 provider.tone
               )}
             >
               <span className="flex items-center gap-3">
-                <span className="flex size-9 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-black/5">
+                <span className="flex size-9 items-center justify-center bg-white ring-1 ring-black/5">
                   <img
                     src={provider.logoSrc}
                     alt={provider.logoAlt}

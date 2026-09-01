@@ -24,13 +24,13 @@ export default function LegalDocumentPage({
   sections,
 }: LegalDocumentPageProps) {
   return (
-    <div>
-      <section className="section bg-charcoal pt-28 lg:pt-32">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+    <div className="bg-[var(--ss-paper)] pt-[4.5rem]">
+      <header className="border-b border-[var(--ss-rule)] py-12 lg:py-16">
+        <div className="ss-wrap max-w-5xl">
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-xs font-semibold uppercase tracking-[0.28em] text-white/[0.55]"
+            className="ss-label text-[var(--ss-accent)]"
           >
             {eyebrow}
           </motion.p>
@@ -38,7 +38,7 @@ export default function LegalDocumentPage({
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl"
+            className="ss-heading mt-4"
           >
             {title}
           </motion.h1>
@@ -46,17 +46,17 @@ export default function LegalDocumentPage({
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="mt-4 max-w-3xl text-base leading-relaxed text-white/60"
+            className="mt-4 max-w-3xl text-[15px] leading-7 text-[var(--ss-muted)]"
           >
             {subtitle}
           </motion.p>
         </div>
-      </section>
+      </header>
 
-      <section className="bg-beige py-12 lg:py-16">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6">
-          <div className="rounded-[28px] border border-border bg-card p-6 shadow-sm sm:p-8 lg:p-10">
-            <div className="mb-8 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+      <section className="ss-section bg-[var(--ss-surface)]">
+        <div className="ss-wrap max-w-5xl">
+          <div className="border-t border-border py-6">
+            <div className="mb-10 flex flex-wrap items-center gap-3 border-b border-border pb-4 text-sm text-muted-foreground">
               <span className="font-semibold text-foreground">{lastUpdatedLabel}</span>
               <span>{lastUpdatedValue}</span>
             </div>
@@ -64,7 +64,7 @@ export default function LegalDocumentPage({
             <div className="space-y-8">
               {sections.map((section) => (
                 <section key={section.heading} className="space-y-3">
-                  <h2 className="text-xl font-semibold text-foreground">{section.heading}</h2>
+                  <h2 className="font-heading text-xl font-medium text-foreground">{section.heading}</h2>
                   {section.paragraphs?.map((paragraph) => (
                     <p key={paragraph} className="text-sm leading-7 text-muted-foreground sm:text-[15px]">
                       {paragraph}

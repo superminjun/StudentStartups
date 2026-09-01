@@ -1,8 +1,8 @@
 export const motionSpring = {
-  press: { type: 'spring' as const, stiffness: 360, damping: 30, mass: .62 },
-  state: { type: 'spring' as const, stiffness: 210, damping: 27, mass: .82 },
-  reveal: { type: 'spring' as const, stiffness: 105, damping: 22, mass: 1.02 },
-  depth: { type: 'spring' as const, stiffness: 78, damping: 20, mass: 1.18 },
+  press: { type: 'spring' as const, stiffness: 420, damping: 32, mass: .55 },
+  state: { type: 'spring' as const, stiffness: 300, damping: 30, mass: .7 },
+  reveal: { type: 'spring' as const, stiffness: 180, damping: 27, mass: .85 },
+  depth: { type: 'spring' as const, stiffness: 105, damping: 24, mass: 1 },
 };
 
-export const STAGGER = 0.07;
+export const STAGGER = 0.05;

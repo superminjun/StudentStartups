@@ -2,7 +2,7 @@ export const SITE_CONFIG = {
   name: 'Student Startups',
   shortName: 'BNSS',
   domain: 'studentstartups.ca',
-  description: 'A platform where students develop products, operate disciplined teams, and build a record of serious work.',
+  description: 'A student-led program at BNSS for developing products, running teams, and learning from every launch.',
   email: 'bnssstudentstartups@gmail.com',
   address: '751 Hammarskjold Drive Burnaby, BC V5B 4A5 Canada',
   maps: {

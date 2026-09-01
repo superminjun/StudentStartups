@@ -15,8 +15,8 @@ export default function RequireAuth({
 
   if (!isConfigured) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center bg-beige px-6 py-16 text-center">
-        <div className="max-w-md rounded-2xl border border-border bg-card p-6">
+      <div className="flex min-h-[60vh] items-center justify-center bg-[var(--ss-paper)] px-6 py-16 text-center">
+        <div className="max-w-md border border-border bg-card p-6">
           <p className="text-sm font-semibold text-charcoal">Supabase not configured</p>
           <p className="mt-2 text-sm text-mid">
             Set <span className="font-mono">VITE_SUPABASE_URL</span> and <span className="font-mono">VITE_SUPABASE_ANON_KEY</span> to enable login.
@@ -28,9 +28,9 @@ export default function RequireAuth({
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center bg-beige">
+      <div className="flex min-h-[60vh] items-center justify-center bg-[var(--ss-paper)]">
         <div className="text-center">
-          <div className="mx-auto size-8 animate-spin rounded-full border-2 border-border border-t-[hsl(24,80%,50%)]" />
+          <div className="mx-auto size-8 animate-spin rounded-full border-2 border-border border-t-[var(--ss-accent)]" />
           <p className="mt-4 text-sm text-light">{t('common.loading')}</p>
         </div>
       </div>
@@ -43,8 +43,8 @@ export default function RequireAuth({
 
   if (adminOnly && !isAdmin) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center bg-beige px-6 py-16 text-center">
-        <div className="max-w-md rounded-2xl border border-border bg-card p-6">
+      <div className="flex min-h-[60vh] items-center justify-center bg-[var(--ss-paper)] px-6 py-16 text-center">
+        <div className="max-w-md border border-border bg-card p-6">
           <p className="text-sm font-semibold text-charcoal">Access denied</p>
           <p className="mt-2 text-sm text-mid">Your account is not an admin user.</p>
         </div>
