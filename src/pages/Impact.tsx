@@ -9,7 +9,7 @@ import { motionSpring, STAGGER } from '@/lib/motion';
 import { useCMSStore, type ImpactMetricRecord } from '@/stores/cmsStore';
 
 const axis = { fontSize: 10, fill: 'rgba(0,0,0,.48)' };
-const tooltip = { border: '1px solid #d8d4ca', borderRadius: 2, boxShadow: 'none', background: '#fffdf8', color: '#2b1c20', fontSize: 12 };
+const tooltip = { border: '1px solid #d8d4ca', borderRadius: 2, boxShadow: 'none', background: '#fffdf8', color: '#17243b', fontSize: 12 };
 
 function Metric({ metric, index }: { metric: ImpactMetricRecord; index: number }) {
   const { lang } = useLanguage();

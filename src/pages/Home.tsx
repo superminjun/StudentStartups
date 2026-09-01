@@ -9,20 +9,25 @@ import { motionSpring, STAGGER } from '@/lib/motion';
 import { useCMSStore } from '@/stores/cmsStore';
 import { useSiteContentStore } from '@/stores/siteContentStore';
 
-type Chapter = { name: string; title: string; body: string };
+type Chapter = { name: string; title: string; body: string; outputs: string[] };
 
 function Hero() {
-  const { t } = useLanguage();
-  const project = useCMSStore((state) => state.projects[0]);
+  const { lang, t } = useLanguage();
+  const steps = [
+    [t('workflow.steps.step1Title'), t('workflow.steps.step1Desc')],
+    [t('workflow.steps.step3Title'), t('workflow.steps.step3Desc')],
+    [t('workflow.steps.step6Title'), t('workflow.steps.step6Desc')],
+    [t('workflow.steps.step7Title'), t('workflow.steps.step7Desc')],
+  ];
 
   return (
     <section className="bg-[var(--ss-paper)] pt-[4.5rem]">
-      <div className="mx-auto grid min-h-[calc(100svh-4.5rem)] max-w-[80rem] lg:grid-cols-[.82fr_1.18fr]">
+      <div className="mx-auto grid max-w-[80rem] lg:min-h-[42rem] lg:grid-cols-[.9fr_1.1fr]">
         <div className="flex flex-col justify-between px-5 py-12 sm:px-8 lg:px-12 lg:py-16">
           <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={motionSpring.reveal} className="ss-label text-[var(--ss-accent)]">
             {t('hero.tagline')} · BNSS
           </motion.p>
-          <div className="my-16 lg:my-12">
+          <div className="my-14 lg:my-10">
             <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ ...motionSpring.depth, delay: .05 }} className="ss-display max-w-[13ch]">
               {t('hero.title')}
             </motion.h1>
@@ -37,13 +42,26 @@ function Hero() {
           <p className="max-w-sm border-t border-[var(--ss-rule)] pt-4 text-xs leading-5 text-[var(--ss-muted)]">{t('mission.p1')}</p>
         </div>
 
-        <motion.figure initial={{ clipPath: 'inset(0 0 100% 0)' }} animate={{ clipPath: 'inset(0 0 0% 0)' }} transition={{ duration: 1.05, ease: [0.23, 1, 0.32, 1] }} className="relative min-h-[50svh] overflow-hidden bg-[var(--ss-panel)] lg:min-h-full">
-          {project?.image ? <img src={project.image} alt={project.name} fetchPriority="high" className="size-full object-cover" /> : <div className="size-full bg-[var(--ss-panel)]" />}
-          <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-[var(--ss-navy)] px-5 py-4 text-white sm:px-8">
-            <div><p className="text-[9px] font-semibold uppercase tracking-[.14em] text-white/45">{t('featured.title')}</p><p className="mt-1 font-heading text-base">{project?.name ?? t('common.comingSoon')}</p></div>
-            <Link to={project ? `/projects/${project.id}` : '/projects'} aria-label={t('projects.viewDetails')} className="grid size-10 place-items-center border border-white/35 transition-colors hover:bg-white hover:text-[var(--ss-navy)]"><ArrowUpRight className="size-4" /></Link>
-          </figcaption>
-        </motion.figure>
+        <motion.div initial={{ clipPath: 'inset(0 0 100% 0)' }} animate={{ clipPath: 'inset(0 0 0% 0)' }} transition={{ duration: 1.05, ease: [0.23, 1, 0.32, 1] }} className="relative overflow-hidden bg-[var(--ss-navy)] px-5 py-10 text-white sm:px-8 lg:px-12 lg:py-14">
+          <div aria-hidden="true" className="absolute inset-0 opacity-[.08]" style={{ backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+          <div className="relative flex h-full flex-col">
+            <div className="flex items-start justify-between border-b border-white/20 pb-6">
+              <div><p className="text-[9px] font-semibold uppercase tracking-[.16em] text-white/45">{lang === 'ko' ? '프로그램 경로' : 'Program path'}</p><h2 className="mt-3 font-heading text-xl font-medium">{t('workflow.title')}</h2></div>
+              <p className="font-heading text-sm text-white/45">01—04</p>
+            </div>
+            <ol className="flex-1 divide-y divide-white/15">
+              {steps.map(([title, body], index) => (
+                <motion.li key={title} initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} transition={{ ...motionSpring.reveal, delay: .18 + index * STAGGER }} className="grid gap-3 py-5 sm:grid-cols-[2.5rem_1fr]">
+                  <span className="font-heading text-sm tabular-nums text-[var(--ss-accent)]">0{index + 1}</span>
+                  <div><h3 className="font-heading text-base font-medium">{title}</h3><p className="mt-1.5 max-w-md text-xs leading-5 text-white/52">{body}</p></div>
+                </motion.li>
+              ))}
+            </ol>
+            <div className="flex items-center justify-between border-t border-white/20 pt-5 text-[9px] font-semibold uppercase tracking-[.13em] text-white/42">
+              <span>BNSS · Student-led</span><span>{lang === 'ko' ? '실행하며 배우기' : 'Learn by doing'}</span>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
@@ -65,7 +83,24 @@ function ChapterCopy({ chapter, index, progress }: { chapter: Chapter; index: nu
       <p className="text-[10px] font-semibold uppercase tracking-[.14em] text-white/42">{chapter.name}</p>
       <h3 className="mt-5 max-w-md font-heading text-[clamp(1.8rem,3vw,2.5rem)] font-medium leading-[1.16]">{chapter.title}</h3>
       <p className="mt-6 max-w-md text-sm leading-7 text-white/62">{chapter.body}</p>
+      <ul className="mt-7 grid max-w-md gap-2 border-t border-white/18 pt-5 text-[11px] text-white/72 sm:grid-cols-3">
+        {chapter.outputs.map((output) => <li key={output} className="border-l border-[var(--ss-accent)] pl-3 leading-5">{output}</li>)}
+      </ul>
     </motion.div>
+  );
+}
+
+function StageOutput({ chapter, index, lang }: { chapter: Chapter; index: number; lang: 'en' | 'ko' }) {
+  return (
+    <div className="border-t border-[var(--ss-rule)] bg-[var(--ss-surface)] p-5 sm:p-6">
+      <div className="flex items-center justify-between text-[8px] font-semibold uppercase tracking-[.14em] text-[var(--ss-muted)]">
+        <span>{lang === 'ko' ? '이 단계에서 남기는 것' : 'Stage output'}</span><span>0{index + 1} / 04</span>
+      </div>
+      <p className="mt-3 font-heading text-base font-medium">{chapter.title}</p>
+      <div className="mt-4 grid grid-cols-3 border-y border-[var(--ss-rule)]">
+        {chapter.outputs.map((output, item) => <p key={output} className={`py-3 text-[10px] leading-4 text-[var(--ss-muted)] ${item > 0 ? 'border-l border-[var(--ss-rule)] pl-3' : 'pr-3'}`}>{output}</p>)}
+      </div>
+    </div>
   );
 }
 
@@ -125,13 +160,13 @@ function ProcessDiagram({ index, lang }: { index: number; lang: 'en' | 'ko' }) {
   );
 }
 
-function ProcessGraphicLayer({ index, progress, lang }: { index: number; progress: MotionValue<number>; lang: 'en' | 'ko' }) {
+function ProcessGraphicLayer({ chapter, index, progress, lang }: { chapter: Chapter; index: number; progress: MotionValue<number>; lang: 'en' | 'ko' }) {
   const start = index * .25;
   const end = index === 3 ? 1 : (index + 1) * .25;
   const opacity = useChapterOpacity(progress, index);
   const scale = useTransform(progress, [Math.max(0, start - .04), start + .06, end], [.92, 1, 1.025]);
   const rotate = useTransform(progress, [Math.max(0, start - .04), start + .06, end], [index % 2 ? 2 : -2, 0, 0]);
-  return <motion.div aria-hidden="true" style={{ opacity, scale, rotate, zIndex: index + 1 }} className="absolute inset-0"><ProcessDiagram index={index} lang={lang} /></motion.div>;
+  return <motion.div aria-hidden="true" style={{ opacity, scale, rotate, zIndex: index + 1 }} className="absolute inset-0 grid grid-rows-[minmax(0,1fr)_auto]"><ProcessDiagram index={index} lang={lang} /><StageOutput chapter={chapter} index={index} lang={lang} /></motion.div>;
 }
 
 function WorkJourney() {
@@ -142,24 +177,24 @@ function WorkJourney() {
   const progress = useSpring(scrollYProgress, { stiffness: 70, damping: 24, mass: .8, restDelta: .0005 });
   const lineScale = useTransform(progress, [0, 1], [0, 1]);
   const chapters: Chapter[] = [
-    { name: lang === 'ko' ? '질문' : 'Question', title: t('workflow.steps.step1Title'), body: t('workflow.steps.step1Desc') },
-    { name: lang === 'ko' ? '시제품' : 'Prototype', title: t('workflow.steps.step3Title'), body: t('workflow.steps.step3Desc') },
-    { name: lang === 'ko' ? '시장' : 'Market', title: t('workflow.steps.step6Title'), body: t('workflow.steps.step6Desc') },
-    { name: lang === 'ko' ? '회고' : 'Review', title: t('workflow.steps.step7Title'), body: t('workflow.steps.step7Desc') },
+    { name: lang === 'ko' ? '질문' : 'Question', title: t('workflow.steps.step1Title'), body: t('workflow.steps.step1Desc'), outputs: lang === 'ko' ? ['사용자 인터뷰', '한 문장 문제 정의', '성공 조건'] : ['User interviews', 'One-sentence problem', 'Success criteria'] },
+    { name: lang === 'ko' ? '시제품' : 'Prototype', title: t('workflow.steps.step3Title'), body: t('workflow.steps.step3Desc'), outputs: lang === 'ko' ? ['작동하는 시제품', '재료·비용 목록', '테스트 계획'] : ['Working prototype', 'Materials and costs', 'Test plan'] },
+    { name: lang === 'ko' ? '시장' : 'Market', title: t('workflow.steps.step6Title'), body: t('workflow.steps.step6Desc'), outputs: lang === 'ko' ? ['가격과 수량', '판매 기록', '사용자 피드백'] : ['Price and quantity', 'Sales record', 'User feedback'] },
+    { name: lang === 'ko' ? '회고' : 'Review', title: t('workflow.steps.step7Title'), body: t('workflow.steps.step7Desc'), outputs: lang === 'ko' ? ['수입·비용 정리', '기부 내역', '다음 팀 메모'] : ['Income and costs', 'Donation record', 'Next-team notes'] },
   ];
 
   if (reduceMotion) {
-    return <section className="bg-[var(--ss-navy)] py-20 text-white"><div className="ss-wrap space-y-16">{chapters.map((chapter, index) => <article key={chapter.name} className="grid gap-6 border-t border-white/20 pt-7 md:grid-cols-2"><div><p className="ss-label text-white/40">{chapter.name}</p><h3 className="ss-heading mt-4">{chapter.title}</h3><p className="mt-4 text-sm leading-7 text-white/62">{chapter.body}</p></div><div aria-hidden="true" className="aspect-[4/3] bg-[var(--ss-paper)] text-[var(--ss-ink)]"><ProcessDiagram index={index} lang={lang} /></div></article>)}</div></section>;
+    return <section className="bg-[var(--ss-navy)] py-20 text-white"><div className="ss-wrap space-y-16">{chapters.map((chapter, index) => <article key={chapter.name} className="grid gap-6 border-t border-white/20 pt-7 md:grid-cols-2"><div><p className="ss-label text-white/40">{chapter.name}</p><h3 className="ss-heading mt-4">{chapter.title}</h3><p className="mt-4 text-sm leading-7 text-white/62">{chapter.body}</p></div><div className="bg-[var(--ss-paper)] text-[var(--ss-ink)]"><div aria-hidden="true" className="aspect-[4/3]"><ProcessDiagram index={index} lang={lang} /></div><StageOutput chapter={chapter} index={index} lang={lang} /></div></article>)}</div></section>;
   }
 
   return (
     <>
-      <section className="bg-[var(--ss-navy)] py-20 text-white md:hidden"><div className="ss-wrap space-y-14">{chapters.map((chapter, index) => <article key={chapter.name} className="border-t border-white/20 pt-6"><p className="ss-label text-white/40">{chapter.name}</p><h3 className="ss-title mt-4">{chapter.title}</h3><p className="mt-4 text-sm leading-7 text-white/62">{chapter.body}</p><div aria-hidden="true" className="mt-6 aspect-[4/3] bg-[var(--ss-paper)] text-[var(--ss-ink)]"><ProcessDiagram index={index} lang={lang} /></div></article>)}</div></section>
-      <section ref={ref} className="relative hidden h-[500svh] bg-[var(--ss-navy)] text-white md:block">
+      <section className="bg-[var(--ss-navy)] py-20 text-white md:hidden"><div className="ss-wrap space-y-14">{chapters.map((chapter, index) => <article key={chapter.name} className="border-t border-white/20 pt-6"><p className="ss-label text-white/40">{chapter.name}</p><h3 className="ss-title mt-4">{chapter.title}</h3><p className="mt-4 text-sm leading-7 text-white/62">{chapter.body}</p><div className="mt-6 bg-[var(--ss-paper)] text-[var(--ss-ink)]"><div aria-hidden="true" className="aspect-[4/3]"><ProcessDiagram index={index} lang={lang} /></div><StageOutput chapter={chapter} index={index} lang={lang} /></div></article>)}</div></section>
+      <section ref={ref} className="relative hidden h-[440svh] bg-[var(--ss-navy)] text-white md:block">
       <div className="sticky top-0 h-screen overflow-hidden">
         <div className="ss-wrap grid h-full grid-cols-[.78fr_1.22fr] gap-12 py-20 lg:gap-20">
           <div className="relative min-w-0"><div className="absolute inset-0">{chapters.map((chapter, index) => <ChapterCopy key={chapter.name} chapter={chapter} index={index} progress={progress} />)}</div></div>
-          <div className="relative min-w-0 overflow-hidden border border-white/20 bg-[var(--ss-paper)] text-[var(--ss-ink)]" style={{ backgroundImage: 'linear-gradient(var(--ss-rule) 1px, transparent 1px), linear-gradient(90deg, var(--ss-rule) 1px, transparent 1px)', backgroundSize: '28px 28px' }}><div className="absolute inset-4 border border-[var(--ss-accent)]/20" />{chapters.map((_, index) => <ProcessGraphicLayer key={index} index={index} progress={progress} lang={lang} />)}</div>
+          <div className="relative min-w-0 overflow-hidden border border-white/20 bg-[var(--ss-paper)] text-[var(--ss-ink)]" style={{ backgroundImage: 'linear-gradient(var(--ss-rule) 1px, transparent 1px), linear-gradient(90deg, var(--ss-rule) 1px, transparent 1px)', backgroundSize: '28px 28px' }}><div className="absolute inset-4 border border-[var(--ss-accent)]/20" />{chapters.map((chapter, index) => <ProcessGraphicLayer key={chapter.name} chapter={chapter} index={index} progress={progress} lang={lang} />)}</div>
         </div>
         <motion.div style={{ scaleX: lineScale }} className="absolute bottom-0 left-0 h-[3px] w-full origin-left bg-[var(--ss-paper)]" />
       </div>

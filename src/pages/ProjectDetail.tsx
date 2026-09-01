@@ -10,7 +10,7 @@ import { useCMSStore } from '@/stores/cmsStore';
 import type { Project } from '@/types';
 
 const FACTORS = [.18, .42, .68, 1];
-const chartTooltip = { border: '1px solid #d8d4ca', borderRadius: 2, boxShadow: 'none', background: '#fffdf8', color: '#2b1c20', fontSize: 12 };
+const chartTooltip = { border: '1px solid #d8d4ca', borderRadius: 2, boxShadow: 'none', background: '#fffdf8', color: '#17243b', fontSize: 12 };
 
 function buildFinanceData(project: Project, locale: string) {
   const start = new Date(`${project.startDate}T00:00:00`);
@@ -89,7 +89,7 @@ export default function ProjectDetail() {
         <div className="ss-wrap grid gap-12 lg:grid-cols-[.62fr_1.38fr]">
           <ScrollReveal><p className="ss-label text-white/42">{t('projectDetail.financial')}</p><h2 className="ss-title mt-4">{t('projectDetail.revenueChart')}</h2></ScrollReveal>
           <ScrollReveal className="h-80 bg-[var(--ss-surface)] p-3">
-            <ResponsiveContainer width="100%" height="100%"><BarChart data={finance}><CartesianGrid vertical={false} stroke="#e1ddd4" /><XAxis dataKey="label" tick={{ fontSize: 10, fill: '#716467' }} tickLine={false} axisLine={false} /><YAxis tick={{ fontSize: 10, fill: '#716467' }} tickLine={false} axisLine={false} /><Tooltip contentStyle={chartTooltip} /><Bar dataKey="revenue" fill="#2b1c20" name={t('projects.revenue')} /><Bar dataKey="expenses" fill="#b7adaf" name={t('projectDetail.expenses')} /><Bar dataKey="fundraise" fill="#772735" name={t('projectDetail.fundraise')} /></BarChart></ResponsiveContainer>
+            <ResponsiveContainer width="100%" height="100%"><BarChart data={finance}><CartesianGrid vertical={false} stroke="#e1ddd4" /><XAxis dataKey="label" tick={{ fontSize: 10, fill: '#626b7a' }} tickLine={false} axisLine={false} /><YAxis tick={{ fontSize: 10, fill: '#626b7a' }} tickLine={false} axisLine={false} /><Tooltip contentStyle={chartTooltip} /><Bar dataKey="revenue" fill="#17243b" name={t('projects.revenue')} /><Bar dataKey="expenses" fill="#a6a8ab" name={t('projectDetail.expenses')} /><Bar dataKey="fundraise" fill="#8b2635" name={t('projectDetail.fundraise')} /></BarChart></ResponsiveContainer>
           </ScrollReveal>
         </div>
       </section>

@@ -15,7 +15,10 @@ export default function Footer() {
       <div className="mx-auto max-w-[80rem] px-5 pb-7 pt-14 sm:px-8 lg:pt-20">
         <div className="grid gap-12 border-b border-white/15 pb-14 lg:grid-cols-[1.35fr_.65fr_.8fr]">
           <div>
-            <Link to="/" aria-label="Student Startups home" className="inline-flex bg-[var(--ss-paper)] px-2"><span className="brand-wordmark"><img src="/og-image-kakao-20260408c.jpg" alt="" loading="lazy" /></span></Link>
+            <Link to="/" aria-label="Student Startups home" className="inline-flex items-center gap-3">
+              <span className="brand-wordmark"><img src="/brand/bnss-logo.png" alt="" loading="lazy" /></span>
+              <span className="font-heading text-base font-semibold">Student Startups</span>
+            </Link>
             <p className="mt-7 max-w-md text-sm leading-7 text-white/58">{t('footer.description')}</p>
             <Link to="/projects" className="ss-link mt-8 text-white">{t('footer.viewWork')}<ArrowUpRight className="size-4" /></Link>
           </div>
