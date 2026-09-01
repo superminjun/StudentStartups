@@ -28,20 +28,19 @@ function TeamCard({ profile, onSelect, index }: { profile: TeamProfile; onSelect
     <motion.button
       type="button"
       onClick={onSelect}
-      initial={{ opacity: 0, y: 28, scale: .96, rotateX: 3, filter: 'blur(6px)' }}
-      whileInView={{ opacity: 1, y: 0, scale: 1, rotateX: 0, filter: 'blur(0px)' }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ ...motionSpring.reveal, delay: Math.min(index * STAGGER, .28) }}
       whileHover={{ y: -5 }}
       whileTap={{ scale: .985, y: 1 }}
       className="group w-full text-left"
-      style={{ transformPerspective: 900 }}
     >
       <div className="relative aspect-[4/5] overflow-hidden rounded-[1.7rem] bg-black/[.04]">
         <TeamPhoto profile={profile} className="transition-transform duration-700 ease-out group-hover:scale-[1.045]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
         <span className="absolute right-3 top-3 grid size-10 translate-y-2 place-items-center rounded-full bg-white/90 text-sm opacity-0 backdrop-blur transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">↗</span>
-        {profile.isFounder && <motion.span animate={{ scale: [1, 1.04, 1] }} transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }} className="absolute bottom-3 left-3 rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-[.14em] text-black" style={{ background: colors[index % colors.length] }}>{t('teamPage.founderBadge')}</motion.span>}
+        {profile.isFounder && <span className="absolute bottom-3 left-3 rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-[.14em] text-black" style={{ background: colors[index % colors.length] }}>{t('teamPage.founderBadge')}</span>}
       </div>
       <div className="px-1 pb-3 pt-5">
         <div className="flex items-start justify-between gap-4"><div><h2 className="text-2xl font-semibold tracking-[-.05em]">{profile.fullName}</h2><p className="mt-1 text-sm text-black/45">{profile.roleTitle}</p></div><span className="text-[10px] font-bold text-black/35">0{index + 1}</span></div>
@@ -85,14 +84,12 @@ export default function Team() {
   return (
     <div className="bg-[var(--ss-canvas)] pt-[4.75rem]">
       <section className="relative overflow-hidden px-5 py-20 sm:px-8 lg:py-28">
-        <div className="absolute right-[-8%] top-[-10%] size-[28rem] rounded-full bg-[var(--ss-violet)]/35 blur-[100px]" />
         <div className="relative mx-auto max-w-[90rem]">
           <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={motionSpring.reveal} className="ss-label text-black/45">People / {String(sortedProfiles.length).padStart(2, '0')}</motion.p>
-          <motion.h1 initial={{ opacity: 0, y: 32, filter: 'blur(8px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} transition={motionSpring.depth} className="ss-display mt-8 max-w-[15ch]">{t('teamPage.title')}</motion.h1>
+          <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={motionSpring.depth} className="ss-display mt-8 max-w-[15ch]">{t('teamPage.title')}</motion.h1>
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ ...motionSpring.reveal, delay: .2 }} className="mt-12 grid gap-8 border-t border-black/20 pt-7 lg:grid-cols-[1.1fr_.9fr]"><p className="ss-lead max-w-2xl">{lang === 'ko' ? '직함보다, 실제로 맡은 일로 소개합니다.' : 'Introduced by the work they actually own.'}</p><p className="max-w-lg text-base leading-7 text-black/55">{t('teamPage.subtitle')}</p></motion.div>
         </div>
       </section>
-      <div className="ss-marquee overflow-hidden border-y border-black/15 bg-[var(--ss-sky)] py-3 text-[11px] font-black uppercase tracking-[.22em]"><div>PRODUCT · OPERATIONS · DESIGN · COMMUNICATION · PRODUCT · OPERATIONS · DESIGN · COMMUNICATION ·</div></div>
       <section className="bg-white px-5 py-20 sm:px-8 lg:py-28">
         <div className="mx-auto max-w-[90rem]">
           {status === 'loading' && sortedProfiles.length === 0 ? <p className="py-20 text-center text-sm text-black/45">{t('teamPage.loading')}</p> : sortedProfiles.length === 0 ? <div className="rounded-[1.5rem] border border-dashed border-black/20 p-12 text-center"><p className="text-xl font-semibold">{t('teamPage.emptyTitle')}</p><p className="mx-auto mt-3 max-w-md text-sm leading-6 text-black/50">{t('teamPage.emptyBody')}</p>{error && <p className="mt-4 text-xs text-black/35">{error}</p>}</div> : <div className="grid gap-x-5 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">{sortedProfiles.map((profile, index) => <TeamCard key={profile.id} profile={profile} index={index} onSelect={() => setSelectedProfile(profile)} />)}</div>}

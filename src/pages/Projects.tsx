@@ -20,13 +20,13 @@ export default function Projects() {
     <div className="bg-[var(--ss-canvas)] pt-[4.75rem]">
       <section className="relative overflow-hidden border-b border-black/10 px-5 py-20 sm:px-8 lg:py-28">
         <div className="relative mx-auto grid max-w-[90rem] gap-12 lg:grid-cols-[1.15fr_.85fr] lg:items-end">
-          <motion.div initial={{ opacity: 0, y: 36, rotateX: 4, filter: 'blur(8px)' }} animate={{ opacity: 1, y: 0, rotateX: 0, filter: 'blur(0px)' }} transition={motionSpring.depth}>
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={motionSpring.depth}>
             <p className="ss-label text-black/45">Index / 2024—26</p>
             <h1 className="ss-display mt-7">{t('projects.title')}</h1>
           </motion.div>
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ ...motionSpring.reveal, delay: .18 }}>
             <p className="max-w-lg text-lg leading-8 text-black/55">{t('projects.subtitle')}</p>
-            <div className="mt-8 flex items-center gap-4 border-t border-black/20 pt-5 text-xs font-bold uppercase tracking-[.14em]"><span className="size-2 rounded-full bg-[var(--ss-coral)] ss-pulse" />{projects.length} {t('nav.projects')}</div>
+            <div className="mt-8 flex items-center gap-4 border-t border-black/20 pt-5 text-xs font-bold uppercase tracking-[.14em]"><span className="size-2 rounded-full bg-[var(--ss-coral)]" />{projects.length} {t('nav.projects')}</div>
           </motion.div>
         </div>
       </section>
@@ -53,7 +53,7 @@ export default function Projects() {
             <p className="py-28 text-center text-sm text-black/45">{t('projects.noProjects')}</p>
           ) : (
             <AnimatePresence mode="popLayout">
-              <motion.div key={stage} initial={{ opacity: 0, y: 16, filter: 'blur(5px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} exit={{ opacity: 0, y: -8, filter: 'blur(4px)' }} transition={motionSpring.state} className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <motion.div key={stage} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={motionSpring.state} className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {filtered.map((project, index) => <ScrollReveal key={project.id} delay={Math.min(index * STAGGER, .3)}><ProjectCard project={project} index={index} priority={index < 6} /></ScrollReveal>)}
               </motion.div>
             </AnimatePresence>

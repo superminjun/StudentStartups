@@ -17,7 +17,7 @@ function Metric({ metric, index }: { metric: ImpactMetricRecord; index: number }
   const count = useCounter(metric.value, useInView(ref, { once: true }), 1400);
   return (
     <motion.div ref={ref} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ ...motionSpring.reveal, delay: index * STAGGER }} className="flex min-h-56 flex-col justify-between border-b border-r border-black/10 bg-[var(--ss-panel)] p-6">
-      <div className="flex items-center justify-between text-[10px] font-black tracking-[.16em]"><span>0{index + 1}</span><span className="size-2 rounded-full bg-black ss-pulse" /></div>
+      <div className="flex items-center justify-between text-[10px] font-black tracking-[.16em]"><span>0{index + 1}</span><span className="size-2 rounded-full bg-black" /></div>
       <div><p className="ss-stat break-words tabular-nums">{metric.prefix}{count.toLocaleString()}{metric.suffix}</p><p className="mt-3 text-sm font-semibold text-black/55">{lang === 'en' ? metric.labelEn : metric.labelKo}</p></div>
     </motion.div>
   );
@@ -50,7 +50,7 @@ export default function Impact() {
       <section className="relative overflow-hidden px-5 py-20 sm:px-8 lg:py-28">
         <div className="relative mx-auto max-w-[90rem]">
           <motion.p initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={motionSpring.reveal} className="ss-label text-black/45">Record / Numbers with consequences</motion.p>
-          <motion.h1 initial={{ opacity: 0, y: 32, filter: 'blur(9px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} transition={motionSpring.depth} className="ss-display mt-8">{t('impact.title')}</motion.h1>
+          <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={motionSpring.depth} className="ss-display mt-8">{t('impact.title')}</motion.h1>
           <motion.div initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ ...motionSpring.reveal, delay: .2 }} className="mt-14 grid gap-8 border-t border-black/20 pt-7 lg:grid-cols-[1fr_.65fr]"><p className="ss-lead max-w-3xl">{lang === 'ko' ? '의도는 좋을 수 있습니다. 결과는 기록되어야 합니다.' : 'Intent can be good. Outcomes still need a record.'}</p><p className="max-w-lg text-base leading-7 text-black/55">{t('impact.subtitle')}</p></motion.div>
         </div>
       </section>

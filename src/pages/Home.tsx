@@ -1,7 +1,6 @@
-import { useRef, useState, type PointerEvent } from 'react';
+import { useRef, useState } from 'react';
 import {
   motion,
-  useMotionValue,
   useMotionValueEvent,
   useReducedMotion,
   useScroll,
@@ -22,79 +21,52 @@ import type { Project } from '@/types';
 type Scene = { no: string; verb: string; title: string; body: string; tag: string };
 
 function Hero() {
-  const { t } = useLanguage();
-  const projects = useCMSStore((state) => state.projects).slice(0, 2);
+  const { lang, t } = useLanguage();
+  const project = useCMSStore((state) => state.projects[0]);
   const ref = useRef<HTMLElement>(null);
-  const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
   const progress = useSpring(scrollYProgress, { stiffness: 70, damping: 22, mass: .9 });
-  const titleY = useTransform(progress, [0, 1], ['0%', '-24%']);
-  const titleScale = useTransform(progress, [0, 1], [1, .94]);
-  const visualY = useTransform(progress, [0, 1], ['0%', '22%']);
-  const visualScale = useTransform(progress, [0, 1], [1, 1.1]);
+  const titleY = useTransform(progress, [0, 1], ['0%', '-14%']);
+  const visualY = useTransform(progress, [0, 1], ['0%', '14%']);
+  const visualScale = useTransform(progress, [0, 1], [1, 1.04]);
   const opacity = useTransform(progress, [.58, .94], [1, 0]);
-  const pointerX = useMotionValue(0);
-  const pointerY = useMotionValue(0);
-  const rotateX = useSpring(useTransform(pointerY, [-1, 1], [2.2, -2.2]), { stiffness: 95, damping: 26 });
-  const rotateY = useSpring(useTransform(pointerX, [-1, 1], [-2.8, 2.8]), { stiffness: 95, damping: 26 });
-  const words = t('hero.title').split(' ');
-
-  const handlePointerMove = (event: PointerEvent<HTMLElement>) => {
-    if (reduceMotion || window.matchMedia('(pointer: coarse)').matches) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    pointerX.set(((event.clientX - rect.left) / rect.width - .5) * 2);
-    pointerY.set(((event.clientY - rect.top) / rect.height - .5) * 2);
-  };
 
   return (
-    <section ref={ref} onPointerMove={handlePointerMove} onPointerLeave={() => { pointerX.set(0); pointerY.set(0); }} className="relative h-[165svh] bg-[var(--ss-canvas)]">
+    <section ref={ref} className="relative h-[135svh] bg-[var(--ss-canvas)]">
       <div className="sticky top-0 min-h-screen overflow-hidden pt-[4.75rem]">
         <div className="ss-grain absolute inset-0 opacity-20" />
         <div className="absolute inset-y-0 left-[8%] hidden w-px bg-black/[.07] lg:block" />
         <div className="absolute inset-y-0 right-[8%] hidden w-px bg-black/[.07] lg:block" />
         <motion.div style={{ opacity }} className="mx-auto grid min-h-[calc(100svh-4.75rem)] w-full max-w-[90rem] items-center gap-8 px-5 py-8 sm:px-8 lg:grid-cols-[1.08fr_.92fr] lg:gap-16 lg:py-12">
-          <motion.div style={{ y: titleY, scale: titleScale }} className="relative z-10 origin-left">
-            <motion.p initial={{ opacity: 0, y: 14, filter: 'blur(7px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} transition={motionSpring.reveal} className="ss-label flex items-center gap-3 text-black/45">
+          <motion.div style={{ y: titleY }} className="relative z-10">
+            <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={motionSpring.reveal} className="ss-label flex items-center gap-3 text-black/45">
               <span className="h-px w-8 bg-[var(--ss-bronze)]" /> {t('hero.tagline')} · Est. 2024
             </motion.p>
-            <h1 className="ss-display mt-7 max-w-[15ch] text-[var(--ss-ink)]">
-              {words.map((word, index) => (
-                <span key={`${word}-${index}`} className="mr-[.2em] inline-block overflow-hidden pb-[.08em]">
-                  <motion.span className="inline-block" initial={{ y: '112%', rotateX: 4, filter: 'blur(7px)' }} animate={{ y: 0, rotateX: 0, filter: 'blur(0px)' }} transition={{ ...motionSpring.depth, delay: .08 + index * STAGGER }}>{word}</motion.span>
-                </span>
-              ))}
-            </h1>
-            <motion.div initial={{ opacity: 0, y: 24, filter: 'blur(6px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} transition={{ ...motionSpring.reveal, delay: .42 }} className="mt-7 flex max-w-2xl flex-col gap-6 sm:flex-row sm:items-end sm:justify-between lg:mt-9">
+            <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ ...motionSpring.reveal, delay: .08 }} className="ss-display mt-7 max-w-[18ch] text-[var(--ss-ink)]">
+              {t('hero.title')}
+            </motion.h1>
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ ...motionSpring.reveal, delay: .18 }} className="mt-7 flex max-w-2xl flex-col gap-6 sm:flex-row sm:items-end sm:justify-between lg:mt-9">
               <p className="max-w-md text-sm leading-7 text-black/52 sm:text-base">{t('hero.subtitle')}</p>
               <motion.div whileTap={{ scale: .98, y: 1 }} transition={motionSpring.press}>
-                <Link to="/projects" className="group inline-flex items-center gap-3 rounded-full bg-[var(--ss-ink)] px-6 py-3.5 text-xs font-semibold text-white">
+                <Link to="/projects" className="group inline-flex items-center gap-3 rounded-sm bg-[var(--ss-ink)] px-5 py-3 text-xs font-semibold text-white">
                   {t('hero.cta')}<ArrowRight className="size-4 transition-transform duration-500 group-hover:translate-x-1" />
                 </Link>
               </motion.div>
             </motion.div>
           </motion.div>
 
-          <motion.div style={{ y: visualY, scale: visualScale, rotateX, rotateY, transformPerspective: 1300 }} className="relative mx-auto h-[36svh] w-full max-w-[25rem] sm:h-[43svh] lg:h-[68svh] lg:max-w-[31rem]">
-            <div className="absolute -inset-4 translate-x-5 translate-y-5 border border-black/10 bg-[var(--ss-panel)]" />
-            <div className="absolute -inset-2 -translate-x-3 -translate-y-3 border border-black/10 bg-white/55" />
-            <div className="relative flex size-full flex-col border border-black/15 bg-[var(--ss-ink)] p-2 shadow-[0_35px_90px_rgba(18,18,18,.18)]">
+          <motion.figure style={{ y: visualY, scale: visualScale }} className="mx-auto flex h-[36svh] w-full max-w-[25rem] flex-col border border-black/15 bg-[var(--ss-ink)] p-2 sm:h-[43svh] lg:h-[68svh] lg:max-w-[31rem]">
               <div className="relative min-h-0 flex-1 overflow-hidden bg-black/20">
-                {projects[0]?.image && <img src={projects[0].image} alt={projects[0].name} className="size-full object-cover grayscale-[18%] transition-transform duration-1000 ease-out hover:scale-[1.025]" />}
+                {project?.image && <img src={project.image} alt={project.name} className="size-full object-cover grayscale-[18%]" />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/5" />
-                <p className="absolute left-4 top-4 text-[9px] font-semibold uppercase tracking-[.22em] text-white/75">Live project / 01</p>
               </div>
-              <div className="flex items-end justify-between px-3 pb-2 pt-4 text-white">
-                <div><p className="text-[9px] uppercase tracking-[.18em] text-white/40">Currently building</p><p className="mt-1 text-sm font-medium tracking-[-.025em]">{projects[0]?.name ?? 'Project in progress'}</p></div>
-                <span className="text-xs text-white/45">2024—26</span>
-              </div>
-            </div>
-            <motion.div initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} transition={{ ...motionSpring.depth, delay: .7 }} className="absolute -right-6 bottom-[14%] hidden w-40 border border-black/10 bg-[var(--ss-canvas)] p-3 shadow-[0_18px_45px_rgba(18,18,18,.12)] sm:block">
-              <div className="aspect-[4/3] overflow-hidden bg-black/5">{projects[1]?.image && <img src={projects[1].image} alt="" className="size-full object-cover grayscale-[35%]" />}</div>
-              <p className="mt-2 truncate text-[10px] font-semibold">{projects[1]?.name ?? 'Next project'}</p>
-            </motion.div>
-          </motion.div>
+              <figcaption className="flex items-center justify-between px-3 pb-2 pt-4 text-white">
+                <p className="text-sm font-medium tracking-[-.02em]">{project?.name ?? 'Project in progress'}</p>
+                <span className="text-[10px] uppercase tracking-[.12em] text-white/45">{project?.category ?? 'In progress'}</span>
+              </figcaption>
+          </motion.figure>
         </motion.div>
-        <motion.div style={{ opacity }} className="absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2 text-[9px] font-semibold uppercase tracking-[.24em] text-black/38"><ArrowDown className="size-3 ss-bob" /> Scroll to enter</motion.div>
+        <motion.div style={{ opacity }} className="absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2 text-[9px] font-semibold uppercase tracking-[.2em] text-black/38"><ArrowDown className="size-3 ss-bob" /> {lang === 'ko' ? '스크롤해 시작' : 'Scroll to enter'}</motion.div>
       </div>
     </section>
   );
@@ -123,7 +95,7 @@ function StoryPanel({ scene, project, index, progress }: { scene: Scene; project
           {project?.image && <img src={project.image} alt={project.name} className="size-full object-cover grayscale-[22%] contrast-[1.02]" />}
           <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/10" />
           <div className="absolute inset-x-0 top-0 flex items-center justify-between border-b border-white/15 p-4 text-[9px] font-semibold uppercase tracking-[.2em] text-white/55"><span>Student Startups</span><span>{scene.tag} / 2026</span></div>
-          <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-5 text-white"><div><p className="text-[9px] uppercase tracking-[.2em] text-white/45">Work in progress</p><p className="mt-2 text-lg font-medium tracking-[-.035em] sm:text-2xl">{project?.name ?? 'Project in progress'}</p></div><span className="text-5xl font-light tracking-[-.08em] text-white/30">{scene.no}</span></div>
+          <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-5 text-white"><div><p className="text-[9px] uppercase tracking-[.2em] text-white/45">Work in progress</p><p className="mt-2 text-lg font-medium tracking-[-.025em]">{project?.name ?? 'Project in progress'}</p></div><span className="text-xs text-white/35">{scene.no} / 04</span></div>
         </motion.div>
       </div>
     </article>
@@ -171,7 +143,7 @@ function Story() {
     <section ref={ref} className="relative h-[540svh] bg-[var(--ss-night)] text-white">
       <div className="sticky top-0 h-screen overflow-hidden">
         <div className="absolute inset-0 ss-dark-grain opacity-40" />
-        <div className="absolute inset-x-5 top-6 z-20 flex items-center justify-between text-[9px] font-semibold uppercase tracking-[.24em] text-white/38 sm:inset-x-8"><span>The build cycle</span><span>Vertical input / Horizontal story</span></div>
+        <div className="absolute inset-x-5 top-6 z-20 flex items-center justify-between text-[9px] font-semibold uppercase tracking-[.2em] text-white/38 sm:inset-x-8"><span>{lang === 'ko' ? '프로젝트가 움직이는 법' : 'How projects move'}</span><span>{lang === 'ko' ? '네 개의 체크포인트' : 'Four checkpoints'}</span></div>
         <motion.div style={{ x: trackX }} className="relative z-10 flex h-full w-[400vw] will-change-transform">
           {scenes.map((scene, index) => <StoryPanel key={scene.no} scene={scene} project={projects[index] ?? projects[0]} index={index} progress={progress} />)}
         </motion.div>
@@ -199,21 +171,20 @@ export default function Home() {
   return (
     <div className="bg-[var(--ss-canvas)]">
       <Hero />
-      <div className="ss-marquee overflow-hidden border-y border-black/15 bg-[var(--ss-panel)] py-3 text-[10px] font-semibold uppercase tracking-[.26em] text-black/65"><div>BUILD · TEST · SELL · RECORD · BUILD · TEST · SELL · RECORD · BUILD · TEST · SELL · RECORD ·</div></div>
       <Story />
 
       <section className="px-5 py-24 sm:px-8 lg:py-36">
         <div className="mx-auto max-w-[90rem]">
           <ScrollReveal className="grid gap-8 lg:grid-cols-[.55fr_1.45fr] lg:items-end"><p className="ss-label text-black/42">{t('proof.kicker')} / 2024—26</p><h2 className="ss-heading max-w-4xl text-[var(--ss-ink)]">{t('impactPreview.title')}</h2></ScrollReveal>
-          <div className="mt-14 grid overflow-hidden border border-black/10 bg-white/40 sm:grid-cols-2 lg:grid-cols-4">
-            {metrics.map(([value, label], index) => <ScrollReveal key={label} delay={index * STAGGER} className="min-w-0"><div className="flex min-h-52 flex-col justify-between border-b border-r border-black/10 p-6 lg:p-7"><div className="ss-label flex items-center justify-between text-black/38"><span>0{index + 1}</span><span className="h-px w-6 bg-[var(--ss-bronze)]" /></div><div><p className="ss-stat break-words tabular-nums">{value}</p><p className="mt-3 text-xs font-medium text-black/45">{label}</p></div></div></ScrollReveal>)}
+          <div className="mt-14 grid border-y border-black/15 sm:grid-cols-2 lg:grid-cols-4">
+            {metrics.map(([value, label], index) => <ScrollReveal key={label} delay={index * STAGGER} className="min-w-0"><div className="flex min-h-40 flex-col justify-between border-b border-black/10 py-6 sm:px-6 sm:first:pl-0 lg:border-b-0 lg:border-r lg:last:border-r-0"><span className="ss-label text-black/35">0{index + 1}</span><div><p className="ss-stat break-words tabular-nums">{value}</p><p className="mt-2 text-xs font-medium text-black/45">{label}</p></div></div></ScrollReveal>)}
           </div>
         </div>
       </section>
 
       <section className="bg-white px-5 py-24 sm:px-8 lg:py-36">
         <div className="mx-auto max-w-[90rem]">
-          <ScrollReveal className="flex flex-col gap-7 sm:flex-row sm:items-end sm:justify-between"><div><p className="ss-label text-black/42">Selected work</p><h2 className="ss-heading mt-5">{t('featured.title')}</h2></div><Link to="/projects" className="group inline-flex items-center gap-2 text-sm font-semibold">{t('featured.viewAll')}<ArrowUpRight className="size-4 transition-transform duration-500 group-hover:translate-x-1 group-hover:-translate-y-1" /></Link></ScrollReveal>
+          <ScrollReveal className="flex flex-col gap-7 sm:flex-row sm:items-end sm:justify-between"><div><p className="ss-label text-black/42">{lang === 'ko' ? '선정 프로젝트' : 'Selected work'}</p><h2 className="ss-heading mt-5">{t('featured.title')}</h2></div><Link to="/projects" className="group inline-flex items-center gap-2 text-sm font-semibold">{t('featured.viewAll')}<ArrowUpRight className="size-4 transition-transform duration-500 group-hover:translate-x-1 group-hover:-translate-y-1" /></Link></ScrollReveal>
           <div className="mt-12 grid gap-5 lg:grid-cols-3">{projects.slice(0, 3).map((project, index) => <ScrollReveal key={project.id} delay={index * STAGGER}><ProjectCard project={project} index={index} priority /></ScrollReveal>)}</div>
         </div>
       </section>
@@ -221,8 +192,8 @@ export default function Home() {
       <section className="relative overflow-hidden bg-[var(--ss-night)] px-5 py-24 text-white sm:px-8 lg:py-36">
         <div className="absolute right-[8%] top-0 h-full w-px bg-white/10" />
         <div className="relative mx-auto max-w-[90rem]">
-          <ScrollReveal><p className="ss-label text-white/38">Your move</p><h2 className="ss-display mt-6 max-w-4xl">{t('cta.title')}</h2></ScrollReveal>
-          <ScrollReveal delay={.1} className="mt-12 flex flex-col gap-7 border-t border-white/20 pt-7 sm:flex-row sm:items-center sm:justify-between"><p className="max-w-2xl text-base leading-7 text-white/48">{t('cta.subtitle')}</p><motion.div whileTap={{ scale: .98, y: 1 }} transition={motionSpring.press}><Link to="/contact" className="inline-flex items-center gap-3 rounded-full bg-white px-6 py-3.5 text-xs font-semibold text-black">{t('cta.button')}<ArrowRight className="size-4" /></Link></motion.div></ScrollReveal>
+          <ScrollReveal><p className="ss-label text-white/38">{lang === 'ko' ? '다음 행동' : 'Your move'}</p><h2 className="ss-heading mt-6 max-w-3xl">{t('cta.title')}</h2></ScrollReveal>
+          <ScrollReveal delay={.1} className="mt-10 flex flex-col gap-7 border-t border-white/20 pt-7 sm:flex-row sm:items-center sm:justify-between"><p className="max-w-2xl text-base leading-7 text-white/48">{t('cta.subtitle')}</p><motion.div whileTap={{ scale: .98, y: 1 }} transition={motionSpring.press}><Link to="/contact" className="inline-flex items-center gap-3 rounded-sm bg-white px-5 py-3 text-xs font-semibold text-black">{t('cta.button')}<ArrowRight className="size-4" /></Link></motion.div></ScrollReveal>
         </div>
       </section>
     </div>

@@ -26,7 +26,7 @@ export default function About() {
         <div className="relative mx-auto flex min-h-[54svh] max-w-[90rem] flex-col justify-between">
           <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={motionSpring.reveal} className="ss-label text-black/45">About / What holds the work together</motion.p>
           <div className="relative z-10 mt-24">
-            <motion.h1 initial={reduceMotion ? false : { opacity: 0, y: 32, filter: 'blur(10px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} transition={motionSpring.depth} className="ss-display max-w-[16ch]">{t('about.title')}</motion.h1>
+            <motion.h1 initial={reduceMotion ? false : { opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={motionSpring.depth} className="ss-display max-w-[16ch]">{t('about.title')}</motion.h1>
             <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ ...motionSpring.reveal, delay: .25 }} className="mt-12 grid gap-8 border-t border-black/20 pt-7 lg:grid-cols-[1fr_.65fr]">
               <p className="ss-lead max-w-3xl">{t('about.subtitle')}</p>
               <p className="max-w-lg text-base leading-7 text-black/55">{t('mission.p2')}</p>
@@ -57,7 +57,6 @@ export default function About() {
             <p className="ss-label text-white/40">02 / Operating model</p>
             <h2 className="ss-heading mt-7 max-w-xl">{t('about.teamWheelTitle')}</h2>
             <p className="mt-7 max-w-md text-base leading-7 text-white/52">{t('about.teamWheelDesc')}</p>
-            <div className="relative mt-12 hidden h-56 overflow-hidden lg:block"><MotionMark dark className="absolute left-4 top-2 size-48" /></div>
           </ScrollReveal>
           <div className="border-t border-white/25">
             {model.map(([title, body], index) => (
@@ -74,8 +73,8 @@ export default function About() {
 
       <section className="relative overflow-hidden bg-[var(--ss-sand)] px-5 py-24 sm:px-8 lg:py-32">
         <div className="mx-auto max-w-[90rem]">
-          <ScrollReveal><p className="ss-label text-black/45">03 / People</p><h2 className="ss-display mt-5 max-w-4xl">{lang === 'ko' ? '결국, 사람이 일을 움직입니다.' : 'In the end, people move the work.'}</h2></ScrollReveal>
-          <ScrollReveal delay={.1} className="mt-12 flex justify-end"><motion.div whileTap={{ scale: .97, y: 1 }} transition={motionSpring.press}><Link to="/team" className="group inline-flex items-center gap-3 rounded-full bg-black px-6 py-4 text-sm font-bold text-white">{t('nav.team')}<ArrowRight className="size-4 transition-transform group-hover:translate-x-1" /></Link></motion.div></ScrollReveal>
+          <ScrollReveal><p className="ss-label text-black/45">03 / People</p><h2 className="ss-heading mt-5 max-w-3xl">{lang === 'ko' ? '결국, 사람이 일을 움직입니다.' : 'In the end, people move the work.'}</h2></ScrollReveal>
+          <ScrollReveal delay={.1} className="mt-12 flex justify-end"><motion.div whileTap={{ scale: .97, y: 1 }} transition={motionSpring.press}><Link to="/team" className="group inline-flex items-center gap-3 rounded-sm bg-black px-5 py-3 text-sm font-bold text-white">{t('nav.team')}<ArrowRight className="size-4 transition-transform group-hover:translate-x-1" /></Link></motion.div></ScrollReveal>
         </div>
       </section>
     </div>
