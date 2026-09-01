@@ -42,11 +42,7 @@ export default function Navbar() {
     <header className={`fixed inset-x-0 top-0 z-[60] border-b border-[var(--ss-ink)]/15 bg-[var(--ss-paper)] transition-shadow duration-200 ${scrolled ? 'shadow-[0_8px_24px_rgba(23,36,59,.06)]' : ''}`}>
       <div className="mx-auto flex h-[4.5rem] max-w-[80rem] items-center gap-5 px-5 sm:px-8">
         <Link to="/" aria-label="Student Startups home" className="mr-auto inline-flex items-center gap-3 text-[var(--ss-ink)]">
-          <span className="brand-wordmark"><img src="/brand/bnss-logo.png" alt="" /></span>
-          <span className="hidden border-l border-[var(--ss-rule)] pl-3 leading-none sm:block">
-            <span className="block font-heading text-[13px] font-semibold">Student Startups</span>
-            <span className="mt-1.5 block text-[8px] font-semibold uppercase tracking-[.14em] text-[var(--ss-muted)]">Burnaby North</span>
-          </span>
+          <span className="brand-wordmark"><img src="/brand/student-startups-logo.png" alt="" /></span>
         </Link>
 
         <nav className="hidden items-center gap-6 xl:flex" aria-label="Primary navigation">
