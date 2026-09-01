@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 ::selection {
-  background: rgba(139, 38, 53, .2);
+  background: rgba(119, 39, 53, .2);
   color: inherit;
   -webkit-text-fill-color: inherit;
 }
@@ -32,62 +32,56 @@
     --color-beige: 43 29% 94%;
     --color-beige-dark: 42 18% 87%;
     --color-warm-white: 42 33% 98%;
-    --color-charcoal: 219 44% 16%;
-    --color-dark: 218 31% 24%;
-    --color-mid: 218 12% 42%;
-    --color-light: 218 10% 58%;
-    --color-accent: 351 57% 35%;
+    --color-charcoal: 344 21% 14%;
+    --color-dark: 348 52% 28%;
+    --color-mid: 348 10% 41%;
+    --color-light: 348 8% 57%;
+    --color-accent: 349 51% 32%;
     --color-accent-soft: 350 28% 92%;
 
     /* shadcn tokens */
     --background: 43 29% 94%;
-    --foreground: 219 44% 16%;
+    --foreground: 344 21% 14%;
     --card: 42 33% 98%;
-    --card-foreground: 219 44% 16%;
+    --card-foreground: 344 21% 14%;
     --popover: 42 33% 98%;
-    --popover-foreground: 219 44% 16%;
-    --primary: 219 44% 16%;
+    --popover-foreground: 344 21% 14%;
+    --primary: 344 21% 14%;
     --primary-foreground: 43 29% 94%;
     --secondary: 42 18% 87%;
-    --secondary-foreground: 219 44% 16%;
+    --secondary-foreground: 344 21% 14%;
     --muted: 42 18% 87%;
-    --muted-foreground: 218 12% 42%;
-    --accent: 351 57% 35%;
+    --muted-foreground: 348 10% 41%;
+    --accent: 349 51% 32%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     --border: 42 15% 80%;
     --input: 42 15% 80%;
-    --ring: 351 57% 35%;
+    --ring: 349 51% 32%;
     --radius: 0.25rem;
 
-    /* Institutional system: paper, navy, one burgundy accent. */
+    /* Institutional system: paper, ink, and one maroon family. */
     --ss-canvas: #f5f2ea;
     --ss-paper: #f5f2ea;
     --ss-surface: #fffdf8;
-    --ss-ink: #17243b;
-    --ss-night: #17243b;
-    --ss-navy: #17243b;
-    --ss-navy-soft: #24344f;
-    --ss-accent: #8b2635;
+    --ss-ink: #2b1c20;
+    --ss-night: #681f2d;
+    --ss-navy: #681f2d;
+    --ss-navy-soft: #813344;
+    --ss-accent: #772735;
     --ss-rule: #d8d2c6;
-    --ss-muted: #626b7a;
+    --ss-muted: #716467;
     --ss-panel: #e8e3d9;
-    --ss-bronze: #8b2635;
-    --ss-coral: #8b2635;
-    --ss-lime: #e8e3d9;
-    --ss-sky: #e2e6eb;
-    --ss-violet: #e7e0e2;
-    --ss-sand: #eee9df;
 
-    --sidebar-background: 219 44% 16%;
+    --sidebar-background: 348 52% 28%;
     --sidebar-foreground: 43 29% 94%;
-    --sidebar-primary: 351 57% 35%;
+    --sidebar-primary: 349 51% 32%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 218 31% 24%;
+    --sidebar-accent: 348 42% 34%;
     --sidebar-accent-foreground: 43 29% 94%;
-    --sidebar-border: 218 31% 24%;
-    --sidebar-ring: 351 57% 35%;
+    --sidebar-border: 348 42% 34%;
+    --sidebar-ring: 349 51% 32%;
   }
 }
 
@@ -265,6 +259,26 @@
 
   .ss-link {
     @apply inline-flex items-center gap-2 border-b border-current pb-1 text-xs font-semibold uppercase tracking-[0.08em] transition-colors duration-150;
+  }
+
+  .brand-wordmark {
+    position: relative;
+    display: block;
+    width: 7.25rem;
+    height: 3.1rem;
+    flex: none;
+    overflow: hidden;
+  }
+
+  .brand-wordmark img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 17rem;
+    max-width: none;
+    transform: translate(-50%, -50%);
+    filter: grayscale(1) sepia(1) saturate(4.5) hue-rotate(300deg) brightness(.52);
+    mix-blend-mode: multiply;
   }
 
 }

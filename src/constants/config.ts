@@ -35,16 +35,6 @@ export const STAGE_LABELS_KO: Record<number, string> = {
   7: '완료',
 };
 
-export const STAGE_COLORS: Record<number, string> = {
-  1: 'bg-violet-50 text-violet-700 border-violet-200',
-  2: 'bg-blue-50 text-blue-700 border-blue-200',
-  3: 'bg-cyan-50 text-cyan-700 border-cyan-200',
-  4: 'bg-amber-50 text-amber-700 border-amber-200',
-  5: 'bg-orange-50 text-orange-700 border-orange-200',
-  6: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  7: 'bg-green-50 text-green-800 border-green-200',
-};
-
 export const TERMS = ['Term 1 (2025)', 'Term 2 (2025)', 'Term 3 (2026)', 'Term 4 (2026)'];
 
 export const TEAM_OPTIONS = ['Finance', 'Marketing', 'Design', 'Production'];

@@ -39,11 +39,11 @@ export default function Navbar() {
   }, [open]);
 
   return (
-    <header className={`fixed inset-x-0 top-0 z-[60] border-b border-[var(--ss-ink)]/15 bg-[var(--ss-paper)] transition-shadow duration-200 ${scrolled ? 'shadow-[0_8px_24px_rgba(23,36,59,.06)]' : ''}`}>
+    <header className={`fixed inset-x-0 top-0 z-[60] border-b border-[var(--ss-ink)]/15 bg-[var(--ss-paper)] transition-shadow duration-200 ${scrolled ? 'shadow-[0_8px_24px_rgba(43,28,32,.07)]' : ''}`}>
       <div className="mx-auto flex h-[4.5rem] max-w-[80rem] items-center gap-5 px-5 sm:px-8">
-        <Link to="/" className="group mr-auto inline-flex items-center gap-3 text-[var(--ss-ink)]">
-          <span className="grid size-8 place-items-center border border-[var(--ss-ink)] text-[9px] font-semibold tracking-[.08em] transition-colors duration-150 group-hover:bg-[var(--ss-ink)] group-hover:text-[var(--ss-paper)]">SS</span>
-          <span className="leading-none"><span className="block font-heading text-sm font-semibold tracking-[-.02em]">Student Startups</span><span className="mt-1 block text-[8px] font-semibold uppercase tracking-[.16em] text-[var(--ss-muted)]">BNSS</span></span>
+        <Link to="/" aria-label="Student Startups home" className="mr-auto inline-flex items-center gap-3 text-[var(--ss-ink)]">
+          <span className="brand-wordmark"><img src="/og-image-kakao-20260408c.jpg" alt="" /></span>
+          <span className="hidden border-l border-[var(--ss-rule)] pl-3 text-[8px] font-semibold uppercase leading-4 tracking-[.14em] text-[var(--ss-muted)] sm:block">BNSS<br />Program</span>
         </Link>
 
         <nav className="hidden items-center gap-6 xl:flex" aria-label="Primary navigation">

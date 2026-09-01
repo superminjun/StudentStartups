@@ -15,7 +15,7 @@ export default function Footer() {
       <div className="mx-auto max-w-[80rem] px-5 pb-7 pt-14 sm:px-8 lg:pt-20">
         <div className="grid gap-12 border-b border-white/15 pb-14 lg:grid-cols-[1.35fr_.65fr_.8fr]">
           <div>
-            <div className="flex items-center gap-3"><span className="grid size-9 place-items-center border border-white/55 text-[9px] font-semibold tracking-[.08em]">SS</span><p className="font-heading text-lg font-semibold">Student Startups</p></div>
+            <Link to="/" aria-label="Student Startups home" className="inline-flex bg-[var(--ss-paper)] px-2"><span className="brand-wordmark"><img src="/og-image-kakao-20260408c.jpg" alt="" loading="lazy" /></span></Link>
             <p className="mt-7 max-w-md text-sm leading-7 text-white/58">{t('footer.description')}</p>
             <Link to="/projects" className="ss-link mt-8 text-white">{t('footer.viewWork')}<ArrowUpRight className="size-4" /></Link>
           </div>
@@ -28,7 +28,7 @@ export default function Footer() {
           </nav>
           <div className="text-xs leading-6 text-white/58">
             <p className="mb-4 text-[10px] font-semibold uppercase tracking-[.14em] text-white/35">{t('footer.connect')}</p>
-            <a href={`mailto:${SITE_CONFIG.email}`} className="break-all text-white transition-colors hover:text-[var(--ss-lime)]">{SITE_CONFIG.email}</a>
+            <a href={`mailto:${SITE_CONFIG.email}`} className="break-all text-white transition-colors hover:text-[var(--ss-paper)]">{SITE_CONFIG.email}</a>
             <p className="mt-3">{SITE_CONFIG.address}</p>
             <div className="mt-6 flex gap-4">
               <a href={SITE_CONFIG.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram"><Instagram className="size-5" /></a>

@@ -17,11 +17,11 @@ const defaultTheme = {
   colorBeige: '#f5f2ea',
   colorBeigeDark: '#ddd7cb',
   colorWarmWhite: '#fffdf8',
-  colorCharcoal: '#17243b',
-  colorDark: '#2a3a55',
-  colorMid: '#626b7a',
-  colorLight: '#89909b',
-  colorAccent: '#8b2635',
+  colorCharcoal: '#2b1c20',
+  colorDark: '#681f2d',
+  colorMid: '#716467',
+  colorLight: '#978b8d',
+  colorAccent: '#772735',
   colorAccentSoft: '#eee3e5',
 };
 
@@ -48,7 +48,7 @@ type SiteThemeRow = {
 
 type SiteThemeStatus = 'idle' | 'loading' | 'ready' | 'error' | 'demo';
 
-const isLegacyTheme = (accent?: string | null) => ['#e66b19', '#9a7654'].includes(accent?.toLowerCase() ?? '');
+const isLegacyTheme = (accent?: string | null) => ['#e66b19', '#9a7654', '#8b2635'].includes(accent?.toLowerCase() ?? '');
 
 const mapRowToTheme = (row: SiteThemeRow | null): SiteTheme => !row || isLegacyTheme(row.color_accent) ? defaultTheme : ({
   fontUrl: row?.font_url ?? defaultTheme.fontUrl,
@@ -98,15 +98,15 @@ const resolveMode = (mode?: ColorMode): ColorMode => mode ?? getSystemColorMode(
 
 const deriveDarkTheme = (theme: SiteTheme): SiteTheme => ({
   ...theme,
-  colorBeige: '#111a2b',
-  colorBeigeDark: '#1c2940',
-  colorWarmWhite: '#202f49',
+  colorBeige: '#1b1014',
+  colorBeigeDark: '#2d171e',
+  colorWarmWhite: '#362029',
   colorCharcoal: '#f5f2ea',
   colorDark: '#e7e4dc',
-  colorMid: '#bcc3cf',
-  colorLight: '#8e99aa',
-  colorAccent: '#c76a77',
-  colorAccentSoft: '#3b2833',
+  colorMid: '#c8b9bd',
+  colorLight: '#9f8e93',
+  colorAccent: '#d27b8a',
+  colorAccentSoft: '#4a2530',
 });
 
 const applyThemeToDocument = (theme: SiteTheme, mode?: ColorMode) => {
@@ -171,17 +171,15 @@ const applyThemeToDocument = (theme: SiteTheme, mode?: ColorMode) => {
   setVar('--ss-paper', beige);
   setVar('--ss-surface', warmWhite);
   setVar('--ss-ink', charcoal);
-  setVar('--ss-night', resolvedMode === 'dark' ? beige : charcoal);
-  setVar('--ss-navy', resolvedMode === 'dark' ? beige : charcoal);
-  setVar('--ss-navy-soft', resolvedMode === 'dark' ? beigeDark : dark);
+  setVar('--ss-night', resolvedMode === 'dark' ? beigeDark : dark);
+  setVar('--ss-navy', resolvedMode === 'dark' ? beigeDark : dark);
+  setVar('--ss-navy-soft', resolvedMode === 'dark' ? warmWhite : accent);
   setVar('--ss-accent', accent);
   setVar('--ss-rule', beigeDark);
   setVar('--ss-muted', mid);
   setVar('--ss-panel', beigeDark);
-  setVar('--ss-bronze', accent);
-  setVar('--ss-coral', accent);
 
-  const sidebarBackground = resolvedMode === 'dark' ? beige : charcoal;
+  const sidebarBackground = resolvedMode === 'dark' ? beige : dark;
   const sidebarForeground = resolvedMode === 'dark' ? charcoal : beige;
   const sidebarAccent = resolvedMode === 'dark' ? beigeDark : dark;
   const sidebarBorder = resolvedMode === 'dark' ? beigeDark : dark;
